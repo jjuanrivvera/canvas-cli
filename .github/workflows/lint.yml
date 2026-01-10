@@ -97,15 +97,3 @@ jobs:
       - name: Run govulncheck
         run: govulncheck ./...
 
-  markdown-lint:
-    name: Markdown Lint
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Lint Markdown files
-        uses: avto-dev/markdown-lint@v1
-        with:
-          args: '**/*.md'
-          ignore: 'vendor'

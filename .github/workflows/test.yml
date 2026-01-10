@@ -42,6 +42,8 @@ jobs:
 
       - name: Run tests
         shell: bash
+        env:
+          CANVAS_CLI_MACHINE_ID: test-machine-id-${{ github.run_id }}
         run: go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
 
       - name: Upload coverage to Codecov
@@ -68,6 +70,8 @@ jobs:
           go-version: '1.21'
 
       - name: Run short tests
+        env:
+          CANVAS_CLI_MACHINE_ID: test-machine-id-${{ github.run_id }}
         run: go test -v -short ./...
 
   coverage:
@@ -84,6 +88,8 @@ jobs:
           go-version: '1.21'
 
       - name: Run tests with coverage
+        env:
+          CANVAS_CLI_MACHINE_ID: test-machine-id-${{ github.run_id }}
         run: |
           go test -v -coverprofile=coverage.out -covermode=atomic ./...
           go tool cover -html=coverage.out -o coverage.html

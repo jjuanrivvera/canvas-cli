@@ -59,6 +59,11 @@ func generateSalt() ([]byte, error) {
 // Returns an error if no secure machine ID can be obtained
 // Note: Does NOT fall back to hostname as that is too easily guessable
 func getMachineID() (string, error) {
+	// Check for environment variable override (useful for testing/CI)
+	if envID := os.Getenv("CANVAS_CLI_MACHINE_ID"); envID != "" {
+		return envID, nil
+	}
+
 	// Try Linux machine-id files first
 	if fileExists("/etc/machine-id") {
 		data, err := os.ReadFile("/etc/machine-id")
@@ -98,7 +103,18 @@ func getMachineID() (string, error) {
 		}
 	}
 
-	// Windows - try wmic (Windows Management Instrumentation)
+	// Windows - try PowerShell (more reliable on modern Windows and CI)
+	cmd = exec.Command("powershell", "-Command",
+		"(Get-CimInstance -ClassName Win32_ComputerSystemProduct).UUID")
+	output, err = cmd.Output()
+	if err == nil {
+		id := strings.TrimSpace(string(output))
+		if id != "" && id != "FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF" {
+			return id, nil
+		}
+	}
+
+	// Windows fallback - try wmic (deprecated but may still work)
 	cmd = exec.Command("wmic", "csproduct", "get", "UUID")
 	output, err = cmd.Output()
 	if err == nil {
@@ -106,16 +122,27 @@ func getMachineID() (string, error) {
 		for _, line := range lines {
 			line = strings.TrimSpace(line)
 			// Skip header line and empty lines
-			if line != "" && line != "UUID" {
+			if line != "" && line != "UUID" && line != "FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF" {
 				return line, nil
 			}
+		}
+	}
+
+	// Windows fallback - try registry via PowerShell
+	cmd = exec.Command("powershell", "-Command",
+		"(Get-ItemProperty -Path 'HKLM:\\SOFTWARE\\Microsoft\\Cryptography' -Name 'MachineGuid').MachineGuid")
+	output, err = cmd.Output()
+	if err == nil {
+		id := strings.TrimSpace(string(output))
+		if id != "" {
+			return id, nil
 		}
 	}
 
 	// Fail securely - do not fall back to guessable identifiers like hostname
 	// This ensures encryption keys are based on truly unique machine identifiers
 	return "", fmt.Errorf("could not obtain unique machine identifier: " +
-		"ensure /etc/machine-id exists (Linux), ioreg works (macOS), or wmic works (Windows)")
+		"ensure /etc/machine-id exists (Linux), ioreg works (macOS), or wmic/PowerShell works (Windows)")
 }
 
 // getUsername gets the current username
