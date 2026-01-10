@@ -4,6 +4,7 @@ run:
   modules-download-mode: readonly
 
 linters:
+  disable-all: true
   enable:
     - gosimple
     - govet
