@@ -89,6 +89,11 @@ issues:
         - gochecknoglobals
         - gocognit
 
+    # Exclude dupl from API files (similar patterns across services are intentional)
+    - path: internal/api/
+      linters:
+        - dupl
+
     # Exclude known false positives
     - linters:
         - staticcheck
@@ -96,9 +101,10 @@ issues:
 
   max-issues-per-linter: 0
   max-same-issues: 0
+  uniq-by-line: true
 
 output:
-  format: colored-line-number
+  formats:
+    - format: colored-line-number
   print-issued-lines: true
   print-linter-name: true
-  uniq-by-line: true
