@@ -6,15 +6,21 @@ run:
 linters:
   disable-all: true
   enable:
+    # Default linters
     - gosimple
     - govet
     - ineffassign
     - staticcheck
     - typecheck
     - unused
+    # Formatting
     - gofmt
     - goimports
     - misspell
+    # Error handling
+    - errcheck
+    # Code quality
+    - unconvert
 
 linters-settings:
   gofmt:
@@ -23,9 +29,27 @@ linters-settings:
   goimports:
     local-prefixes: github.com/jjuanrivvera/canvas-cli
 
+  errcheck:
+    exclude-functions:
+      - (io.Closer).Close
+      - (*github.com/spf13/cobra.Command).MarkFlagRequired
+      - github.com/spf13/viper.BindPFlag
+      - (*net/http.Server).Shutdown
+      - fmt.Scanln
+      - fmt.Sscanf
+      - fmt.Println
+      - fmt.Printf
+      - fmt.Fprintln
+      - fmt.Fprintf
+
 issues:
   max-issues-per-linter: 0
   max-same-issues: 0
+  exclude-rules:
+    # Exclude errcheck in test files
+    - path: _test\.go
+      linters:
+        - errcheck
 
 output:
   formats:
