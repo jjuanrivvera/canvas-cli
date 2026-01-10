@@ -1,6 +1,6 @@
-# CLAUDE.md
+# AGENTS.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to AI agents (Claude Code, Cursor, Copilot, etc.) when working with code in this repository.
 
 ## Build & Development Commands
 
@@ -19,7 +19,6 @@ go test -v -run TestName ./... # Run single test
 make fmt                # Format code
 make lint               # Run golangci-lint
 make vet                # Run go vet
-gofmt -l .              # Check formatting (CI uses this)
 
 # Install
 make install            # Install to /usr/local/bin
@@ -28,6 +27,13 @@ make uninstall          # Remove from /usr/local/bin
 # Setup
 make setup-hooks        # Install git pre-commit hooks
 ```
+
+## Pre-commit Hook
+
+Run `make setup-hooks` to enable. Runs automatically on each commit:
+- `gofmt` - formatting check
+- `go vet` - static analysis
+- `go test -short` - quick test pass
 
 ## Architecture
 
@@ -46,6 +52,7 @@ internal/
   batch/        → Concurrent batch operations (worker pool)
   output/       → Formatters (table, JSON, YAML, CSV)
   repl/         → Interactive shell
+.ai/            → Canvas LMS API documentation (gitignored)
 ```
 
 ### Key Patterns

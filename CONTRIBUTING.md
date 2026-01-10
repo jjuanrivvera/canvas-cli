@@ -34,6 +34,11 @@ Thank you for your interest in contributing to Canvas CLI! This document provide
    make build
    ```
 
+6. Set up pre-commit hooks:
+   ```bash
+   make setup-hooks
+   ```
+
 ## Development Workflow
 
 ### Branch Strategy
