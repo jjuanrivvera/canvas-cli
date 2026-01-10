@@ -67,7 +67,7 @@ func (c *MultiTierCache) GetJSON(key string, v interface{}) error {
 // Set stores a value in both memory and disk caches
 func (c *MultiTierCache) Set(key string, value []byte) {
 	c.memory.Set(key, value)
-	c.disk.Set(key, value)
+	_ = c.disk.Set(key, value) // Best-effort disk cache
 }
 
 // SetJSON marshals and stores a value in both caches
@@ -84,19 +84,19 @@ func (c *MultiTierCache) SetJSON(key string, v interface{}) error {
 // SetWithTTL stores a value in both caches with a custom TTL
 func (c *MultiTierCache) SetWithTTL(key string, value []byte, ttl time.Duration) {
 	c.memory.SetWithTTL(key, value, ttl)
-	c.disk.SetWithTTL(key, value, ttl)
+	_ = c.disk.SetWithTTL(key, value, ttl) // Best-effort disk cache
 }
 
 // Delete removes a key from both caches
 func (c *MultiTierCache) Delete(key string) {
 	c.memory.Delete(key)
-	c.disk.Delete(key)
+	_ = c.disk.Delete(key) // Best-effort disk cache
 }
 
 // Clear removes all items from both caches
 func (c *MultiTierCache) Clear() {
 	c.memory.Clear()
-	c.disk.Clear()
+	_ = c.disk.Clear() // Best-effort disk cache
 }
 
 // Has checks if a key exists in either cache

@@ -36,6 +36,11 @@ linters-settings:
   errcheck:
     exclude-functions:
       - (io.Closer).Close
+      - (*github.com/spf13/cobra.Command).MarkFlagRequired
+      - (*net/http.Server).Shutdown
+      - fmt.Scanln
+      - fmt.Println
+      - fmt.Printf
 
 issues:
   max-issues-per-linter: 0
