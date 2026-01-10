@@ -41,6 +41,7 @@ jobs:
         run: go mod verify
 
       - name: Run tests
+        shell: bash
         run: go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
 
       - name: Upload coverage to Codecov
@@ -51,6 +52,7 @@ jobs:
           name: codecov-${{ matrix.os }}-go${{ matrix.go-version }}
 
       - name: Build
+        shell: bash
         run: go build -v ./cmd/canvas
 
   test-short:
