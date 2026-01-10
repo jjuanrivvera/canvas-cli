@@ -25,11 +25,11 @@ type Config struct {
 
 // Instance represents a Canvas instance configuration
 type Instance struct {
-	Name        string `yaml:"name"`
-	URL         string `yaml:"url"`
-	ClientID    string `yaml:"client_id,omitempty"`
+	Name         string `yaml:"name"`
+	URL          string `yaml:"url"`
+	ClientID     string `yaml:"client_id,omitempty"`
 	ClientSecret string `yaml:"client_secret,omitempty"`
-	Description string `yaml:"description,omitempty"`
+	Description  string `yaml:"description,omitempty"`
 }
 
 // Settings holds global application settings

@@ -125,20 +125,20 @@ func (s *SyncOperation) createAssignmentInTarget(ctx context.Context, courseID i
 	// Map the source assignment properties to CreateAssignmentParams
 	// Note: Some properties may not transfer directly (e.g., IDs, course-specific settings)
 	params := &api.CreateAssignmentParams{
-		Name:                   assignment.Name,
-		Description:            assignment.Description,
-		PointsPossible:         assignment.PointsPossible,
-		GradingType:            assignment.GradingType,
-		SubmissionTypes:        assignment.SubmissionTypes,
-		AllowedExtensions:      assignment.AllowedExtensions,
-		PeerReviews:            assignment.PeerReviews,
-		AutomaticPeerReviews:   assignment.AutomaticPeerReviews,
-		Published:              assignment.Published,
-		OmitFromFinalGrade:     assignment.OmitFromFinalGrade,
-		ModeratedGrading:       assignment.ModeratedGrading,
-		GraderCount:            assignment.GraderCount,
-		AnonymousGrading:       assignment.AnonymousGrading,
-		AllowedAttempts:        assignment.AllowedAttempts,
+		Name:                 assignment.Name,
+		Description:          assignment.Description,
+		PointsPossible:       assignment.PointsPossible,
+		GradingType:          assignment.GradingType,
+		SubmissionTypes:      assignment.SubmissionTypes,
+		AllowedExtensions:    assignment.AllowedExtensions,
+		PeerReviews:          assignment.PeerReviews,
+		AutomaticPeerReviews: assignment.AutomaticPeerReviews,
+		Published:            assignment.Published,
+		OmitFromFinalGrade:   assignment.OmitFromFinalGrade,
+		ModeratedGrading:     assignment.ModeratedGrading,
+		GraderCount:          assignment.GraderCount,
+		AnonymousGrading:     assignment.AnonymousGrading,
+		AllowedAttempts:      assignment.AllowedAttempts,
 	}
 
 	// Convert time fields to ISO8601 strings if set
@@ -259,11 +259,11 @@ func (s *SyncOperation) promptCourseConflict(ctx context.Context) ConflictResolu
 
 // SyncResult contains the result of a sync operation
 type SyncResult struct {
-	TotalItems     int
-	SyncedItems    int
-	SkippedItems   int
-	FailedItems    int
-	Errors         []error
+	TotalItems   int
+	SyncedItems  int
+	SkippedItems int
+	FailedItems  int
+	Errors       []error
 }
 
 // defaultConcurrency is the default number of concurrent workers for batch sync

@@ -11,11 +11,11 @@ import (
 )
 
 var (
-	assignmentsCourseID     int64
-	assignmentsInclude      []string
-	assignmentsSearchTerm   string
-	assignmentsBucket       string
-	assignmentsOrderBy      string
+	assignmentsCourseID   int64
+	assignmentsInclude    []string
+	assignmentsSearchTerm string
+	assignmentsBucket     string
+	assignmentsOrderBy    string
 )
 
 // assignmentsCmd represents the assignments command group

@@ -236,10 +236,10 @@ func RecoveryMiddleware(logger *log.Logger) Middleware {
 
 // Stats represents webhook listener statistics
 type Stats struct {
-	EventsReceived int64
+	EventsReceived  int64
 	EventsProcessed int64
-	EventsFailed int64
-	HandlerCount int
+	EventsFailed    int64
+	HandlerCount    int
 }
 
 // Stats returns current listener statistics

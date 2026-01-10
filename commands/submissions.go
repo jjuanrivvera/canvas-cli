@@ -18,14 +18,14 @@ var (
 	submissionsGradedSince   string
 
 	// Grade flags
-	gradeScore          float64
-	gradeComment        string
-	gradeExcuse         bool
-	gradePostedGrade    string
+	gradeScore       float64
+	gradeComment     string
+	gradeExcuse      bool
+	gradePostedGrade string
 
 	// Bulk grade flags
-	bulkGradeCSV        string
-	bulkGradeDryRun     bool
+	bulkGradeCSV    string
+	bulkGradeDryRun bool
 )
 
 // submissionsCmd represents the submissions command group

@@ -98,31 +98,31 @@ func (s *AccountsService) ListSubAccounts(ctx context.Context, accountID int64, 
 // ListAccountCoursesOptions holds options for listing courses in an account
 type ListAccountCoursesOptions struct {
 	// Filter options
-	WithEnrollments   bool     `url:"with_enrollments,omitempty"`    // Only courses with at least one enrollment
-	EnrollmentType    []string `url:"enrollment_type[],omitempty"`   // teacher, student, ta, observer, designer
-	Published         bool     `url:"published,omitempty"`           // Only published courses
-	Completed         bool     `url:"completed,omitempty"`           // Only completed courses
-	Blueprint         bool     `url:"blueprint,omitempty"`           // Only blueprint courses
-	BlueprintAssociated bool   `url:"blueprint_associated,omitempty"` // Only courses associated with blueprints
+	WithEnrollments     bool     `url:"with_enrollments,omitempty"`     // Only courses with at least one enrollment
+	EnrollmentType      []string `url:"enrollment_type[],omitempty"`    // teacher, student, ta, observer, designer
+	Published           bool     `url:"published,omitempty"`            // Only published courses
+	Completed           bool     `url:"completed,omitempty"`            // Only completed courses
+	Blueprint           bool     `url:"blueprint,omitempty"`            // Only blueprint courses
+	BlueprintAssociated bool     `url:"blueprint_associated,omitempty"` // Only courses associated with blueprints
 
 	// Search options
-	SearchTerm        string   `url:"search_term,omitempty"`         // Search by name/code
-	ByTeachers        []int64  `url:"by_teachers[],omitempty"`       // Filter by teacher IDs
-	BySubaccounts     []int64  `url:"by_subaccounts[],omitempty"`    // Filter by sub-account IDs
+	SearchTerm    string  `url:"search_term,omitempty"`      // Search by name/code
+	ByTeachers    []int64 `url:"by_teachers[],omitempty"`    // Filter by teacher IDs
+	BySubaccounts []int64 `url:"by_subaccounts[],omitempty"` // Filter by sub-account IDs
 
 	// State options
-	State             []string `url:"state[],omitempty"`             // created, claimed, available, completed, deleted, all
-	EnrollmentTermID  int64    `url:"enrollment_term_id,omitempty"`  // Filter by term
+	State            []string `url:"state[],omitempty"`            // created, claimed, available, completed, deleted, all
+	EnrollmentTermID int64    `url:"enrollment_term_id,omitempty"` // Filter by term
 
 	// Sorting options
-	Sort              string   `url:"sort,omitempty"`                // course_name, sis_course_id, teacher, account_name
-	Order             string   `url:"order,omitempty"`               // asc, desc
+	Sort  string `url:"sort,omitempty"`  // course_name, sis_course_id, teacher, account_name
+	Order string `url:"order,omitempty"` // asc, desc
 
 	// Include options
-	Include           []string `url:"include[],omitempty"`           // syllabus_body, term, course_progress, etc.
+	Include []string `url:"include[],omitempty"` // syllabus_body, term, course_progress, etc.
 
 	// Pagination
-	PerPage           int      `url:"per_page,omitempty"`
+	PerPage int `url:"per_page,omitempty"`
 }
 
 // ListCourses returns courses for a given account
@@ -193,11 +193,11 @@ func (s *AccountsService) ListCourses(ctx context.Context, accountID int64, opts
 
 // ListAccountUsersOptions holds options for listing users in an account
 type ListAccountUsersOptions struct {
-	SearchTerm     string   `url:"search_term,omitempty"`      // Search by name/email
-	EnrollmentType string   `url:"enrollment_type,omitempty"`  // Filter by enrollment type
-	Sort           string   `url:"sort,omitempty"`             // username, email, sis_id, last_login
-	Order          string   `url:"order,omitempty"`            // asc, desc
-	Include        []string `url:"include[],omitempty"`        // avatar_url, email, last_login, etc.
+	SearchTerm     string   `url:"search_term,omitempty"`     // Search by name/email
+	EnrollmentType string   `url:"enrollment_type,omitempty"` // Filter by enrollment type
+	Sort           string   `url:"sort,omitempty"`            // username, email, sis_id, last_login
+	Order          string   `url:"order,omitempty"`           // asc, desc
+	Include        []string `url:"include[],omitempty"`       // avatar_url, email, last_login, etc.
 	PerPage        int      `url:"per_page,omitempty"`
 }
 

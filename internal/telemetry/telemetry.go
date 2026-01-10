@@ -15,32 +15,32 @@ import (
 
 // Client represents a telemetry client
 type Client struct {
-	enabled    bool
-	userID     string
-	sessionID  string
-	events     []Event
-	mu         sync.Mutex
-	flushChan  chan struct{}
-	stopChan   chan struct{}
-	dataDir    string
-	version    string
-	anonymous  bool
+	enabled   bool
+	userID    string
+	sessionID string
+	events    []Event
+	mu        sync.Mutex
+	flushChan chan struct{}
+	stopChan  chan struct{}
+	dataDir   string
+	version   string
+	anonymous bool
 }
 
 // Event represents a telemetry event
 type Event struct {
-	ID        string                 `json:"id"`
-	UserID    string                 `json:"user_id,omitempty"`
-	SessionID string                 `json:"session_id"`
-	Type      string                 `json:"type"`
-	Action    string                 `json:"action"`
-	Timestamp time.Time              `json:"timestamp"`
-	Duration  time.Duration          `json:"duration,omitempty"`
+	ID         string                 `json:"id"`
+	UserID     string                 `json:"user_id,omitempty"`
+	SessionID  string                 `json:"session_id"`
+	Type       string                 `json:"type"`
+	Action     string                 `json:"action"`
+	Timestamp  time.Time              `json:"timestamp"`
+	Duration   time.Duration          `json:"duration,omitempty"`
 	Properties map[string]interface{} `json:"properties,omitempty"`
-	Error     string                 `json:"error,omitempty"`
-	OS        string                 `json:"os"`
-	Arch      string                 `json:"arch"`
-	Version   string                 `json:"version"`
+	Error      string                 `json:"error,omitempty"`
+	OS         string                 `json:"os"`
+	Arch       string                 `json:"arch"`
+	Version    string                 `json:"version"`
 }
 
 // Config represents telemetry configuration
@@ -86,15 +86,15 @@ func New(cfg *Config) (*Client, error) {
 	}
 
 	client := &Client{
-		enabled:    cfg.Enabled,
-		userID:     userID,
-		sessionID:  uuid.New().String(),
-		events:     make([]Event, 0),
-		flushChan:  make(chan struct{}, 1),
-		stopChan:   make(chan struct{}),
-		dataDir:    dataDir,
-		version:    cfg.Version,
-		anonymous:  cfg.Anonymous,
+		enabled:   cfg.Enabled,
+		userID:    userID,
+		sessionID: uuid.New().String(),
+		events:    make([]Event, 0),
+		flushChan: make(chan struct{}, 1),
+		stopChan:  make(chan struct{}),
+		dataDir:   dataDir,
+		version:   cfg.Version,
+		anonymous: cfg.Anonymous,
 	}
 
 	// Start background flush worker if enabled

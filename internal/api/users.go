@@ -105,24 +105,24 @@ func (s *UsersService) List(ctx context.Context, accountID int64, opts *ListUser
 
 // CreateUserParams holds parameters for creating a user
 type CreateUserParams struct {
-	Name               string
-	ShortName          string
-	SortableName       string
-	TimeZone           string
-	Locale             string
-	TermsOfUse         bool
-	SkipRegistration   bool
-	ForceValidations   bool
+	Name                  string
+	ShortName             string
+	SortableName          string
+	TimeZone              string
+	Locale                string
+	TermsOfUse            bool
+	SkipRegistration      bool
+	ForceValidations      bool
 	EnableSISReactivation bool
 	// Pseudonym (login) information
-	UniqueID           string
-	SISUserID          string
-	IntegrationID      string
+	UniqueID                 string
+	SISUserID                string
+	IntegrationID            string
 	AuthenticationProviderID string
-	Password           string
+	Password                 string
 	// Communication channel (email)
-	Email              string
-	SkipConfirmation   bool
+	Email            string
+	SkipConfirmation bool
 }
 
 // Create creates a new user

@@ -14,10 +14,10 @@ var (
 	coursesInclude         []string
 	coursesState           []string
 	// Account context flags
-	coursesAccountID       int64
-	coursesSearchTerm      string
-	coursesSort            string
-	coursesOrder           string
+	coursesAccountID  int64
+	coursesSearchTerm string
+	coursesSort       string
+	coursesOrder      string
 )
 
 // coursesCmd represents the courses command group

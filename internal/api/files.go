@@ -24,14 +24,14 @@ func NewFilesService(client *Client) *FilesService {
 
 // ListFilesOptions holds options for listing files
 type ListFilesOptions struct {
-	ContentTypes  []string // Filter by MIME type
-	SearchTerm    string   // Search by file name
-	Include       []string // Additional data to include (user)
-	Only          []string // Filter by type (names, folders)
-	Sort          string   // Sort by (name, size, created_at, updated_at, content_type)
-	Order         string   // Order direction (asc, desc)
-	Page          int
-	PerPage       int
+	ContentTypes []string // Filter by MIME type
+	SearchTerm   string   // Search by file name
+	Include      []string // Additional data to include (user)
+	Only         []string // Filter by type (names, folders)
+	Sort         string   // Sort by (name, size, created_at, updated_at, content_type)
+	Order        string   // Order direction (asc, desc)
+	Page         int
+	PerPage      int
 }
 
 // ListCourseFiles retrieves files for a course
@@ -126,15 +126,15 @@ func (s *FilesService) Get(ctx context.Context, fileID int64, include []string) 
 
 // UploadParams holds parameters for uploading a file
 type UploadParams struct {
-	Name            string // File name
-	Size            int64  // File size in bytes (required for Canvas)
-	ContentType     string // MIME type
-	ParentFolderID  int64  // Folder to upload to
-	OnDuplicate     string // How to handle duplicates: overwrite, rename
-	LockAt          string // ISO8601 date
-	UnlockAt        string // ISO8601 date
-	Locked          bool   // Lock the file
-	Hidden          bool   // Hide from students
+	Name           string // File name
+	Size           int64  // File size in bytes (required for Canvas)
+	ContentType    string // MIME type
+	ParentFolderID int64  // Folder to upload to
+	OnDuplicate    string // How to handle duplicates: overwrite, rename
+	LockAt         string // ISO8601 date
+	UnlockAt       string // ISO8601 date
+	Locked         bool   // Lock the file
+	Hidden         bool   // Hide from students
 }
 
 // UploadToCourse uploads a file to a course
@@ -291,12 +291,12 @@ func (s *FilesService) Download(ctx context.Context, fileID int64, destPath stri
 
 // UpdateParams holds parameters for updating a file
 type UpdateParams struct {
-	Name       string // New file name
-	ParentFolderID *int64 // Move to different folder
-	LockAt     *string // ISO8601 date
-	UnlockAt   *string // ISO8601 date
-	Locked     *bool
-	Hidden     *bool
+	Name           string  // New file name
+	ParentFolderID *int64  // Move to different folder
+	LockAt         *string // ISO8601 date
+	UnlockAt       *string // ISO8601 date
+	Locked         *bool
+	Hidden         *bool
 }
 
 // Update updates file metadata

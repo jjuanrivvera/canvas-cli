@@ -192,7 +192,7 @@ type ProgressReporter interface {
 
 // ConsoleProgress reports progress to the console
 type ConsoleProgress struct {
-	lastUpdate time.Time
+	lastUpdate     time.Time
 	updateInterval time.Duration
 }
 

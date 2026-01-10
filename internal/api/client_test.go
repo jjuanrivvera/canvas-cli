@@ -14,11 +14,11 @@ import (
 
 func TestAdaptiveRateLimiter_AdjustRate(t *testing.T) {
 	tests := []struct {
-		name           string
-		remaining      float64
-		total          float64
-		expectedRate   float64
-		expectWarning  bool
+		name          string
+		remaining     float64
+		total         float64
+		expectedRate  float64
+		expectWarning bool
 	}{
 		{
 			name:         "critical threshold (20% remaining)",

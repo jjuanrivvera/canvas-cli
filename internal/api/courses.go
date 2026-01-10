@@ -19,12 +19,12 @@ func NewCoursesService(client *Client) *CoursesService {
 
 // ListCoursesOptions holds options for listing courses
 type ListCoursesOptions struct {
-	EnrollmentType    string // student, teacher, ta, observer, designer
-	EnrollmentState   string // active, invited_or_pending, completed
-	Include           []string // needs_grading_count, syllabus_body, total_scores, term, etc.
-	State             []string // unpublished, available, completed, deleted
-	Page              int
-	PerPage           int
+	EnrollmentType  string   // student, teacher, ta, observer, designer
+	EnrollmentState string   // active, invited_or_pending, completed
+	Include         []string // needs_grading_count, syllabus_body, total_scores, term, etc.
+	State           []string // unpublished, available, completed, deleted
+	Page            int
+	PerPage         int
 }
 
 // List retrieves all courses for the current user
@@ -93,35 +93,35 @@ func (s *CoursesService) Get(ctx context.Context, courseID int64, include []stri
 
 // CreateCourseParams holds parameters for creating a course
 type CreateCourseParams struct {
-	AccountID                  int64
-	Name                       string
-	CourseCode                 string
-	StartAt                    string
-	EndAt                      string
-	License                    string
-	IsPublic                   bool
-	IsPublicToAuthUsers        bool
-	PublicSyllabus             bool
-	PublicSyllabusToAuth       bool
-	PublicDescription          string
-	AllowStudentWikiEdits      bool
-	AllowWikiComments          bool
-	AllowStudentForumAttachments bool
-	OpenEnrollment             bool
-	SelfEnrollment             bool
+	AccountID                        int64
+	Name                             string
+	CourseCode                       string
+	StartAt                          string
+	EndAt                            string
+	License                          string
+	IsPublic                         bool
+	IsPublicToAuthUsers              bool
+	PublicSyllabus                   bool
+	PublicSyllabusToAuth             bool
+	PublicDescription                string
+	AllowStudentWikiEdits            bool
+	AllowWikiComments                bool
+	AllowStudentForumAttachments     bool
+	OpenEnrollment                   bool
+	SelfEnrollment                   bool
 	RestrictEnrollmentsToCourseDates bool
-	TermID                     int64
-	SISCourseID                string
-	IntegrationID              string
-	HideFinalGrades            bool
-	ApplyAssignmentGroupWeights bool
-	TimeZone                   string
-	Offer                      bool
-	EnrollMe                   bool
-	DefaultView                string
-	SyllabusBody               string
-	GradingStandardID          int64
-	CourseFormat               string
+	TermID                           int64
+	SISCourseID                      string
+	IntegrationID                    string
+	HideFinalGrades                  bool
+	ApplyAssignmentGroupWeights      bool
+	TimeZone                         string
+	Offer                            bool
+	EnrollMe                         bool
+	DefaultView                      string
+	SyllabusBody                     string
+	GradingStandardID                int64
+	CourseFormat                     string
 }
 
 // addCourseStringField adds a string field to courseData if non-empty
@@ -210,32 +210,32 @@ func (s *CoursesService) Create(ctx context.Context, params *CreateCourseParams)
 
 // UpdateCourseParams holds parameters for updating a course
 type UpdateCourseParams struct {
-	Name                       string
-	CourseCode                 string
-	StartAt                    string
-	EndAt                      string
-	License                    string
-	IsPublic                   *bool
-	IsPublicToAuthUsers        *bool
-	PublicSyllabus             *bool
-	PublicSyllabusToAuth       *bool
-	PublicDescription          string
-	AllowStudentWikiEdits      *bool
-	AllowWikiComments          *bool
-	AllowStudentForumAttachments *bool
-	OpenEnrollment             *bool
-	SelfEnrollment             *bool
+	Name                             string
+	CourseCode                       string
+	StartAt                          string
+	EndAt                            string
+	License                          string
+	IsPublic                         *bool
+	IsPublicToAuthUsers              *bool
+	PublicSyllabus                   *bool
+	PublicSyllabusToAuth             *bool
+	PublicDescription                string
+	AllowStudentWikiEdits            *bool
+	AllowWikiComments                *bool
+	AllowStudentForumAttachments     *bool
+	OpenEnrollment                   *bool
+	SelfEnrollment                   *bool
 	RestrictEnrollmentsToCourseDates *bool
-	HideFinalGrades            *bool
-	ApplyAssignmentGroupWeights *bool
-	TimeZone                   string
-	DefaultView                string
-	SyllabusBody               string
-	GradingStandardID          int64
-	CourseFormat               string
-	ImageID                    int64
-	ImageURL                   string
-	RemoveImage                bool
+	HideFinalGrades                  *bool
+	ApplyAssignmentGroupWeights      *bool
+	TimeZone                         string
+	DefaultView                      string
+	SyllabusBody                     string
+	GradingStandardID                int64
+	CourseFormat                     string
+	ImageID                          int64
+	ImageURL                         string
+	RemoveImage                      bool
 }
 
 // Update updates an existing course

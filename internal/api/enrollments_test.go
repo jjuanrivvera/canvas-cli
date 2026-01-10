@@ -235,8 +235,8 @@ func TestEnrollmentsService_EnrollUser(t *testing.T) {
 	ctx := context.Background()
 
 	params := &EnrollUserParams{
-		UserID:         789,
-		Type:           "StudentEnrollment",
+		UserID:          789,
+		Type:            "StudentEnrollment",
 		EnrollmentState: "active",
 	}
 

@@ -12,19 +12,19 @@ import (
 )
 
 var (
-	filesCourseID      int64
-	filesUserID        int64
-	filesFolderID      int64
-	filesContentTypes  []string
-	filesSearchTerm    string
-	filesInclude       []string
-	filesSort          string
-	filesOrder         string
-	filesOnDuplicate   string
-	filesParentFolder  int64
-	filesDestination   string
-	filesHidden        bool
-	filesLocked        bool
+	filesCourseID     int64
+	filesUserID       int64
+	filesFolderID     int64
+	filesContentTypes []string
+	filesSearchTerm   string
+	filesInclude      []string
+	filesSort         string
+	filesOrder        string
+	filesOnDuplicate  string
+	filesParentFolder int64
+	filesDestination  string
+	filesHidden       bool
+	filesLocked       bool
 )
 
 // filesCmd represents the files command group

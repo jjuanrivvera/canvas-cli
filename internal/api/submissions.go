@@ -19,19 +19,19 @@ func NewSubmissionsService(client *Client) *SubmissionsService {
 
 // ListSubmissionsOptions holds options for listing submissions
 type ListSubmissionsOptions struct {
-	Include              []string // Additional data to include (submission_history, submission_comments, rubric_assessment, assignment, visibility, course, user, etc.)
-	Grouped              bool     // Group submissions by student
-	PostToSIS            *bool    // Filter by post_to_sis
-	SubmittedSince       string   // ISO8601 timestamp
-	GradedSince          string   // ISO8601 timestamp
-	GradingPeriodID      int64    // Filter by grading period
-	WorkflowState        string   // Filter by workflow state (submitted, unsubmitted, graded, pending_review)
-	EnrollmentState      string   // Filter by enrollment state (active, concluded)
-	StateBasedOnDate     bool     // If true, filter by state based on assignment due date
-	Order                string   // Order by (id, graded_at)
-	OrderDirection       string   // Order direction (ascending, descending)
-	Page                 int
-	PerPage              int
+	Include          []string // Additional data to include (submission_history, submission_comments, rubric_assessment, assignment, visibility, course, user, etc.)
+	Grouped          bool     // Group submissions by student
+	PostToSIS        *bool    // Filter by post_to_sis
+	SubmittedSince   string   // ISO8601 timestamp
+	GradedSince      string   // ISO8601 timestamp
+	GradingPeriodID  int64    // Filter by grading period
+	WorkflowState    string   // Filter by workflow state (submitted, unsubmitted, graded, pending_review)
+	EnrollmentState  string   // Filter by enrollment state (active, concluded)
+	StateBasedOnDate bool     // If true, filter by state based on assignment due date
+	Order            string   // Order by (id, graded_at)
+	OrderDirection   string   // Order direction (ascending, descending)
+	Page             int
+	PerPage          int
 }
 
 // Get retrieves a single submission
@@ -208,21 +208,21 @@ func (s *SubmissionsService) ListMultiple(ctx context.Context, courseID int64, s
 
 // GradeSubmissionParams holds parameters for grading a submission
 type GradeSubmissionParams struct {
-	PostedGrade        string  // The grade to assign (letter grade, percentage, points, etc.)
-	Excuse             bool    // Excuse the submission
-	LatePolicyStatus   string  // late, missing, none
+	PostedGrade         string // The grade to assign (letter grade, percentage, points, etc.)
+	Excuse              bool   // Excuse the submission
+	LatePolicyStatus    string // late, missing, none
 	SecondsLateOverride *int   // Override seconds late calculation
-	Comment            *SubmissionCommentParams
-	RubricAssessment   map[string]RubricAssessmentParams
+	Comment             *SubmissionCommentParams
+	RubricAssessment    map[string]RubricAssessmentParams
 }
 
 // SubmissionCommentParams holds parameters for adding a submission comment
 type SubmissionCommentParams struct {
-	TextComment  string
-	GroupComment bool
-	MediaCommentID string
+	TextComment      string
+	GroupComment     bool
+	MediaCommentID   string
 	MediaCommentType string
-	FileIDs      []int64
+	FileIDs          []int64
 }
 
 // RubricAssessmentParams holds parameters for rubric assessment
@@ -377,14 +377,14 @@ func (s *SubmissionsService) BulkGrade(ctx context.Context, courseID, assignment
 
 // SubmitParams holds parameters for submitting an assignment
 type SubmitParams struct {
-	SubmissionType  string   // online_text_entry, online_url, online_upload, media_recording
-	Body            string   // For online_text_entry
-	URL             string   // For online_url
-	FileIDs         []int64  // For online_upload
-	MediaCommentID  string   // For media_recording
+	SubmissionType   string  // online_text_entry, online_url, online_upload, media_recording
+	Body             string  // For online_text_entry
+	URL              string  // For online_url
+	FileIDs          []int64 // For online_upload
+	MediaCommentID   string  // For media_recording
 	MediaCommentType string  // audio or video
-	UserID          int64    // Submit on behalf of user (requires permission)
-	Comment         *SubmissionCommentParams
+	UserID           int64   // Submit on behalf of user (requires permission)
+	Comment          *SubmissionCommentParams
 }
 
 // Submit submits an assignment

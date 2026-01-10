@@ -20,16 +20,16 @@ func NewAssignmentsService(client *Client) *AssignmentsService {
 
 // ListAssignmentsOptions holds options for listing assignments
 type ListAssignmentsOptions struct {
-	Include              []string // Additional data to include (submission, assignment_visibility, overrides, observed_users, etc.)
-	SearchTerm           string   // Search by assignment name
-	OverrideAssignmentDates bool  // Apply assignment overrides for each assignment
-	NeedsGradingCountBySection bool // Include needs_grading_count split by section
-	Bucket               string   // Filter by assignment bucket (past, overdue, undated, ungraded, unsubmitted, upcoming, future)
-	AssignmentIDs        []int64  // Filter by assignment IDs
-	OrderBy              string   // Order by (position, name, due_at)
-	PostToSIS            *bool    // Filter by post_to_sis
-	Page                 int
-	PerPage              int
+	Include                    []string // Additional data to include (submission, assignment_visibility, overrides, observed_users, etc.)
+	SearchTerm                 string   // Search by assignment name
+	OverrideAssignmentDates    bool     // Apply assignment overrides for each assignment
+	NeedsGradingCountBySection bool     // Include needs_grading_count split by section
+	Bucket                     string   // Filter by assignment bucket (past, overdue, undated, ungraded, unsubmitted, upcoming, future)
+	AssignmentIDs              []int64  // Filter by assignment IDs
+	OrderBy                    string   // Order by (position, name, due_at)
+	PostToSIS                  *bool    // Filter by post_to_sis
+	Page                       int
+	PerPage                    int
 }
 
 // Get retrieves a single assignment by ID
@@ -114,46 +114,46 @@ func (s *AssignmentsService) List(ctx context.Context, courseID int64, opts *Lis
 
 // CreateAssignmentParams holds parameters for creating an assignment
 type CreateAssignmentParams struct {
-	Name                    string
-	Position                int
-	SubmissionTypes         []string  // online_text_entry, online_url, online_upload, media_recording, etc.
-	AllowedExtensions       []string  // For online_upload submission type
-	TurnitinEnabled         bool
-	VericiteEnabled         bool
-	TurnitinSettings        map[string]interface{}
-	IntegrationData         map[string]interface{}
-	IntegrationID           string
-	PeerReviews             bool
-	AutomaticPeerReviews    bool
-	NotifyOfUpdate          bool
-	GroupCategoryID         int64
-	GradeGroupStudentsIndividually bool
-	ExternalToolTagAttributes map[string]interface{}
-	PointsPossible          float64
-	GradingType             string // pass_fail, percent, letter_grade, gpa_scale, points
-	DueAt                   string // ISO8601 format
-	LockAt                  string
-	UnlockAt                string
-	Description             string
-	AssignmentGroupID       int64
-	AssignmentOverrides     []AssignmentOverrideParams
-	OnlyVisibleToOverrides  bool
-	Published               bool
-	GradingStandardID       int64
-	OmitFromFinalGrade      bool
-	ModeratedGrading        bool
-	GraderCount             int
-	FinalGraderID           int64
-	GraderCommentsVisibleToGraders bool
-	GradersAnonymousToGraders bool
+	Name                            string
+	Position                        int
+	SubmissionTypes                 []string // online_text_entry, online_url, online_upload, media_recording, etc.
+	AllowedExtensions               []string // For online_upload submission type
+	TurnitinEnabled                 bool
+	VericiteEnabled                 bool
+	TurnitinSettings                map[string]interface{}
+	IntegrationData                 map[string]interface{}
+	IntegrationID                   string
+	PeerReviews                     bool
+	AutomaticPeerReviews            bool
+	NotifyOfUpdate                  bool
+	GroupCategoryID                 int64
+	GradeGroupStudentsIndividually  bool
+	ExternalToolTagAttributes       map[string]interface{}
+	PointsPossible                  float64
+	GradingType                     string // pass_fail, percent, letter_grade, gpa_scale, points
+	DueAt                           string // ISO8601 format
+	LockAt                          string
+	UnlockAt                        string
+	Description                     string
+	AssignmentGroupID               int64
+	AssignmentOverrides             []AssignmentOverrideParams
+	OnlyVisibleToOverrides          bool
+	Published                       bool
+	GradingStandardID               int64
+	OmitFromFinalGrade              bool
+	ModeratedGrading                bool
+	GraderCount                     int
+	FinalGraderID                   int64
+	GraderCommentsVisibleToGraders  bool
+	GradersAnonymousToGraders       bool
 	GraderNamesVisibleToFinalGrader bool
-	AnonymousInstructorAnnotations bool
-	AnonymousGrading        bool
-	AllowedAttempts         int
-	AnnotatableAttachmentID int64
-	HideInGradebook         bool
-	PostToSIS               bool
-	ImportantDates          bool
+	AnonymousInstructorAnnotations  bool
+	AnonymousGrading                bool
+	AllowedAttempts                 int
+	AnnotatableAttachmentID         int64
+	HideInGradebook                 bool
+	PostToSIS                       bool
+	ImportantDates                  bool
 }
 
 // AssignmentOverrideParams holds parameters for assignment overrides
@@ -326,46 +326,46 @@ func (s *AssignmentsService) Create(ctx context.Context, courseID int64, params 
 
 // UpdateAssignmentParams holds parameters for updating an assignment
 type UpdateAssignmentParams struct {
-	Name                    string
-	Position                *int
-	SubmissionTypes         []string
-	AllowedExtensions       []string
-	TurnitinEnabled         *bool
-	VericiteEnabled         *bool
-	TurnitinSettings        map[string]interface{}
-	IntegrationData         map[string]interface{}
-	IntegrationID           string
-	PeerReviews             *bool
-	AutomaticPeerReviews    *bool
-	NotifyOfUpdate          *bool
-	GroupCategoryID         *int64
-	GradeGroupStudentsIndividually *bool
-	ExternalToolTagAttributes map[string]interface{}
-	PointsPossible          *float64
-	GradingType             string
-	DueAt                   *string
-	LockAt                  *string
-	UnlockAt                *string
-	Description             string
-	AssignmentGroupID       *int64
-	AssignmentOverrides     []AssignmentOverrideParams
-	OnlyVisibleToOverrides  *bool
-	Published               *bool
-	GradingStandardID       *int64
-	OmitFromFinalGrade      *bool
-	ModeratedGrading        *bool
-	GraderCount             *int
-	FinalGraderID           *int64
-	GraderCommentsVisibleToGraders *bool
-	GradersAnonymousToGraders *bool
+	Name                            string
+	Position                        *int
+	SubmissionTypes                 []string
+	AllowedExtensions               []string
+	TurnitinEnabled                 *bool
+	VericiteEnabled                 *bool
+	TurnitinSettings                map[string]interface{}
+	IntegrationData                 map[string]interface{}
+	IntegrationID                   string
+	PeerReviews                     *bool
+	AutomaticPeerReviews            *bool
+	NotifyOfUpdate                  *bool
+	GroupCategoryID                 *int64
+	GradeGroupStudentsIndividually  *bool
+	ExternalToolTagAttributes       map[string]interface{}
+	PointsPossible                  *float64
+	GradingType                     string
+	DueAt                           *string
+	LockAt                          *string
+	UnlockAt                        *string
+	Description                     string
+	AssignmentGroupID               *int64
+	AssignmentOverrides             []AssignmentOverrideParams
+	OnlyVisibleToOverrides          *bool
+	Published                       *bool
+	GradingStandardID               *int64
+	OmitFromFinalGrade              *bool
+	ModeratedGrading                *bool
+	GraderCount                     *int
+	FinalGraderID                   *int64
+	GraderCommentsVisibleToGraders  *bool
+	GradersAnonymousToGraders       *bool
 	GraderNamesVisibleToFinalGrader *bool
-	AnonymousInstructorAnnotations *bool
-	AnonymousGrading        *bool
-	AllowedAttempts         *int
-	AnnotatableAttachmentID *int64
-	HideInGradebook         *bool
-	PostToSIS               *bool
-	ImportantDates          *bool
+	AnonymousInstructorAnnotations  *bool
+	AnonymousGrading                *bool
+	AllowedAttempts                 *int
+	AnnotatableAttachmentID         *int64
+	HideInGradebook                 *bool
+	PostToSIS                       *bool
+	ImportantDates                  *bool
 }
 
 // Update updates an existing assignment

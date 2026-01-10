@@ -3,38 +3,38 @@ package webhook
 // Canvas webhook event types
 const (
 	// Assignment events
-	EventAssignmentCreated      = "assignment_created"
-	EventAssignmentUpdated      = "assignment_updated"
-	EventAssignmentDeleted      = "assignment_deleted"
+	EventAssignmentCreated = "assignment_created"
+	EventAssignmentUpdated = "assignment_updated"
+	EventAssignmentDeleted = "assignment_deleted"
 
 	// Submission events
-	EventSubmissionCreated      = "submission_created"
-	EventSubmissionUpdated      = "submission_updated"
-	EventGradeChange           = "grade_change"
+	EventSubmissionCreated = "submission_created"
+	EventSubmissionUpdated = "submission_updated"
+	EventGradeChange       = "grade_change"
 
 	// Enrollment events
-	EventEnrollmentCreated     = "enrollment_created"
-	EventEnrollmentUpdated     = "enrollment_updated"
-	EventEnrollmentDeleted     = "enrollment_deleted"
+	EventEnrollmentCreated = "enrollment_created"
+	EventEnrollmentUpdated = "enrollment_updated"
+	EventEnrollmentDeleted = "enrollment_deleted"
 
 	// User events
-	EventUserCreated           = "user_created"
-	EventUserUpdated           = "user_updated"
+	EventUserCreated = "user_created"
+	EventUserUpdated = "user_updated"
 
 	// Course events
-	EventCourseCreated         = "course_created"
-	EventCourseUpdated         = "course_updated"
-	EventCourseCompleted       = "course_completed"
+	EventCourseCreated   = "course_created"
+	EventCourseUpdated   = "course_updated"
+	EventCourseCompleted = "course_completed"
 
 	// Discussion events
 	EventDiscussionTopicCreated = "discussion_topic_created"
 	EventDiscussionEntryCreated = "discussion_entry_created"
 
 	// Quiz events
-	EventQuizSubmitted         = "quiz_submitted"
+	EventQuizSubmitted = "quiz_submitted"
 
 	// Conversation events
-	EventConversationCreated   = "conversation_created"
+	EventConversationCreated        = "conversation_created"
 	EventConversationMessageCreated = "conversation_message_created"
 )
 

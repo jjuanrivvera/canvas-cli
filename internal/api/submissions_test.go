@@ -816,19 +816,19 @@ func TestSubmissionsService_List_WithAllOptions(t *testing.T) {
 
 	postToSIS := true
 	opts := &ListSubmissionsOptions{
-		Include:              []string{"user", "assignment"},
-		Grouped:              true,
-		PostToSIS:            &postToSIS,
-		SubmittedSince:       "2024-01-01T00:00:00Z",
-		GradedSince:          "2024-01-15T00:00:00Z",
-		GradingPeriodID:      5,
-		WorkflowState:        "submitted",
-		EnrollmentState:      "active",
-		StateBasedOnDate:     true,
-		Order:                "id",
-		OrderDirection:       "ascending",
-		Page:                 3,
-		PerPage:              25,
+		Include:          []string{"user", "assignment"},
+		Grouped:          true,
+		PostToSIS:        &postToSIS,
+		SubmittedSince:   "2024-01-01T00:00:00Z",
+		GradedSince:      "2024-01-15T00:00:00Z",
+		GradingPeriodID:  5,
+		WorkflowState:    "submitted",
+		EnrollmentState:  "active",
+		StateBasedOnDate: true,
+		Order:            "id",
+		OrderDirection:   "ascending",
+		Page:             3,
+		PerPage:          25,
 	}
 
 	submissions, err := service.List(ctx, 123, 456, opts)

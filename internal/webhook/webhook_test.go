@@ -513,9 +513,9 @@ func TestListener_ConcurrentRequests(t *testing.T) {
 
 func TestGetEventName(t *testing.T) {
 	tests := []struct {
-		name     string
+		name      string
 		eventType string
-		expected string
+		expected  string
 	}{
 		{"assignment_created", "assignment_created", "Assignment Created"},
 		{"submission_created", "submission_created", "Submission Created"},

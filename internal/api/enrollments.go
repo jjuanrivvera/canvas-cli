@@ -20,21 +20,21 @@ func NewEnrollmentsService(client *Client) *EnrollmentsService {
 
 // ListEnrollmentsOptions holds options for listing enrollments
 type ListEnrollmentsOptions struct {
-	Type               []string // Enrollment types to include (StudentEnrollment, TeacherEnrollment, TaEnrollment, DesignerEnrollment, ObserverEnrollment)
-	Role               []string // Deprecated, use RoleID instead
-	RoleID             []int64  // Filter by role ID
-	State              []string // Filter by enrollment state (active, invited, creation_pending, deleted, rejected, completed, inactive, current_and_future, etc.)
-	Include            []string // Additional data to include (avatar_url, group_ids, locked, observed_users, can_be_removed, uuid, current_points)
-	UserID             int64    // Filter by user ID
-	GradingPeriodID    int64    // Filter by grading period
-	EnrollmentTermID   int64    // Filter by enrollment term
-	SISAccountID       []string // Filter by SIS account ID
-	SISCourseID        []string // Filter by SIS course ID
-	SISSectionID       []string // Filter by SIS section ID
-	SISUserID          []string // Filter by SIS user ID
-	CreatedForSISID    []string // Filter by created_for_sis_id
-	Page               int
-	PerPage            int
+	Type             []string // Enrollment types to include (StudentEnrollment, TeacherEnrollment, TaEnrollment, DesignerEnrollment, ObserverEnrollment)
+	Role             []string // Deprecated, use RoleID instead
+	RoleID           []int64  // Filter by role ID
+	State            []string // Filter by enrollment state (active, invited, creation_pending, deleted, rejected, completed, inactive, current_and_future, etc.)
+	Include          []string // Additional data to include (avatar_url, group_ids, locked, observed_users, can_be_removed, uuid, current_points)
+	UserID           int64    // Filter by user ID
+	GradingPeriodID  int64    // Filter by grading period
+	EnrollmentTermID int64    // Filter by enrollment term
+	SISAccountID     []string // Filter by SIS account ID
+	SISCourseID      []string // Filter by SIS course ID
+	SISSectionID     []string // Filter by SIS section ID
+	SISUserID        []string // Filter by SIS user ID
+	CreatedForSISID  []string // Filter by created_for_sis_id
+	Page             int
+	PerPage          int
 }
 
 // ListCourse retrieves enrollments for a course
@@ -231,16 +231,16 @@ func (s *EnrollmentsService) ListUser(ctx context.Context, userID int64, opts *L
 
 // EnrollUserParams holds parameters for enrolling a user
 type EnrollUserParams struct {
-	UserID                  int64
-	Type                    string // StudentEnrollment, TeacherEnrollment, TaEnrollment, ObserverEnrollment, DesignerEnrollment
-	RoleID                  int64
-	EnrollmentState         string // active, invited, inactive
-	CourseSectionID         int64
+	UserID                         int64
+	Type                           string // StudentEnrollment, TeacherEnrollment, TaEnrollment, ObserverEnrollment, DesignerEnrollment
+	RoleID                         int64
+	EnrollmentState                string // active, invited, inactive
+	CourseSectionID                int64
 	LimitPrivilegesToCourseSection bool
-	Notify                  bool
-	SelfEnrollmentCode      string
-	SelfEnrolled            bool
-	AssociatedUserID        int64 // For observer enrollments
+	Notify                         bool
+	SelfEnrollmentCode             string
+	SelfEnrolled                   bool
+	AssociatedUserID               int64 // For observer enrollments
 }
 
 // EnrollUser enrolls a user in a course

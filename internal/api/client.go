@@ -17,11 +17,11 @@ import (
 )
 
 const (
-	defaultRequestsPerSecond = 5.0
-	slowRequestsPerSecond    = 2.0
+	defaultRequestsPerSecond  = 5.0
+	slowRequestsPerSecond     = 2.0
 	verySlowRequestsPerSecond = 1.0
-	quotaWarningThreshold    = 0.5  // 50%
-	quotaCriticalThreshold   = 0.2  // 20%
+	quotaWarningThreshold     = 0.5 // 50%
+	quotaCriticalThreshold    = 0.2 // 20%
 )
 
 const (
@@ -133,12 +133,12 @@ func (l *AdaptiveRateLimiter) GetCurrentRate() float64 {
 
 // ClientConfig holds configuration for the API client
 type ClientConfig struct {
-	BaseURL         string
-	Token           string
-	RequestsPerSec  float64
-	Timeout         time.Duration
-	Logger          *slog.Logger
-	AsUserID        int64 // For admin masquerading (appends as_user_id param)
+	BaseURL        string
+	Token          string
+	RequestsPerSec float64
+	Timeout        time.Duration
+	Logger         *slog.Logger
+	AsUserID       int64 // For admin masquerading (appends as_user_id param)
 }
 
 // NewClient creates a new Canvas API client

@@ -12,8 +12,8 @@ import (
 )
 
 var (
-	accountsInclude     []string
-	accountsRecursive   bool
+	accountsInclude   []string
+	accountsRecursive bool
 )
 
 // accountsCmd represents the accounts command group
