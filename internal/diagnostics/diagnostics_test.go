@@ -731,6 +731,11 @@ func TestCheckConnectivity_InvalidURLFormat(t *testing.T) {
 }
 
 func TestCheckDiskSpace_HomeDirError(t *testing.T) {
+	// Skip on Windows as HOME is not the primary home directory variable
+	if runtime.GOOS == "windows" {
+		t.Skip("Skipping on Windows (test uses HOME environment variable)")
+	}
+
 	// Temporarily set HOME to empty to trigger UserHomeDir error
 	oldHome := os.Getenv("HOME")
 	os.Unsetenv("HOME")
@@ -751,6 +756,11 @@ func TestCheckDiskSpace_HomeDirError(t *testing.T) {
 }
 
 func TestCheckPermissions_HomeDirError(t *testing.T) {
+	// Skip on Windows as HOME is not the primary home directory variable
+	if runtime.GOOS == "windows" {
+		t.Skip("Skipping on Windows (test uses HOME environment variable)")
+	}
+
 	// Temporarily set HOME to empty to trigger UserHomeDir error
 	oldHome := os.Getenv("HOME")
 	os.Unsetenv("HOME")
