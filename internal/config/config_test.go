@@ -3,6 +3,7 @@ package config
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"gopkg.in/yaml.v3"
@@ -394,6 +395,11 @@ func TestGetConfigPath(t *testing.T) {
 }
 
 func TestLoad_ExistingConfig(t *testing.T) {
+	// Skip on Windows as HOME environment variable works differently
+	if runtime.GOOS == "windows" {
+		t.Skip("Skipping on Windows (test uses HOME environment variable)")
+	}
+
 	tempDir := t.TempDir()
 	configPath := filepath.Join(tempDir, "config.yaml")
 

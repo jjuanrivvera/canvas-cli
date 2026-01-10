@@ -1,6 +1,7 @@
 package cache
 
 import (
+	"runtime"
 	"testing"
 	"time"
 )
@@ -250,6 +251,11 @@ func TestMultiTierCache_DiskStats(t *testing.T) {
 }
 
 func TestNewMultiTierCache_DiskError(t *testing.T) {
+	// Skip on Windows as /dev/null path doesn't exist
+	if runtime.GOOS == "windows" {
+		t.Skip("Skipping on Windows (test uses Unix-specific path)")
+	}
+
 	// Use an invalid directory path to trigger NewDiskCache error
 	invalidPath := "/dev/null/invalid/path"
 

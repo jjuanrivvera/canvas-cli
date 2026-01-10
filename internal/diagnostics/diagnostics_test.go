@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -47,7 +48,8 @@ func TestCheckEnvironment(t *testing.T) {
 		t.Error("expected non-empty message")
 	}
 
-	if check.Duration == 0 {
+	// Skip duration check on Windows as timing can be too fast to measure
+	if runtime.GOOS != "windows" && check.Duration == 0 {
 		t.Error("expected non-zero duration")
 	}
 }
@@ -360,6 +362,11 @@ func TestCheckPermissions_InsecurePerms(t *testing.T) {
 }
 
 func TestCheckPermissions_NoConfigDir(t *testing.T) {
+	// Skip on Windows as HOME environment variable works differently
+	if runtime.GOOS == "windows" {
+		t.Skip("Skipping on Windows (test uses HOME environment variable)")
+	}
+
 	// Create temp directory WITHOUT .canvas-cli subdirectory
 	tempDir := t.TempDir()
 
@@ -635,6 +642,11 @@ func TestCheckConnectivity_InvalidURL(t *testing.T) {
 }
 
 func TestCheckDiskSpace_MkdirError(t *testing.T) {
+	// Skip on Windows as HOME environment variable works differently
+	if runtime.GOOS == "windows" {
+		t.Skip("Skipping on Windows (test uses HOME environment variable)")
+	}
+
 	// Create a file where the cache directory should be, causing MkdirAll to fail
 	tempDir := t.TempDir()
 
@@ -663,6 +675,11 @@ func TestCheckDiskSpace_MkdirError(t *testing.T) {
 }
 
 func TestCheckPermissions_SecurePerms(t *testing.T) {
+	// Skip on Windows as HOME environment variable and permission checks work differently
+	if runtime.GOOS == "windows" {
+		t.Skip("Skipping on Windows (test uses HOME environment variable and chmod)")
+	}
+
 	// Create temp directory with secure permissions (0700)
 	tempDir := t.TempDir()
 	configDir := filepath.Join(tempDir, ".canvas-cli")
