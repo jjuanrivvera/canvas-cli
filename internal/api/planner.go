@@ -10,19 +10,19 @@ import (
 
 // PlannerItem represents a planner item (assignment, quiz, calendar event, etc.)
 type PlannerItem struct {
-	CourseID       *int64      `json:"course_id,omitempty"`
-	GroupID        *int64      `json:"group_id,omitempty"`
-	UserID         *int64      `json:"user_id,omitempty"`
-	ContextType    string      `json:"context_type,omitempty"`
-	ContextName    string      `json:"context_name,omitempty"`
-	PlannableType  string      `json:"plannable_type"`
-	PlannableID    int64       `json:"plannable_id"`
-	PlannableDate  *time.Time  `json:"plannable_date,omitempty"`
-	Submissions    interface{} `json:"submissions,omitempty"`
-	Plannable      interface{} `json:"plannable,omitempty"`
-	HTMLURL        string      `json:"html_url,omitempty"`
-	NewActivity    bool        `json:"new_activity"`
-	ContextImage   string      `json:"context_image,omitempty"`
+	CourseID      *int64      `json:"course_id,omitempty"`
+	GroupID       *int64      `json:"group_id,omitempty"`
+	UserID        *int64      `json:"user_id,omitempty"`
+	ContextType   string      `json:"context_type,omitempty"`
+	ContextName   string      `json:"context_name,omitempty"`
+	PlannableType string      `json:"plannable_type"`
+	PlannableID   int64       `json:"plannable_id"`
+	PlannableDate *time.Time  `json:"plannable_date,omitempty"`
+	Submissions   interface{} `json:"submissions,omitempty"`
+	Plannable     interface{} `json:"plannable,omitempty"`
+	HTMLURL       string      `json:"html_url,omitempty"`
+	NewActivity   bool        `json:"new_activity"`
+	ContextImage  string      `json:"context_image,omitempty"`
 }
 
 // PlannerNote represents a planner note

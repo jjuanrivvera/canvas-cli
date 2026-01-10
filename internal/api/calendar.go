@@ -62,9 +62,9 @@ func NewCalendarService(client *Client) *CalendarService {
 
 // ListCalendarEventsOptions holds options for listing calendar events
 type ListCalendarEventsOptions struct {
-	Type           string   // event, assignment, sub_assignment
-	StartDate      string   // yyyy-mm-dd or ISO 8601
-	EndDate        string   // yyyy-mm-dd or ISO 8601
+	Type           string // event, assignment, sub_assignment
+	StartDate      string // yyyy-mm-dd or ISO 8601
+	EndDate        string // yyyy-mm-dd or ISO 8601
 	Undated        bool
 	AllEvents      bool
 	ContextCodes   []string // course_123, user_456, etc.

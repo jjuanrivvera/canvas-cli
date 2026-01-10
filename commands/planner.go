@@ -19,10 +19,7 @@ var (
 	plannerTitle          string
 	plannerDetails        string
 	plannerTodoDate       string
-	plannerPlannableType  string
-	plannerPlannableID    int64
-	plannerMarkedComplete bool
-	plannerDismissed      bool
+	plannerPlannableType string
 )
 
 // plannerCmd represents the planner command group

@@ -510,7 +510,7 @@ func TestNewPlannerService(t *testing.T) {
 	client := &Client{}
 	service := NewPlannerService(client)
 	if service == nil {
-		t.Error("Expected non-nil service")
+		t.Fatal("Expected non-nil service")
 	}
 	if service.client != client {
 		t.Error("Expected service client to match input client")

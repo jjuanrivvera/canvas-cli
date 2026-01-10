@@ -10,41 +10,41 @@ import (
 
 // DiscussionTopic represents a Canvas discussion topic or announcement
 type DiscussionTopic struct {
-	ID                      int64                  `json:"id"`
-	Title                   string                 `json:"title"`
-	Message                 string                 `json:"message"`
-	HTMLURL                 string                 `json:"html_url"`
-	PostedAt                *time.Time             `json:"posted_at,omitempty"`
-	LastReplyAt             *time.Time             `json:"last_reply_at,omitempty"`
-	RequireInitialPost      bool                   `json:"require_initial_post"`
-	UserCanSeePosts         bool                   `json:"user_can_see_posts"`
-	DiscussionSubentryCount int                    `json:"discussion_subentry_count"`
-	ReadState               string                 `json:"read_state"`
-	UnreadCount             int                    `json:"unread_count"`
-	Subscribed              bool                   `json:"subscribed"`
-	SubscriptionHold        string                 `json:"subscription_hold,omitempty"`
-	AssignmentID            *int64                 `json:"assignment_id,omitempty"`
-	DelayedPostAt           *time.Time             `json:"delayed_post_at,omitempty"`
-	Published               bool                   `json:"published"`
-	LockAt                  *time.Time             `json:"lock_at,omitempty"`
-	Locked                  bool                   `json:"locked"`
-	Pinned                  bool                   `json:"pinned"`
-	LockedForUser           bool                   `json:"locked_for_user"`
-	LockInfo                *LockInfo              `json:"lock_info,omitempty"`
-	LockExplanation         string                 `json:"lock_explanation,omitempty"`
-	UserName                string                 `json:"user_name,omitempty"`
-	RootTopicID             *int64                 `json:"root_topic_id,omitempty"`
-	PodcastURL              string                 `json:"podcast_url,omitempty"`
-	DiscussionType          string                 `json:"discussion_type"`
-	GroupCategoryID         *int64                 `json:"group_category_id,omitempty"`
-	Attachments             []FileAttachment       `json:"attachments,omitempty"`
-	Permissions             map[string]bool        `json:"permissions,omitempty"`
-	AllowRating             bool                   `json:"allow_rating"`
-	OnlyGradersCanRate      bool                   `json:"only_graders_can_rate"`
-	SortByRating            bool                   `json:"sort_by_rating"`
-	ContextCode             string                 `json:"context_code,omitempty"`
-	Author                  *User                  `json:"author,omitempty"`
-	IsAnnouncement          bool                   `json:"is_announcement,omitempty"`
+	ID                      int64            `json:"id"`
+	Title                   string           `json:"title"`
+	Message                 string           `json:"message"`
+	HTMLURL                 string           `json:"html_url"`
+	PostedAt                *time.Time       `json:"posted_at,omitempty"`
+	LastReplyAt             *time.Time       `json:"last_reply_at,omitempty"`
+	RequireInitialPost      bool             `json:"require_initial_post"`
+	UserCanSeePosts         bool             `json:"user_can_see_posts"`
+	DiscussionSubentryCount int              `json:"discussion_subentry_count"`
+	ReadState               string           `json:"read_state"`
+	UnreadCount             int              `json:"unread_count"`
+	Subscribed              bool             `json:"subscribed"`
+	SubscriptionHold        string           `json:"subscription_hold,omitempty"`
+	AssignmentID            *int64           `json:"assignment_id,omitempty"`
+	DelayedPostAt           *time.Time       `json:"delayed_post_at,omitempty"`
+	Published               bool             `json:"published"`
+	LockAt                  *time.Time       `json:"lock_at,omitempty"`
+	Locked                  bool             `json:"locked"`
+	Pinned                  bool             `json:"pinned"`
+	LockedForUser           bool             `json:"locked_for_user"`
+	LockInfo                *LockInfo        `json:"lock_info,omitempty"`
+	LockExplanation         string           `json:"lock_explanation,omitempty"`
+	UserName                string           `json:"user_name,omitempty"`
+	RootTopicID             *int64           `json:"root_topic_id,omitempty"`
+	PodcastURL              string           `json:"podcast_url,omitempty"`
+	DiscussionType          string           `json:"discussion_type"`
+	GroupCategoryID         *int64           `json:"group_category_id,omitempty"`
+	Attachments             []FileAttachment `json:"attachments,omitempty"`
+	Permissions             map[string]bool  `json:"permissions,omitempty"`
+	AllowRating             bool             `json:"allow_rating"`
+	OnlyGradersCanRate      bool             `json:"only_graders_can_rate"`
+	SortByRating            bool             `json:"sort_by_rating"`
+	ContextCode             string           `json:"context_code,omitempty"`
+	Author                  *User            `json:"author,omitempty"`
+	IsAnnouncement          bool             `json:"is_announcement,omitempty"`
 }
 
 // FileAttachment represents a file attachment
@@ -57,18 +57,18 @@ type FileAttachment struct {
 
 // DiscussionEntry represents an entry in a discussion
 type DiscussionEntry struct {
-	ID             int64             `json:"id"`
-	UserID         int64             `json:"user_id"`
-	ParentID       *int64            `json:"parent_id,omitempty"`
-	CreatedAt      time.Time         `json:"created_at"`
-	UpdatedAt      time.Time         `json:"updated_at"`
-	Message        string            `json:"message"`
-	Rating         int               `json:"rating"`
-	RatingSum      int               `json:"rating_sum"`
-	ReadState      string            `json:"read_state"`
-	ForcedReadState bool             `json:"forced_read_state"`
-	User           *User             `json:"user,omitempty"`
-	Replies        []DiscussionEntry `json:"replies,omitempty"`
+	ID              int64             `json:"id"`
+	UserID          int64             `json:"user_id"`
+	ParentID        *int64            `json:"parent_id,omitempty"`
+	CreatedAt       time.Time         `json:"created_at"`
+	UpdatedAt       time.Time         `json:"updated_at"`
+	Message         string            `json:"message"`
+	Rating          int               `json:"rating"`
+	RatingSum       int               `json:"rating_sum"`
+	ReadState       string            `json:"read_state"`
+	ForcedReadState bool              `json:"forced_read_state"`
+	User            *User             `json:"user,omitempty"`
+	Replies         []DiscussionEntry `json:"replies,omitempty"`
 }
 
 // DiscussionsService handles discussion-related API calls
@@ -167,22 +167,22 @@ func (s *DiscussionsService) Get(ctx context.Context, courseID, topicID int64, i
 
 // CreateDiscussionParams holds parameters for creating a discussion
 type CreateDiscussionParams struct {
-	Title                 string
-	Message               string
-	DiscussionType        string // side_comment, threaded, not_threaded
-	Published             bool
-	DelayedPostAt         string
-	AllowRating           bool
-	LockAt                string
-	PodcastEnabled        bool
+	Title                  string
+	Message                string
+	DiscussionType         string // side_comment, threaded, not_threaded
+	Published              bool
+	DelayedPostAt          string
+	AllowRating            bool
+	LockAt                 string
+	PodcastEnabled         bool
 	PodcastHasStudentPosts bool
-	RequireInitialPost    bool
-	IsAnnouncement        bool
-	Pinned                bool
-	PositionAfter         string
-	GroupCategoryID       int64
-	OnlyGradersCanRate    bool
-	SpecificSections      string
+	RequireInitialPost     bool
+	IsAnnouncement         bool
+	Pinned                 bool
+	PositionAfter          string
+	GroupCategoryID        int64
+	OnlyGradersCanRate     bool
+	SpecificSections       string
 }
 
 // Create creates a new discussion topic
@@ -423,12 +423,12 @@ func NewAnnouncementsService(client *Client) *AnnouncementsService {
 
 // ListAnnouncementsOptions holds options for listing announcements
 type ListAnnouncementsOptions struct {
-	ContextCodes   []string // course_123, course_456
-	StartDate      string   // yyyy-mm-dd or ISO 8601
-	EndDate        string
-	ActiveOnly     bool
-	LatestOnly     bool
-	Include        []string // sections, sections_user_count
+	ContextCodes []string // course_123, course_456
+	StartDate    string   // yyyy-mm-dd or ISO 8601
+	EndDate      string
+	ActiveOnly   bool
+	LatestOnly   bool
+	Include      []string // sections, sections_user_count
 }
 
 // List retrieves announcements for the given contexts

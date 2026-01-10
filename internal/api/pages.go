@@ -10,23 +10,23 @@ import (
 
 // Page represents a Canvas wiki page
 type Page struct {
-	PageID                 int64                  `json:"page_id"`
-	URL                    string                 `json:"url"`
-	Title                  string                 `json:"title"`
-	CreatedAt              time.Time              `json:"created_at"`
-	UpdatedAt              time.Time              `json:"updated_at"`
-	HideFromStudents       bool                   `json:"hide_from_students"`
-	EditingRoles           string                 `json:"editing_roles"`
-	LastEditedBy           *User                  `json:"last_edited_by,omitempty"`
-	Body                   string                 `json:"body,omitempty"`
-	Published              bool                   `json:"published"`
-	PublishAt              *time.Time             `json:"publish_at,omitempty"`
-	FrontPage              bool                   `json:"front_page"`
-	LockedForUser          bool                   `json:"locked_for_user"`
-	LockInfo               *LockInfo              `json:"lock_info,omitempty"`
-	LockExplanation        string                 `json:"lock_explanation,omitempty"`
-	Editor                 string                 `json:"editor,omitempty"`
-	BlockEditorAttributes  map[string]interface{} `json:"block_editor_attributes,omitempty"`
+	PageID                int64                  `json:"page_id"`
+	URL                   string                 `json:"url"`
+	Title                 string                 `json:"title"`
+	CreatedAt             time.Time              `json:"created_at"`
+	UpdatedAt             time.Time              `json:"updated_at"`
+	HideFromStudents      bool                   `json:"hide_from_students"`
+	EditingRoles          string                 `json:"editing_roles"`
+	LastEditedBy          *User                  `json:"last_edited_by,omitempty"`
+	Body                  string                 `json:"body,omitempty"`
+	Published             bool                   `json:"published"`
+	PublishAt             *time.Time             `json:"publish_at,omitempty"`
+	FrontPage             bool                   `json:"front_page"`
+	LockedForUser         bool                   `json:"locked_for_user"`
+	LockInfo              *LockInfo              `json:"lock_info,omitempty"`
+	LockExplanation       string                 `json:"lock_explanation,omitempty"`
+	Editor                string                 `json:"editor,omitempty"`
+	BlockEditorAttributes map[string]interface{} `json:"block_editor_attributes,omitempty"`
 }
 
 // PageRevision represents a revision of a wiki page
