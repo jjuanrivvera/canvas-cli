@@ -6,15 +6,25 @@ run:
 linters:
   disable-all: true
   enable:
+    # Default linters
     - gosimple
     - govet
     - ineffassign
     - staticcheck
     - typecheck
     - unused
+    # Formatting
     - gofmt
     - goimports
     - misspell
+    # Error handling
+    - errcheck
+    - bodyclose
+    # Code quality
+    - goconst
+    - unconvert
+    # Security
+    - gosec
 
 linters-settings:
   gofmt:

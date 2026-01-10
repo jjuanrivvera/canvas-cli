@@ -85,6 +85,10 @@ type ListModulesOptions struct {
 
 // List retrieves all modules for a course
 func (s *ModulesService) List(ctx context.Context, courseID int64, opts *ListModulesOptions) ([]Module, error) {
+	if err := ValidatePositiveID(courseID, "course_id"); err != nil {
+		return nil, err
+	}
+
 	path := fmt.Sprintf("/api/v1/courses/%d/modules", courseID)
 
 	if opts != nil {
@@ -125,6 +129,13 @@ func (s *ModulesService) List(ctx context.Context, courseID int64, opts *ListMod
 
 // Get retrieves a single module by ID
 func (s *ModulesService) Get(ctx context.Context, courseID, moduleID int64, include []string, studentID string) (*Module, error) {
+	if err := ValidatePositiveID(courseID, "course_id"); err != nil {
+		return nil, err
+	}
+	if err := ValidatePositiveID(moduleID, "module_id"); err != nil {
+		return nil, err
+	}
+
 	path := fmt.Sprintf("/api/v1/courses/%d/modules/%d", courseID, moduleID)
 
 	query := url.Values{}
@@ -158,6 +169,16 @@ type CreateModuleParams struct {
 
 // Create creates a new module in a course
 func (s *ModulesService) Create(ctx context.Context, courseID int64, params *CreateModuleParams) (*Module, error) {
+	if err := ValidatePositiveID(courseID, "course_id"); err != nil {
+		return nil, err
+	}
+	if params == nil {
+		return nil, ErrNilParams
+	}
+	if err := ValidateNonEmpty(params.Name, "name"); err != nil {
+		return nil, err
+	}
+
 	path := fmt.Sprintf("/api/v1/courses/%d/modules", courseID)
 
 	body := map[string]interface{}{

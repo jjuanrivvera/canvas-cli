@@ -63,6 +63,10 @@ type ListPagesOptions struct {
 
 // List retrieves all pages for a course
 func (s *PagesService) List(ctx context.Context, courseID int64, opts *ListPagesOptions) ([]Page, error) {
+	if err := ValidatePositiveID(courseID, "course_id"); err != nil {
+		return nil, err
+	}
+
 	path := fmt.Sprintf("/api/v1/courses/%d/pages", courseID)
 
 	if opts != nil {
@@ -111,6 +115,13 @@ func (s *PagesService) List(ctx context.Context, courseID int64, opts *ListPages
 
 // Get retrieves a single page by URL or ID
 func (s *PagesService) Get(ctx context.Context, courseID int64, urlOrID string) (*Page, error) {
+	if err := ValidatePositiveID(courseID, "course_id"); err != nil {
+		return nil, err
+	}
+	if err := ValidateNonEmpty(urlOrID, "url_or_id"); err != nil {
+		return nil, err
+	}
+
 	path := fmt.Sprintf("/api/v1/courses/%d/pages/%s", courseID, url.PathEscape(urlOrID))
 
 	var page Page
@@ -146,6 +157,16 @@ type CreatePageParams struct {
 
 // Create creates a new page in a course
 func (s *PagesService) Create(ctx context.Context, courseID int64, params *CreatePageParams) (*Page, error) {
+	if err := ValidatePositiveID(courseID, "course_id"); err != nil {
+		return nil, err
+	}
+	if params == nil {
+		return nil, ErrNilParams
+	}
+	if err := ValidateNonEmpty(params.Title, "title"); err != nil {
+		return nil, err
+	}
+
 	path := fmt.Sprintf("/api/v1/courses/%d/pages", courseID)
 
 	body := map[string]interface{}{
