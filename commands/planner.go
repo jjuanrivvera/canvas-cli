@@ -11,14 +11,14 @@ import (
 )
 
 var (
-	plannerCourseID       int64
-	plannerStartDate      string
-	plannerEndDate        string
-	plannerContextCodes   []string
-	plannerFilter         string
-	plannerTitle          string
-	plannerDetails        string
-	plannerTodoDate       string
+	plannerCourseID      int64
+	plannerStartDate     string
+	plannerEndDate       string
+	plannerContextCodes  []string
+	plannerFilter        string
+	plannerTitle         string
+	plannerDetails       string
+	plannerTodoDate      string
 	plannerPlannableType string
 )
 
