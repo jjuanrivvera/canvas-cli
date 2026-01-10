@@ -5,8 +5,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/jjuanrivvera/canvas-cli/internal/config"
 	"github.com/spf13/cobra"
+
+	"github.com/jjuanrivvera/canvas-cli/internal/config"
 )
 
 var telemetryCmd = &cobra.Command{

@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jjuanrivvera/canvas-cli/internal/diagnostics"
 	"github.com/spf13/cobra"
+
+	"github.com/jjuanrivvera/canvas-cli/internal/diagnostics"
 )
 
 var (

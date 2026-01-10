@@ -8,8 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jjuanrivvera/canvas-cli/internal/api"
 	"golang.org/x/term"
+
+	"github.com/jjuanrivvera/canvas-cli/internal/api"
 )
 
 // ConflictResolution defines how to handle conflicts during sync

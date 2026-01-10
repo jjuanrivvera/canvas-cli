@@ -3,8 +3,9 @@ package commands
 import (
 	"fmt"
 
-	"github.com/jjuanrivvera/canvas-cli/internal/repl"
 	"github.com/spf13/cobra"
+
+	"github.com/jjuanrivvera/canvas-cli/internal/repl"
 )
 
 var replCmd = &cobra.Command{

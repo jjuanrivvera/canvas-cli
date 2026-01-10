@@ -215,12 +215,8 @@ func TestClient_Close(t *testing.T) {
 		t.Fatalf("Close failed: %v", err)
 	}
 
-	// Events should be persisted
-	eventsDir := filepath.Join(tempDir, "events")
-	if _, err := os.Stat(eventsDir); os.IsNotExist(err) {
-		// Directory might not be created if no flush happened
-		// This is acceptable
-	}
+	// Events should be persisted (directory may not exist if no flush happened yet, which is acceptable)
+	_ = filepath.Join(tempDir, "events")
 }
 
 func TestClient_Flush(t *testing.T) {

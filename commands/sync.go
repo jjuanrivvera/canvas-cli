@@ -6,11 +6,12 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/spf13/cobra"
+
 	"github.com/jjuanrivvera/canvas-cli/internal/api"
 	"github.com/jjuanrivvera/canvas-cli/internal/auth"
 	"github.com/jjuanrivvera/canvas-cli/internal/batch"
 	"github.com/jjuanrivvera/canvas-cli/internal/config"
-	"github.com/spf13/cobra"
 )
 
 var syncCmd = &cobra.Command{

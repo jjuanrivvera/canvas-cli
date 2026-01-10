@@ -8,8 +8,9 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/jjuanrivvera/canvas-cli/internal/webhook"
 	"github.com/spf13/cobra"
+
+	"github.com/jjuanrivvera/canvas-cli/internal/webhook"
 )
 
 var (

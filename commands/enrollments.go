@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/jjuanrivvera/canvas-cli/internal/api"
 	"github.com/spf13/cobra"
+
+	"github.com/jjuanrivvera/canvas-cli/internal/api"
 )
 
 var (

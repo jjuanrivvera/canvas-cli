@@ -4,9 +4,10 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/spf13/cobra"
+
 	"github.com/jjuanrivvera/canvas-cli/internal/api"
 	"github.com/jjuanrivvera/canvas-cli/internal/batch"
-	"github.com/spf13/cobra"
 )
 
 var (
