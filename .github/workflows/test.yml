@@ -48,10 +48,12 @@ jobs:
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
+        continue-on-error: true
         with:
           files: ./coverage.out
           flags: unittests
           name: codecov-${{ matrix.os }}-go${{ matrix.go-version }}
+          fail_ci_if_error: false
 
       - name: Build
         shell: bash
