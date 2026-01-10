@@ -1,0 +1,41 @@
+---
+version: 2
+interactions:
+  - request:
+      method: GET
+      uri: https://canvas.example.com/api/v1/courses
+      headers:
+        Authorization: Bearer test-token
+        Accept: application/json
+      body: ""
+    response:
+      status: 200 OK
+      status_code: 200
+      headers:
+        Content-Type: application/json
+        Link: <https://canvas.example.com/api/v1/courses?page=2>; rel="next"
+      body: |
+        [
+          {
+            "id": 12345,
+            "name": "Introduction to Computer Science",
+            "course_code": "CS101",
+            "workflow_state": "available",
+            "account_id": 1,
+            "start_at": "2024-01-15T00:00:00Z",
+            "end_at": "2024-05-15T00:00:00Z",
+            "enrollment_term_id": 1,
+            "enrollments": []
+          },
+          {
+            "id": 12346,
+            "name": "Data Structures and Algorithms",
+            "course_code": "CS201",
+            "workflow_state": "available",
+            "account_id": 1,
+            "start_at": "2024-01-15T00:00:00Z",
+            "end_at": "2024-05-15T00:00:00Z",
+            "enrollment_term_id": 1,
+            "enrollments": []
+          }
+        ]

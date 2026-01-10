@@ -1,0 +1,27 @@
+# Test configuration for Canvas CLI
+# This file is used in unit tests
+
+instances:
+  test-instance:
+    url: https://canvas.example.com
+    client_id: test-client-id
+    default: true
+
+  staging-instance:
+    url: https://staging.canvas.example.com
+    client_id: staging-client-id
+    default: false
+
+cache:
+  enabled: true
+  ttl:
+    courses: 900  # 15 minutes
+    users: 300    # 5 minutes
+    assignments: 600  # 10 minutes
+
+output:
+  format: json
+  pretty: true
+
+telemetry:
+  enabled: false

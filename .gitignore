@@ -1,0 +1,65 @@
+# Binaries
+bin/
+dist/
+canvas-cli
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool
+*.out
+coverage.txt
+coverage.html
+
+# Dependency directories
+vendor/
+
+# Go workspace file
+go.work
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Config and credentials (never commit these!)
+.canvas-cli/
+*.token
+*.token.enc
+config.yaml
+config.yml
+
+# Logs
+*.log
+
+# Temporary files
+tmp/
+temp/
+.tmp/
+
+# Build artifacts
+*.deb
+*.rpm
+*.pkg
+*.dmg
+
+# Release archives
+*.tar.gz
+*.zip
+
+# VCR cassettes (if used for testing)
+test/fixtures/*.yaml
+test/fixtures/*.json
+
+.ai

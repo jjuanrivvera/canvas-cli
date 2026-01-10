@@ -1,0 +1,23 @@
+---
+version: 2
+interactions:
+  - request:
+      method: GET
+      uri: https://canvas.example.com/api/v1/courses
+      headers:
+        Authorization: Bearer invalid-token
+        Accept: application/json
+      body: ""
+    response:
+      status: 401 Unauthorized
+      status_code: 401
+      headers:
+        Content-Type: application/json
+      body: |
+        {
+          "errors": [
+            {
+              "message": "Invalid access token"
+            }
+          ]
+        }
