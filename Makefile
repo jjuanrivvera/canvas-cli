@@ -1,4 +1,4 @@
-.PHONY: help build test clean install uninstall fmt lint vet run deps
+.PHONY: help build test clean install uninstall fmt lint vet run deps setup-hooks
 
 # Variables
 BINARY_NAME=canvas
@@ -23,6 +23,7 @@ help:
 	@echo "  make run          - Build and run the CLI"
 	@echo "  make deps         - Download dependencies"
 	@echo "  make release      - Build binaries for all platforms"
+	@echo "  make setup-hooks  - Install git pre-commit hooks"
 	@echo ""
 
 # Build the binary
@@ -119,3 +120,9 @@ release:
 # Development build with verbose output
 dev: fmt vet
 	@go build -v $(LDFLAGS) -o bin/$(BINARY_NAME) ./cmd/canvas
+
+# Setup git hooks
+setup-hooks:
+	@echo "Setting up git hooks..."
+	@git config core.hooksPath .githooks
+	@echo "✓ Git hooks installed (.githooks/pre-commit)"

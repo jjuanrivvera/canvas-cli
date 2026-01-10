@@ -24,6 +24,9 @@ gofmt -l .              # Check formatting (CI uses this)
 # Install
 make install            # Install to /usr/local/bin
 make uninstall          # Remove from /usr/local/bin
+
+# Setup
+make setup-hooks        # Install git pre-commit hooks
 ```
 
 ## Architecture
