@@ -47,9 +47,11 @@ issues:
   max-same-issues: 0
   exclude-rules:
     # Exclude errcheck in test files - test error handling is often intentionally simplified
+    # Exclude goconst in test files - repeated strings are common in tests
     - path: _test\.go
       linters:
         - errcheck
+        - goconst
 
 output:
   formats:
