@@ -8,6 +8,7 @@ Welcome to the Canvas CLI documentation. This guide will help you get started wi
 2. [Authentication](AUTHENTICATION.md) - Setting up OAuth authentication
 3. [Commands](COMMANDS.md) - Complete command reference
 4. [Examples](EXAMPLES.md) - Common usage examples
+5. [Architecture](ARCHITECTURE.md) - Internal design and components
 
 ## Quick Start
 

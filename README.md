@@ -1,297 +1,123 @@
 # Canvas CLI
 
-A powerful command-line interface for Canvas LMS, built with Go.
+[![Go Version](https://img.shields.io/badge/Go-1.21+-00ADD8?style=flat&logo=go)](https://go.dev/)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Go Report Card](https://goreportcard.com/badge/github.com/jjuanrivvera/canvas-cli)](https://goreportcard.com/report/github.com/jjuanrivvera/canvas-cli)
+[![Test Coverage](https://img.shields.io/badge/coverage-90%25-brightgreen.svg)](COVERAGE_REPORT.md)
+
+A powerful command-line interface for [Canvas LMS](https://www.instructure.com/canvas), built with Go.
 
 ## Features
 
-✨ **Core Features**
-- 🔐 OAuth 2.0 with PKCE authentication (local callback + OOB fallback)
-- 🔑 Secure token storage (system keyring + encrypted file fallback)
-- 🌐 Multi-instance support
-- ⚡ Adaptive rate limiting (respects Canvas API quotas)
-- 📄 Automatic pagination handling
-- 🔄 Exponential backoff retry logic
-- 📊 Multiple output formats (table, JSON, YAML, CSV)
-- 🎯 Canvas version detection for compatibility
+- **Secure Authentication** - OAuth 2.0 with PKCE, system keyring integration
+- **Multi-Instance** - Manage multiple Canvas instances from one CLI
+- **Smart Rate Limiting** - Adaptive throttling based on API quotas
+- **Multiple Outputs** - Table, JSON, YAML, and CSV formats
+- **Interactive Mode** - REPL shell with command history and completion
 
-## Installation
+## Architecture
 
-### From Source
+```mermaid
+graph TB
+    subgraph CLI["CLI Layer"]
+        CMD[Cobra Commands]
+        REPL[Interactive REPL]
+        OUT[Output Formatters]
+    end
 
-```bash
-# Clone the repository
-git clone https://github.com/jjuanrivvera/canvas-cli.git
-cd canvas-cli
+    subgraph Core["Core Services"]
+        API[API Client]
+        AUTH[OAuth + PKCE]
+        CACHE[Smart Cache]
+        BATCH[Batch Processor]
+    end
 
-# Build the CLI
-go build -o bin/canvas ./cmd/canvas
+    subgraph Storage["Storage Layer"]
+        KEYRING[System Keyring]
+        CONFIG[Config Manager]
+        ENCRYPT[AES-256 Fallback]
+    end
 
-# Optionally, move to your PATH
-sudo mv bin/canvas /usr/local/bin/
-```
+    CMD --> API
+    REPL --> CMD
+    CMD --> OUT
+    API --> AUTH
+    API --> CACHE
+    API --> BATCH
+    AUTH --> KEYRING
+    AUTH --> ENCRYPT
+    CONFIG --> Storage
 
-### Using Go Install
-
-```bash
-go install github.com/jjuanrivvera/canvas-cli/cmd/canvas@latest
+    API <-->|REST| CANVAS[(Canvas LMS API)]
 ```
 
 ## Quick Start
 
-### 1. Authenticate with Canvas
-
 ```bash
-# Login to your Canvas instance
-canvas auth login https://canvas.instructure.com
+# Install
+go install github.com/jjuanrivvera/canvas-cli/cmd/canvas@latest
 
-# Check authentication status
-canvas auth status
-```
+# Authenticate
+canvas auth login https://your-school.instructure.com
 
-### 2. List Your Courses
-
-```bash
-# List all courses
+# Start using
 canvas courses list
-
-# List active courses where you're a teacher
-canvas courses list --enrollment-type teacher --enrollment-state active
+canvas assignments list 12345
+canvas shell  # Interactive mode
 ```
 
-### 3. Get Course Details
+## Command Overview
 
-```bash
-# Get details of a specific course
-canvas courses get 123456
+| Category | Commands |
+|----------|----------|
+| **Auth** | `login`, `logout`, `status` |
+| **Courses** | `list`, `get`, `users` |
+| **Assignments** | `list`, `get`, `create`, `update`, `bulk-update` |
+| **Submissions** | `list`, `get`, `grade`, `bulk-grade` |
+| **Users** | `me`, `list`, `get`, `create`, `update` |
+| **Modules** | `list`, `get`, `create`, `update`, `delete`, `items` |
+| **Pages** | `list`, `get`, `create`, `update`, `delete`, `front` |
+| **Discussions** | `list`, `get`, `create`, `entries`, `post`, `reply` |
+| **Announcements** | `list`, `get`, `create`, `update`, `delete` |
+| **Calendar** | `list`, `get`, `create`, `update`, `delete` |
+| **Planner** | `items`, `notes`, `complete`, `dismiss` |
+| **Files** | `upload`, `download` |
+| **Utilities** | `shell`, `doctor`, `webhook`, `version` |
 
-# Include additional data
-canvas courses get 123456 --include syllabus_body,term
-```
+## Documentation
+
+| Guide | Description |
+|-------|-------------|
+| [Installation](docs/INSTALLATION.md) | Build from source, platform-specific setup |
+| [Authentication](docs/AUTHENTICATION.md) | OAuth setup, multi-instance, security |
+| [Commands](docs/COMMANDS.md) | Complete reference with all flags |
+| [Examples](docs/EXAMPLES.md) | Workflows, automation, scripting |
+| [Architecture](docs/ARCHITECTURE.md) | Design decisions, internals |
 
 ## Configuration
 
-Canvas CLI stores its configuration in `~/.canvas-cli/config.yaml`:
-
 ```yaml
+# ~/.canvas-cli/config.yaml
 default_instance: myschool
 instances:
   myschool:
-    name: myschool
     url: https://myschool.instructure.com
     client_id: your-client-id
 settings:
   default_output_format: table
-  requests_per_second: 5.0
   cache_enabled: true
-  cache_ttl_minutes: 15
-  telemetry_enabled: false
-  log_level: info
 ```
 
-## Authentication
-
-Canvas CLI supports OAuth 2.0 with PKCE for secure authentication:
-
-### Local Callback Mode (Default)
-
-The CLI starts a local HTTP server to receive the OAuth callback:
-
-```bash
-canvas auth login https://canvas.instructure.com
-```
-
-### Out-of-Band Mode
-
-For environments where local servers aren't available (e.g., SSH sessions):
-
-```bash
-canvas auth login https://canvas.instructure.com --mode oob
-```
-
-### Token Storage
-
-Tokens are stored securely using:
-1. **System Keyring** (primary): macOS Keychain, Windows Credential Manager, Linux Secret Service
-2. **Encrypted File** (fallback): AES-256-GCM encrypted with machine ID + username
-
-## Available Commands
-
-### Authentication
-
-```bash
-canvas auth login <instance-url>     # Authenticate with Canvas
-canvas auth logout [instance]        # Logout from Canvas
-canvas auth status [instance]        # Check authentication status
-```
-
-### Courses
-
-```bash
-canvas courses list                  # List all courses
-canvas courses get <id>              # Get course details
-canvas courses users <id>            # List course users
-```
-
-### Assignments
-
-```bash
-canvas assignments list <course-id>             # List assignments
-canvas assignments get <course-id> <id>         # Get assignment details
-canvas assignments create <course-id>           # Create assignment
-canvas assignments update <course-id> <id>      # Update assignment
-canvas assignments bulk-update <course-id>      # Bulk update assignments
-```
-
-### Users
-
-```bash
-canvas users me                      # Get current user info
-canvas users list <course-id>        # List users in a course
-canvas users get <id>                # Get user details
-canvas users create                  # Create a new user
-canvas users update <id>             # Update user
-```
-
-### Enrollments
-
-```bash
-canvas enrollments list <course-id>  # List enrollments
-canvas enrollments create <course-id> # Create enrollment
-```
-
-### Submissions
-
-```bash
-canvas submissions list <course-id> <assignment-id>        # List submissions
-canvas submissions get <course-id> <assignment-id> <id>    # Get submission
-canvas submissions grade <course-id> <assignment-id> <id>  # Grade submission
-```
-
-### Files
-
-```bash
-canvas files upload <path>           # Upload file
-canvas files download <id> <path>    # Download file
-```
-
-### Utilities
-
-```bash
-canvas shell                         # Start interactive REPL mode
-canvas doctor                        # Run diagnostics
-canvas webhook listen                # Start webhook listener
-canvas version                       # Show version info
-```
-
-### Global Flags
-
-```bash
---instance string    # Canvas instance URL (overrides config)
---output string      # Output format: table, json, yaml, csv (default "table")
---verbose            # Enable verbose output
---config string      # Config file (default is $HOME/.canvas-cli/config.yaml)
-```
-
-## Development Status
-
-**v1.0 - Production Ready** ✅
-
-All core features have been implemented and tested with 90% test coverage:
-
-- ✅ OAuth 2.0 with PKCE authentication (local + OOB modes)
-- ✅ Secure token storage (keyring + encrypted file fallback)
-- ✅ Multi-instance configuration management
-- ✅ Core API client with adaptive rate limiting
-- ✅ Automatic pagination handling
-- ✅ Retry logic with exponential backoff
-- ✅ Canvas version detection and compatibility
-- ✅ Data normalization for consistent API responses
-- ✅ Auth commands (login, logout, status)
-- ✅ Courses commands (list, get, users)
-- ✅ Assignments commands (list, get, create, update, bulk update)
-- ✅ Users commands (list, get, create, update, me)
-- ✅ Enrollments commands (list, create)
-- ✅ Submissions commands (list, get, grade, bulk grade)
-- ✅ Files commands (upload with resumable support, download)
-- ✅ Batch operations with progress tracking
-- ✅ REPL/Shell mode for interactive use
-- ✅ Multiple output formatters (table, JSON, YAML, CSV)
-- ✅ Smart caching system with TTL
-- ✅ Webhook listener for real-time events
-- ✅ Diagnostics tools (doctor command)
-- ✅ Telemetry (opt-in anonymous usage tracking)
-- ✅ Comprehensive test suite (90% coverage)
-
-**Deferred to v1.1+:**
-- Canvas Studio integration
-- Quizzes module
-- Announcements and Discussions
-
-## Architecture
-
-```
-canvas-cli/
-├── cmd/canvas/           # Main entry point
-├── commands/             # Cobra commands
-├── internal/
-│   ├── api/             # Canvas API client
-│   ├── auth/            # OAuth & token storage
-│   ├── config/          # Configuration management
-│   ├── cache/           # Caching system
-│   ├── batch/           # Batch operations
-│   ├── repl/            # Interactive REPL
-│   ├── output/          # Output formatters
-│   └── ...
-├── pkg/                 # Public packages
-└── test/                # Tests
-```
-
-## Technology Stack
-
-- **Language**: Go 1.21+
-- **CLI Framework**: Cobra
-- **Configuration**: Viper
-- **OAuth**: golang.org/x/oauth2
-- **Rate Limiting**: golang.org/x/time/rate
-- **Keyring**: zalando/go-keyring
-- **Logging**: log/slog (stdlib)
-
-## API Rate Limiting
-
-Canvas CLI implements adaptive rate limiting:
-
-- **Default**: 5 requests/second
-- **50% quota**: Slows to 2 requests/second (warning)
-- **20% quota**: Slows to 1 request/second (critical)
-
-The CLI automatically adjusts its rate based on Canvas API quota headers.
-
-## Security
-
-- **OAuth 2.0 with PKCE**: Industry-standard authentication flow
-- **Secure Token Storage**: System keyring with encrypted file fallback
-- **AES-256-GCM Encryption**: User-derived encryption keys
-- **No Hardcoded Credentials**: All credentials are user-provided
-
-## Documentation
-
-For comprehensive guides and examples, see the [docs/](docs/) directory:
-
-- **[Installation Guide](docs/INSTALLATION.md)** - Detailed installation instructions for all platforms
-- **[Authentication Guide](docs/AUTHENTICATION.md)** - OAuth setup, security, and multi-instance management
-- **[Command Reference](docs/COMMANDS.md)** - Complete command documentation with all flags and options
-- **[Usage Examples](docs/EXAMPLES.md)** - Practical examples for common workflows and automation
+See [Authentication Guide](docs/AUTHENTICATION.md) for detailed setup.
 
 ## Contributing
 
-Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
+We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ## License
 
 [MIT License](LICENSE)
 
-## Acknowledgments
+---
 
-Built with ❤️ for the Canvas LMS community.
-
-Based on the [Canvas LMS REST API](https://canvas.instructure.com/doc/api/).
+Built for the Canvas LMS community. Based on the [Canvas REST API](https://canvas.instructure.com/doc/api/).

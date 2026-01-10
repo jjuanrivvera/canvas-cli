@@ -131,16 +131,91 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Planned for v1.1+
+### Planned for v1.2+
 - Canvas Studio integration
 - Quizzes module
-- Announcements and Discussions
 - GraphQL API support
 - Shell completion generation
 - Man page generation
 
+## [1.1.0] - 2026-01-10
+
+### Added
+
+#### Commands - Modules
+- `canvas modules list` - List modules in a course
+- `canvas modules get` - Get module details
+- `canvas modules create` - Create new module
+- `canvas modules update` - Update module
+- `canvas modules delete` - Delete module
+- `canvas modules relock` - Relock module progressions
+- `canvas modules items` - List items in a module
+- `canvas modules items get` - Get module item details
+- `canvas modules items create` - Create module item
+- `canvas modules items update` - Update module item
+- `canvas modules items delete` - Delete module item
+- `canvas modules items done` - Mark module item as done
+- `canvas modules items not-done` - Mark module item as not done
+
+#### Commands - Pages
+- `canvas pages list` - List wiki pages in a course
+- `canvas pages get` - Get page by URL or ID
+- `canvas pages front` - Get front page
+- `canvas pages create` - Create new page
+- `canvas pages update` - Update existing page
+- `canvas pages delete` - Delete page
+- `canvas pages duplicate` - Duplicate page
+- `canvas pages revisions` - List page revisions
+- `canvas pages revert` - Revert to specific revision
+
+#### Commands - Discussions
+- `canvas discussions list` - List discussion topics
+- `canvas discussions get` - Get discussion details
+- `canvas discussions create` - Create new discussion
+- `canvas discussions update` - Update discussion
+- `canvas discussions delete` - Delete discussion
+- `canvas discussions entries` - List discussion entries
+- `canvas discussions post` - Post new entry
+- `canvas discussions reply` - Reply to entry
+- `canvas discussions subscribe` - Subscribe to topic
+- `canvas discussions unsubscribe` - Unsubscribe from topic
+
+#### Commands - Announcements
+- `canvas announcements list` - List course announcements
+- `canvas announcements get` - Get announcement details
+- `canvas announcements create` - Create new announcement
+- `canvas announcements update` - Update announcement
+- `canvas announcements delete` - Delete announcement
+
+#### Commands - Calendar
+- `canvas calendar list` - List calendar events
+- `canvas calendar get` - Get event details
+- `canvas calendar create` - Create new event
+- `canvas calendar update` - Update event
+- `canvas calendar delete` - Delete event
+- `canvas calendar reserve` - Reserve time slot
+
+#### Commands - Planner
+- `canvas planner items` - List planner items
+- `canvas planner notes list` - List planner notes
+- `canvas planner notes get` - Get note details
+- `canvas planner notes create` - Create planner note
+- `canvas planner notes update` - Update note
+- `canvas planner notes delete` - Delete note
+- `canvas planner complete` - Mark item as complete
+- `canvas planner dismiss` - Dismiss item from planner
+- `canvas planner overrides` - List planner overrides
+
+### Testing
+- Added comprehensive tests for all new API services
+- Tests for Modules, Pages, Discussions, Announcements, Calendar, and Planner
+- All tests passing with consistent patterns
+
 ## Version History
 
+- **1.1.0** (2026-01-10) - Feature release
+  - Modules, Pages, Discussions, Announcements, Calendar, Planner commands
+  - Comprehensive API coverage for course content management
 - **1.0.0** (2026-01-09) - Initial production release
   - All v1.0 scope features complete
   - 90% test coverage achieved

@@ -36,17 +36,45 @@ Thank you for your interest in contributing to Canvas CLI! This document provide
 
 ## Development Workflow
 
+### Branch Strategy
+
+We follow a simplified Git Flow:
+
+```
+main ─────●─────●─────●─────●───── (stable releases)
+           \         /
+            \       /
+develop ─────●───●───●───●─────── (integration branch)
+              \     /
+               \   /
+feature/xyz ────●─●─────────────── (your work)
+```
+
+**Main Branches:**
+- `main` - Production-ready code, tagged releases only
+- `develop` - Integration branch for features (PR target)
+
+**Supporting Branches:**
+- `feature/*` - New features → merge to `develop`
+- `fix/*` - Bug fixes → merge to `develop`
+- `hotfix/*` - Urgent production fixes → merge to `main` and `develop`
+- `release/*` - Release preparation → merge to `main` and `develop`
+
 ### Creating a Branch
 
-Always create a new branch for your work:
+Always create a new branch from `develop`:
 
 ```bash
+git checkout develop
+git pull upstream develop
 git checkout -b feature/your-feature-name
 ```
 
 Branch naming conventions:
 - `feature/` - New features
 - `fix/` - Bug fixes
+- `hotfix/` - Urgent production fixes
+- `release/` - Release preparation
 - `docs/` - Documentation changes
 - `refactor/` - Code refactoring
 - `test/` - Adding or updating tests
