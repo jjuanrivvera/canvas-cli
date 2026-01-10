@@ -33,8 +33,7 @@ linters-settings:
     exclude-functions:
       - (io.Closer).Close
       - (*github.com/spf13/cobra.Command).MarkFlagRequired
-      - (*github.com/spf13/viper.Viper).BindPFlag
-      - (github.com/spf13/viper).BindPFlag
+      - github.com/spf13/viper.BindPFlag
       - (*net/http.Server).Shutdown
       - fmt.Scanln
       - fmt.Sscanf
