@@ -145,7 +145,6 @@ type Assignment struct {
 	HideInGradebook         bool      `json:"hide_in_gradebook"`
 	SecureParams            string    `json:"secure_params"`
 	LTIContextID            string    `json:"lti_context_id"`
-	CourseID2               int64     `json:"course_id"`
 	NameHash                string    `json:"name_hash,omitempty"`
 	CanDuplicate            bool      `json:"can_duplicate"`
 	OriginalCourseID        int64     `json:"original_course_id"`
@@ -156,7 +155,6 @@ type Assignment struct {
 	WorkflowState           string    `json:"workflow_state"`
 	ImportantDates          bool      `json:"important_dates"`
 	MutedTLN                bool      `json:"muted"`
-	HTMLURL2                string    `json:"html_url"`
 	HasGradableSubmissions  bool      `json:"has_gradable_submissions"`
 	URL                     string    `json:"url,omitempty"`
 	IsQuizAssignment        bool      `json:"is_quiz_assignment"`
@@ -171,10 +169,6 @@ type Assignment struct {
 	Overrides               []AssignmentOverride `json:"overrides,omitempty"`
 	OmitFromFinalGrade      bool      `json:"omit_from_final_grade"`
 	ModeratedGrading        bool      `json:"moderated_grading"`
-	GraderCommentsVisibleToGraders2 bool `json:"grader_comments_visible_to_graders"`
-	FinalGraderID2          int64     `json:"final_grader_id"`
-	GraderNamesVisibleToFinalGrader2 bool `json:"grader_names_visible_to_final_grader"`
-	AllowedAttempts2        int       `json:"allowed_attempts"`
 }
 
 // Submission represents a Canvas submission

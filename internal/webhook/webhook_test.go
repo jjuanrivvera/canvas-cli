@@ -11,6 +11,7 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"sync/atomic"
 	"testing"
 	"time"
 )
@@ -461,9 +462,9 @@ func TestListener_ConcurrentRequests(t *testing.T) {
 		Addr: "localhost:18081",
 	})
 
-	count := 0
+	var count int64
 	listener.On("test_event", func(ctx context.Context, event *Event) error {
-		count++
+		atomic.AddInt64(&count, 1)
 		time.Sleep(10 * time.Millisecond)
 		return nil
 	})
@@ -504,8 +505,9 @@ func TestListener_ConcurrentRequests(t *testing.T) {
 	// Give handlers time to complete
 	time.Sleep(200 * time.Millisecond)
 
-	if count != 10 {
-		t.Errorf("expected count 10, got %d", count)
+	finalCount := atomic.LoadInt64(&count)
+	if finalCount != 10 {
+		t.Errorf("expected count 10, got %d", finalCount)
 	}
 }
 

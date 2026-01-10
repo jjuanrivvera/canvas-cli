@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 )
@@ -265,7 +266,7 @@ func TestDiskCache_KeyPath(t *testing.T) {
 	}
 
 	// Path should be within the cache directory
-	if !filepath.HasPrefix(path, tempDir) {
+	if !strings.HasPrefix(path, tempDir) {
 		t.Errorf("expected path to be in cache dir %s, got %s", tempDir, path)
 	}
 
