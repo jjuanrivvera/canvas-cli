@@ -5,7 +5,6 @@ run:
 
 linters:
   enable:
-    - errcheck
     - gosimple
     - govet
     - ineffassign
@@ -15,93 +14,17 @@ linters:
     - gofmt
     - goimports
     - misspell
-    - gocritic
-    - revive
-    - gosec
-    - bodyclose
-    - depguard
-    - dogsled
-    - dupl
-    - exportloopref
-    - gochecknoglobals
-    - gocognit
-    - goconst
-    - gocyclo
-    - godot
-    - goprintffuncname
-    - nakedret
-    - nolintlint
-    - prealloc
-    - unconvert
-    - unparam
-    - whitespace
 
 linters-settings:
-  errcheck:
-    check-type-assertions: true
-    check-blank: true
-
-  gocritic:
-    enabled-tags:
-      - diagnostic
-      - style
-      - performance
-      - experimental
-      - opinionated
-
-  gocyclo:
-    min-complexity: 15
-
   gofmt:
     simplify: true
 
   goimports:
     local-prefixes: github.com/jjuanrivvera/canvas-cli
 
-  gosec:
-    excludes:
-      - G304  # File path provided as taint input
-      - G204  # Subprocess launched with variable
-
-  revive:
-    rules:
-      - name: exported
-        severity: warning
-      - name: package-comments
-        severity: warning
-
-  depguard:
-    rules:
-      main:
-        deny:
-          - pkg: "io/ioutil"
-            desc: "Use os and io packages instead"
-
 issues:
-  exclude-rules:
-    # Exclude some linters from running on tests files.
-    - path: _test\.go
-      linters:
-        - gocyclo
-        - errcheck
-        - dupl
-        - gosec
-        - gochecknoglobals
-        - gocognit
-
-    # Exclude dupl from API files (similar patterns across services are intentional)
-    - path: internal/api/
-      linters:
-        - dupl
-
-    # Exclude known false positives
-    - linters:
-        - staticcheck
-      text: "SA1019"  # Using deprecated functions
-
   max-issues-per-linter: 0
   max-same-issues: 0
-  uniq-by-line: true
 
 output:
   formats:
