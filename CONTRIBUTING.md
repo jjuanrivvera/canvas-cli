@@ -65,6 +65,16 @@ feature/xyz ────●─●─────────────── (
 - `hotfix/*` - Urgent production fixes → merge to `main` and `develop`
 - `release/*` - Release preparation → merge to `main` and `develop`
 
+### When `develop` Syncs with `main`
+
+The `develop` branch syncs with `main` in two scenarios:
+
+1. **After a release**: When a release is tagged on `main`, merge `main` back into `develop` to capture any release-specific commits (version bumps, changelog updates).
+
+2. **After a hotfix**: Hotfixes merge to both `main` (for immediate production fix) and `develop` (to ensure the fix is in future releases).
+
+This ensures `develop` always contains all production code plus unreleased features.
+
 ### Creating a Branch
 
 Always create a new branch from `develop`:
@@ -313,20 +323,49 @@ func NewClient(config ClientConfig) (*Client, error) {
 
 ## Release Process
 
-Releases are automated through GitHub Actions:
+Releases are automated through GitHub Actions. Here's the complete release workflow:
 
-1. Update version in appropriate files
-2. Create and push a version tag:
-   ```bash
-   git tag -a v1.0.0 -m "Release v1.0.0"
-   git push origin v1.0.0
-   ```
+### 1. Prepare the Release
 
-3. GitHub Actions will:
-   - Run tests
-   - Build binaries for all platforms
-   - Create a GitHub release
-   - Upload binaries and checksums
+```bash
+# Ensure develop is up to date
+git checkout develop
+git pull origin develop
+
+# Create release branch (optional, for larger releases)
+git checkout -b release/v1.0.0
+```
+
+### 2. Finalize and Tag
+
+```bash
+# Merge develop into main
+git checkout main
+git pull origin main
+git merge develop  # or merge release/v1.0.0
+
+# Create version tag
+git tag -a v1.0.0 -m "Release v1.0.0"
+git push origin main --tags
+```
+
+### 3. Sync Back to Develop
+
+```bash
+# Keep develop in sync with main
+git checkout develop
+git merge main
+git push origin develop
+```
+
+### 4. Automated Release (GitHub Actions)
+
+When the tag is pushed, GitHub Actions will:
+- Run tests
+- Build binaries for all platforms (Linux, macOS, Windows)
+- Create a GitHub release
+- Upload binaries and checksums
+- Generate changelog from conventional commits
 
 ## Getting Help
 
