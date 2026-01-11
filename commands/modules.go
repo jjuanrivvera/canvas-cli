@@ -346,6 +346,11 @@ func runModulesList(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	// Validate course ID exists
+	if _, err := validateCourseID(client, modulesCourseID); err != nil {
+		return err
+	}
+
 	modulesService := api.NewModulesService(client)
 
 	opts := &api.ListModulesOptions{
@@ -365,13 +370,14 @@ func runModulesList(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	fmt.Printf("Found %d modules:\n\n", len(modules))
+	// Format and display modules
+	return formatOutput(modules, func() {
+		fmt.Printf("Found %d modules:\n\n", len(modules))
 
-	for _, module := range modules {
-		displayModule(&module)
-	}
-
-	return nil
+		for _, module := range modules {
+			displayModule(&module)
+		}
+	})
 }
 
 func runModulesGet(cmd *cobra.Command, args []string) error {
@@ -385,6 +391,11 @@ func runModulesGet(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	// Validate course ID exists
+	if _, err := validateCourseID(client, modulesCourseID); err != nil {
+		return err
+	}
+
 	modulesService := api.NewModulesService(client)
 
 	ctx := context.Background()
@@ -393,21 +404,27 @@ func runModulesGet(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to get module: %w", err)
 	}
 
-	displayModule(module)
+	// Format and display module details
+	return formatOutput(module, func() {
+		displayModule(module)
 
-	if len(module.Items) > 0 {
-		fmt.Printf("\nItems (%d):\n", len(module.Items))
-		for _, item := range module.Items {
-			displayModuleItem(&item, "  ")
+		if len(module.Items) > 0 {
+			fmt.Printf("\nItems (%d):\n", len(module.Items))
+			for _, item := range module.Items {
+				displayModuleItem(&item, "  ")
+			}
 		}
-	}
-
-	return nil
+	})
 }
 
 func runModulesCreate(cmd *cobra.Command, args []string) error {
 	client, err := getAPIClient()
 	if err != nil {
+		return err
+	}
+
+	// Validate course ID exists
+	if _, err := validateCourseID(client, modulesCourseID); err != nil {
 		return err
 	}
 
@@ -442,6 +459,11 @@ func runModulesUpdate(cmd *cobra.Command, args []string) error {
 
 	client, err := getAPIClient()
 	if err != nil {
+		return err
+	}
+
+	// Validate course ID exists
+	if _, err := validateCourseID(client, modulesCourseID); err != nil {
 		return err
 	}
 
@@ -495,6 +517,11 @@ func runModulesDelete(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	// Validate course ID exists
+	if _, err := validateCourseID(client, modulesCourseID); err != nil {
+		return err
+	}
+
 	modulesService := api.NewModulesService(client)
 
 	ctx := context.Background()
@@ -514,6 +541,11 @@ func runModulesRelock(cmd *cobra.Command, args []string) error {
 
 	client, err := getAPIClient()
 	if err != nil {
+		return err
+	}
+
+	// Validate course ID exists
+	if _, err := validateCourseID(client, modulesCourseID); err != nil {
 		return err
 	}
 
@@ -537,6 +569,11 @@ func runModulesItemsList(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	// Validate course ID exists
+	if _, err := validateCourseID(client, modulesCourseID); err != nil {
+		return err
+	}
+
 	modulesService := api.NewModulesService(client)
 
 	opts := &api.ListModuleItemsOptions{
@@ -556,13 +593,14 @@ func runModulesItemsList(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	fmt.Printf("Found %d items:\n\n", len(items))
+	// Format and display items
+	return formatOutput(items, func() {
+		fmt.Printf("Found %d items:\n\n", len(items))
 
-	for _, item := range items {
-		displayModuleItem(&item, "")
-	}
-
-	return nil
+		for _, item := range items {
+			displayModuleItem(&item, "")
+		}
+	})
 }
 
 func runModulesItemsGet(cmd *cobra.Command, args []string) error {
@@ -576,6 +614,11 @@ func runModulesItemsGet(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	// Validate course ID exists
+	if _, err := validateCourseID(client, modulesCourseID); err != nil {
+		return err
+	}
+
 	modulesService := api.NewModulesService(client)
 
 	ctx := context.Background()
@@ -584,14 +627,20 @@ func runModulesItemsGet(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to get module item: %w", err)
 	}
 
-	displayModuleItem(item, "")
-
-	return nil
+	// Format and display item details
+	return formatOutput(item, func() {
+		displayModuleItem(item, "")
+	})
 }
 
 func runModulesItemsCreate(cmd *cobra.Command, args []string) error {
 	client, err := getAPIClient()
 	if err != nil {
+		return err
+	}
+
+	// Validate course ID exists
+	if _, err := validateCourseID(client, modulesCourseID); err != nil {
 		return err
 	}
 
@@ -638,6 +687,11 @@ func runModulesItemsDelete(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	// Validate course ID exists
+	if _, err := validateCourseID(client, modulesCourseID); err != nil {
+		return err
+	}
+
 	modulesService := api.NewModulesService(client)
 
 	ctx := context.Background()
@@ -657,6 +711,11 @@ func runModulesItemsDone(cmd *cobra.Command, args []string) error {
 
 	client, err := getAPIClient()
 	if err != nil {
+		return err
+	}
+
+	// Validate course ID exists
+	if _, err := validateCourseID(client, modulesCourseID); err != nil {
 		return err
 	}
 

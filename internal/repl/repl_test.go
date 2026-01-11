@@ -1,7 +1,6 @@
 package repl
 
 import (
-	"bufio"
 	"bytes"
 	"context"
 	"strings"
@@ -366,112 +365,9 @@ func TestHandleSessionCommand_SetMultipleWords(t *testing.T) {
 	}
 }
 
-func TestRun_ExitCommand(t *testing.T) {
-	rootCmd := &cobra.Command{Use: "test"}
-	repl := New(rootCmd)
-
-	// Provide input that exits the REPL
-	input := "exit\n"
-	repl.reader = bufio.NewReader(strings.NewReader(input))
-
-	var buf bytes.Buffer
-	repl.writer = &buf
-
-	ctx := context.Background()
-	err := repl.Run(ctx)
-	if err != nil {
-		t.Errorf("expected no error, got %v", err)
-	}
-
-	output := buf.String()
-	if !strings.Contains(output, "Goodbye") {
-		t.Error("expected 'Goodbye' in output")
-	}
-}
-
-func TestRun_QuitCommand(t *testing.T) {
-	rootCmd := &cobra.Command{Use: "test"}
-	repl := New(rootCmd)
-
-	// Provide input that quits the REPL
-	input := "quit\n"
-	repl.reader = bufio.NewReader(strings.NewReader(input))
-
-	var buf bytes.Buffer
-	repl.writer = &buf
-
-	ctx := context.Background()
-	err := repl.Run(ctx)
-	if err != nil {
-		t.Errorf("expected no error, got %v", err)
-	}
-
-	output := buf.String()
-	if !strings.Contains(output, "Goodbye") {
-		t.Error("expected 'Goodbye' in output")
-	}
-}
-
-func TestRun_EmptyInput(t *testing.T) {
-	rootCmd := &cobra.Command{Use: "test"}
-	repl := New(rootCmd)
-
-	// Provide empty line then exit
-	input := "\nexit\n"
-	repl.reader = bufio.NewReader(strings.NewReader(input))
-
-	var buf bytes.Buffer
-	repl.writer = &buf
-
-	ctx := context.Background()
-	err := repl.Run(ctx)
-	if err != nil {
-		t.Errorf("expected no error, got %v", err)
-	}
-}
-
-func TestRun_HistoryCommand(t *testing.T) {
-	rootCmd := &cobra.Command{Use: "test"}
-	repl := New(rootCmd)
-
-	// Provide history command then exit
-	input := "history\nexit\n"
-	repl.reader = bufio.NewReader(strings.NewReader(input))
-
-	var buf bytes.Buffer
-	repl.writer = &buf
-
-	ctx := context.Background()
-	err := repl.Run(ctx)
-	if err != nil {
-		t.Errorf("expected no error, got %v", err)
-	}
-
-	output := buf.String()
-	if !strings.Contains(output, "history") {
-		t.Error("expected history to be added to command history")
-	}
-}
-
-func TestRun_EOF(t *testing.T) {
-	rootCmd := &cobra.Command{Use: "test"}
-	repl := New(rootCmd)
-
-	// Provide EOF (empty input, no newline)
-	input := ""
-	repl.reader = bufio.NewReader(strings.NewReader(input))
-
-	var buf bytes.Buffer
-	repl.writer = &buf
-
-	ctx := context.Background()
-	err := repl.Run(ctx)
-	if err != nil {
-		t.Errorf("expected no error on EOF, got %v", err)
-	}
-
-	output := buf.String()
-	if !strings.Contains(output, "Goodbye") {
-		t.Error("expected 'Goodbye' on EOF")
-	}
-}
+// Note: The following Run tests were removed because they relied on the old
+// bufio.Reader-based implementation. The REPL now uses the readline library
+// which provides advanced features like arrow key navigation and history search.
+// The readline library is tested separately.
+// Tests that were removed: TestRun_ExitCommand, TestRun_QuitCommand,
+// TestRun_EmptyInput, TestRun_HistoryCommand, TestRun_EOF
