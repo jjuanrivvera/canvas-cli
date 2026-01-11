@@ -88,6 +88,49 @@ func TestServiceMethod(t *testing.T) {
 
 Use `t.Fatal()` (not `t.Error()`) when nil checks would cause subsequent panics.
 
+## Branching & Release
+
+### Branch Model (Simplified Git Flow)
+
+```
+main     ──●─────────────────●──────► (tagged releases)
+           │                 ↑↓
+develop  ──●───●───●───●─────●──────► (integration)
+               ↑       ↑
+feature/*  ────┘       │
+fix/*  ────────────────┘
+```
+
+| Branch | Purpose | Merges To |
+|--------|---------|-----------|
+| `main` | Tagged releases only | - |
+| `develop` | Integration (PR target) | `main` on release |
+| `feature/*` | New features | `develop` |
+| `fix/*` | Bug fixes | `develop` |
+| `hotfix/*` | Urgent fixes | `main` AND `develop` |
+
+### When develop syncs with main
+
+1. **After a release**: Merge `main` back to `develop` to capture release commits
+2. **After a hotfix**: Hotfix merges to both `main` and `develop`
+
+### Release Process
+
+```bash
+# 1. Merge develop to main
+git checkout main && git merge develop
+
+# 2. Tag and push
+git tag -a v1.x.x -m "Release v1.x.x"
+git push origin main --tags
+
+# 3. Sync main back to develop
+git checkout develop && git merge main
+git push origin develop
+```
+
+GitHub Actions automatically builds binaries and creates the release on tag push.
+
 ## CI
 
 Single workflow `.github/workflows/ci.yml` runs:
