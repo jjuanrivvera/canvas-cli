@@ -2,7 +2,6 @@ package commands
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -113,47 +112,38 @@ func runAccountsList(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	// Display accounts
-	if outputFormat == "json" {
-		data, err := json.MarshalIndent(accounts, "", "  ")
-		if err != nil {
-			return fmt.Errorf("failed to marshal JSON: %w", err)
+	// Format and display accounts
+	return formatOutput(accounts, func() {
+		// Table output
+		fmt.Printf("%-8s %-40s %-12s %-15s\n", "ID", "NAME", "PARENT_ID", "STATE")
+		fmt.Println(strings.Repeat("-", 80))
+
+		for _, account := range accounts {
+			parentID := "-"
+			if account.ParentAccountID != 0 {
+				parentID = strconv.FormatInt(account.ParentAccountID, 10)
+			}
+
+			name := account.Name
+			if len(name) > 38 {
+				name = name[:35] + "..."
+			}
+
+			fmt.Printf("%-8d %-40s %-12s %-15s\n",
+				account.ID,
+				name,
+				parentID,
+				account.WorkflowState,
+			)
 		}
-		fmt.Println(string(data))
-		return nil
-	}
 
-	// Table output
-	fmt.Printf("%-8s %-40s %-12s %-15s\n", "ID", "NAME", "PARENT_ID", "STATE")
-	fmt.Println(strings.Repeat("-", 80))
+		fmt.Printf("\nTotal: %d account(s)\n", len(accounts))
 
-	for _, account := range accounts {
-		parentID := "-"
-		if account.ParentAccountID != 0 {
-			parentID = strconv.FormatInt(account.ParentAccountID, 10)
+		// Helpful tip for new users
+		if len(accounts) > 0 {
+			fmt.Println("\nTip: Use 'canvas courses list --account <id>' to see all courses in an account")
 		}
-
-		name := account.Name
-		if len(name) > 38 {
-			name = name[:35] + "..."
-		}
-
-		fmt.Printf("%-8d %-40s %-12s %-15s\n",
-			account.ID,
-			name,
-			parentID,
-			account.WorkflowState,
-		)
-	}
-
-	fmt.Printf("\nTotal: %d account(s)\n", len(accounts))
-
-	// Helpful tip for new users
-	if len(accounts) > 0 {
-		fmt.Println("\nTip: Use 'canvas courses list --account <id>' to see all courses in an account")
-	}
-
-	return nil
+	})
 }
 
 func runAccountsGet(cmd *cobra.Command, args []string) error {
@@ -175,39 +165,30 @@ func runAccountsGet(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	// Display account
-	if outputFormat == "json" {
-		data, err := json.MarshalIndent(account, "", "  ")
-		if err != nil {
-			return fmt.Errorf("failed to marshal JSON: %w", err)
+	// Format and display account
+	return formatOutput(account, func() {
+		// Detailed output
+		fmt.Printf("Account Details\n")
+		fmt.Printf("===============\n\n")
+		fmt.Printf("ID:                 %d\n", account.ID)
+		fmt.Printf("Name:               %s\n", account.Name)
+		if account.UUID != "" {
+			fmt.Printf("UUID:               %s\n", account.UUID)
 		}
-		fmt.Println(string(data))
-		return nil
-	}
-
-	// Detailed output
-	fmt.Printf("Account Details\n")
-	fmt.Printf("===============\n\n")
-	fmt.Printf("ID:                 %d\n", account.ID)
-	fmt.Printf("Name:               %s\n", account.Name)
-	if account.UUID != "" {
-		fmt.Printf("UUID:               %s\n", account.UUID)
-	}
-	if account.ParentAccountID != 0 {
-		fmt.Printf("Parent Account ID:  %d\n", account.ParentAccountID)
-	}
-	if account.RootAccountID != 0 {
-		fmt.Printf("Root Account ID:    %d\n", account.RootAccountID)
-	}
-	fmt.Printf("Workflow State:     %s\n", account.WorkflowState)
-	if account.DefaultTimeZone != "" {
-		fmt.Printf("Time Zone:          %s\n", account.DefaultTimeZone)
-	}
-	if account.SISAccountID != "" {
-		fmt.Printf("SIS Account ID:     %s\n", account.SISAccountID)
-	}
-
-	return nil
+		if account.ParentAccountID != 0 {
+			fmt.Printf("Parent Account ID:  %d\n", account.ParentAccountID)
+		}
+		if account.RootAccountID != 0 {
+			fmt.Printf("Root Account ID:    %d\n", account.RootAccountID)
+		}
+		fmt.Printf("Workflow State:     %s\n", account.WorkflowState)
+		if account.DefaultTimeZone != "" {
+			fmt.Printf("Time Zone:          %s\n", account.DefaultTimeZone)
+		}
+		if account.SISAccountID != "" {
+			fmt.Printf("SIS Account ID:     %s\n", account.SISAccountID)
+		}
+	})
 }
 
 func runAccountsSubAccounts(cmd *cobra.Command, args []string) error {
@@ -238,35 +219,26 @@ func runAccountsSubAccounts(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	// Display accounts
-	if outputFormat == "json" {
-		data, err := json.MarshalIndent(accounts, "", "  ")
-		if err != nil {
-			return fmt.Errorf("failed to marshal JSON: %w", err)
+	// Format and display accounts
+	return formatOutput(accounts, func() {
+		// Table output
+		fmt.Printf("%-8s %-40s %-12s %-15s\n", "ID", "NAME", "PARENT_ID", "STATE")
+		fmt.Println(strings.Repeat("-", 80))
+
+		for _, account := range accounts {
+			name := account.Name
+			if len(name) > 38 {
+				name = name[:35] + "..."
+			}
+
+			fmt.Printf("%-8d %-40s %-12d %-15s\n",
+				account.ID,
+				name,
+				account.ParentAccountID,
+				account.WorkflowState,
+			)
 		}
-		fmt.Println(string(data))
-		return nil
-	}
 
-	// Table output
-	fmt.Printf("%-8s %-40s %-12s %-15s\n", "ID", "NAME", "PARENT_ID", "STATE")
-	fmt.Println(strings.Repeat("-", 80))
-
-	for _, account := range accounts {
-		name := account.Name
-		if len(name) > 38 {
-			name = name[:35] + "..."
-		}
-
-		fmt.Printf("%-8d %-40s %-12d %-15s\n",
-			account.ID,
-			name,
-			account.ParentAccountID,
-			account.WorkflowState,
-		)
-	}
-
-	fmt.Printf("\nTotal: %d sub-account(s)\n", len(accounts))
-
-	return nil
+		fmt.Printf("\nTotal: %d sub-account(s)\n", len(accounts))
+	})
 }

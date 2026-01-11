@@ -3,6 +3,8 @@ package api
 import (
 	"bytes"
 	"context"
+	"crypto/md5"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -14,6 +16,8 @@ import (
 	"time"
 
 	"golang.org/x/time/rate"
+
+	"github.com/jjuanrivvera/canvas-cli/internal/cache"
 )
 
 const (
@@ -63,6 +67,8 @@ type Client struct {
 	featureChecker *FeatureChecker
 	logger         *slog.Logger
 	quotaTotal     float64 // Detected or configured quota total
+	cache          cache.CacheInterface
+	cacheEnabled   bool
 	mu             sync.RWMutex
 }
 
@@ -139,6 +145,8 @@ type ClientConfig struct {
 	Timeout        time.Duration
 	Logger         *slog.Logger
 	AsUserID       int64 // For admin masquerading (appends as_user_id param)
+	Cache          cache.CacheInterface
+	CacheEnabled   bool
 }
 
 // NewClient creates a new Canvas API client
@@ -178,13 +186,15 @@ func NewClient(config ClientConfig) (*Client, error) {
 			Timeout:   config.Timeout,
 			Transport: transport,
 		},
-		baseURL:     config.BaseURL,
-		token:       config.Token,
-		asUserID:    config.AsUserID,
-		rateLimiter: NewAdaptiveRateLimiter(config.RequestsPerSec),
-		retryPolicy: DefaultRetryPolicy(),
-		logger:      config.Logger,
-		quotaTotal:  defaultQuotaTotal, // Will be updated from headers if available
+		baseURL:      config.BaseURL,
+		token:        config.Token,
+		asUserID:     config.AsUserID,
+		rateLimiter:  NewAdaptiveRateLimiter(config.RequestsPerSec),
+		retryPolicy:  DefaultRetryPolicy(),
+		logger:       config.Logger,
+		quotaTotal:   defaultQuotaTotal, // Will be updated from headers if available
+		cache:        config.Cache,
+		cacheEnabled: config.CacheEnabled && config.Cache != nil,
 	}
 
 	// Detect Canvas version
@@ -294,6 +304,48 @@ func (c *Client) GetQuotaTotal() float64 {
 	return c.quotaTotal
 }
 
+// cacheKey generates a unique cache key for the given path
+func (c *Client) cacheKey(path string) string {
+	// Include base URL and masquerade user to ensure unique keys per instance/user
+	key := c.baseURL + path
+	if c.asUserID > 0 {
+		key += fmt.Sprintf(":as_user:%d", c.asUserID)
+	}
+
+	// Hash the key to avoid issues with special characters
+	hash := md5.Sum([]byte(key))
+	return hex.EncodeToString(hash[:])
+}
+
+// IsCacheEnabled returns whether caching is enabled
+func (c *Client) IsCacheEnabled() bool {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	return c.cacheEnabled
+}
+
+// SetCacheEnabled enables or disables caching
+func (c *Client) SetCacheEnabled(enabled bool) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.cacheEnabled = enabled && c.cache != nil
+}
+
+// ClearCache clears all cached responses
+func (c *Client) ClearCache() {
+	if c.cache != nil {
+		c.cache.Clear()
+	}
+}
+
+// CacheStats returns cache statistics
+func (c *Client) CacheStats() cache.Stats {
+	if c.cache != nil {
+		return c.cache.Stats()
+	}
+	return cache.Stats{}
+}
+
 // Get performs a GET request
 func (c *Client) Get(ctx context.Context, path string) (*http.Response, error) {
 	return c.doRequest(ctx, http.MethodGet, path, nil)
@@ -315,14 +367,40 @@ func (c *Client) Delete(ctx context.Context, path string) (*http.Response, error
 }
 
 // GetJSON performs a GET request and decodes JSON response
+// If caching is enabled, cached responses will be returned when available
 func (c *Client) GetJSON(ctx context.Context, path string, result interface{}) error {
+	// Check cache first if enabled
+	if c.cacheEnabled && c.cache != nil {
+		key := c.cacheKey(path)
+		if err := c.cache.GetJSON(key, result); err == nil {
+			return nil // Cache hit
+		}
+	}
+
 	resp, err := c.Get(ctx, path)
 	if err != nil {
 		return err
 	}
 	defer resp.Body.Close()
 
-	return json.NewDecoder(resp.Body).Decode(result)
+	// Read the response body so we can cache it
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("failed to read response body: %w", err)
+	}
+
+	// Decode the response
+	if err := json.Unmarshal(body, result); err != nil {
+		return err
+	}
+
+	// Cache the response if caching is enabled
+	if c.cacheEnabled && c.cache != nil {
+		key := c.cacheKey(path)
+		c.cache.Set(key, body)
+	}
+
+	return nil
 }
 
 // PostJSON performs a POST request with JSON body and decodes JSON response
@@ -366,7 +444,16 @@ func (c *Client) PutJSON(ctx context.Context, path string, body interface{}, res
 }
 
 // GetAllPages fetches all pages of a paginated endpoint
+// If caching is enabled, cached responses will be returned when available
 func (c *Client) GetAllPages(ctx context.Context, path string, result interface{}) error {
+	// Check cache first if enabled
+	if c.cacheEnabled && c.cache != nil {
+		key := c.cacheKey("pages:" + path)
+		if err := c.cache.GetJSON(key, result); err == nil {
+			return nil // Cache hit
+		}
+	}
+
 	var allResults []json.RawMessage
 	currentURL := path
 
@@ -410,5 +497,15 @@ func (c *Client) GetAllPages(ctx context.Context, path string, result interface{
 		return fmt.Errorf("failed to marshal results: %w", err)
 	}
 
-	return json.Unmarshal(allJSON, result)
+	if err := json.Unmarshal(allJSON, result); err != nil {
+		return err
+	}
+
+	// Cache the combined result if caching is enabled
+	if c.cacheEnabled && c.cache != nil {
+		key := c.cacheKey("pages:" + path)
+		c.cache.Set(key, allJSON)
+	}
+
+	return nil
 }
