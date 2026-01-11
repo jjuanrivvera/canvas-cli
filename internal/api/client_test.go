@@ -6,10 +6,13 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"sync/atomic"
 	"testing"
 	"time"
 
 	"golang.org/x/time/rate"
+
+	"github.com/jjuanrivvera/canvas-cli/internal/cache"
 )
 
 func TestAdaptiveRateLimiter_AdjustRate(t *testing.T) {
@@ -219,5 +222,295 @@ func TestAdaptiveRateLimiter_WarningReset(t *testing.T) {
 	limiter.AdjustRate(70, 100) // Normal
 	if len(limiter.warningShown) != 0 {
 		t.Error("expected warnings to be reset when recovering")
+	}
+}
+
+func TestClient_GetJSON_WithCache(t *testing.T) {
+	var requestCount int32
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte(`[]`))
+			return
+		}
+		if r.URL.Path == "/api/v1/courses/123" {
+			atomic.AddInt32(&requestCount, 1)
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte(`{"id":123,"name":"Test Course"}`))
+			return
+		}
+		w.WriteHeader(http.StatusNotFound)
+	}))
+	defer server.Close()
+
+	// Create cache
+	testCache := cache.New(5 * time.Minute)
+
+	client, err := NewClient(ClientConfig{
+		BaseURL:        server.URL,
+		Token:          "test-token",
+		RequestsPerSec: 10,
+		Cache:          testCache,
+		CacheEnabled:   true,
+	})
+	if err != nil {
+		t.Fatalf("Failed to create client: %v", err)
+	}
+
+	ctx := context.Background()
+
+	// First request - should hit the server
+	var course1 Course
+	err = client.GetJSON(ctx, "/api/v1/courses/123", &course1)
+	if err != nil {
+		t.Fatalf("First GetJSON failed: %v", err)
+	}
+	if course1.ID != 123 {
+		t.Errorf("Expected course ID 123, got %d", course1.ID)
+	}
+
+	firstCount := atomic.LoadInt32(&requestCount)
+	if firstCount != 1 {
+		t.Errorf("Expected 1 request after first call, got %d", firstCount)
+	}
+
+	// Second request - should hit cache
+	var course2 Course
+	err = client.GetJSON(ctx, "/api/v1/courses/123", &course2)
+	if err != nil {
+		t.Fatalf("Second GetJSON failed: %v", err)
+	}
+	if course2.ID != 123 {
+		t.Errorf("Expected course ID 123, got %d", course2.ID)
+	}
+
+	secondCount := atomic.LoadInt32(&requestCount)
+	if secondCount != 1 {
+		t.Errorf("Expected 1 request after second call (cache hit), got %d", secondCount)
+	}
+}
+
+func TestClient_GetJSON_CacheDisabled(t *testing.T) {
+	var requestCount int32
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte(`[]`))
+			return
+		}
+		if r.URL.Path == "/api/v1/courses/456" {
+			atomic.AddInt32(&requestCount, 1)
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte(`{"id":456,"name":"Test Course"}`))
+			return
+		}
+		w.WriteHeader(http.StatusNotFound)
+	}))
+	defer server.Close()
+
+	// Create cache but disable it
+	testCache := cache.New(5 * time.Minute)
+
+	client, err := NewClient(ClientConfig{
+		BaseURL:        server.URL,
+		Token:          "test-token",
+		RequestsPerSec: 10,
+		Cache:          testCache,
+		CacheEnabled:   false, // Disabled
+	})
+	if err != nil {
+		t.Fatalf("Failed to create client: %v", err)
+	}
+
+	ctx := context.Background()
+
+	// First request
+	var course1 Course
+	err = client.GetJSON(ctx, "/api/v1/courses/456", &course1)
+	if err != nil {
+		t.Fatalf("First GetJSON failed: %v", err)
+	}
+
+	// Second request - should hit server again (cache disabled)
+	var course2 Course
+	err = client.GetJSON(ctx, "/api/v1/courses/456", &course2)
+	if err != nil {
+		t.Fatalf("Second GetJSON failed: %v", err)
+	}
+
+	count := atomic.LoadInt32(&requestCount)
+	if count != 2 {
+		t.Errorf("Expected 2 requests when cache is disabled, got %d", count)
+	}
+}
+
+func TestClient_CacheHelpers(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			w.Write([]byte(`[]`))
+			return
+		}
+		w.WriteHeader(http.StatusNotFound)
+	}))
+	defer server.Close()
+
+	testCache := cache.New(5 * time.Minute)
+
+	client, err := NewClient(ClientConfig{
+		BaseURL:        server.URL,
+		Token:          "test-token",
+		RequestsPerSec: 10,
+		Cache:          testCache,
+		CacheEnabled:   true,
+	})
+	if err != nil {
+		t.Fatalf("Failed to create client: %v", err)
+	}
+
+	// Test IsCacheEnabled
+	if !client.IsCacheEnabled() {
+		t.Error("Expected cache to be enabled")
+	}
+
+	// Test SetCacheEnabled
+	client.SetCacheEnabled(false)
+	if client.IsCacheEnabled() {
+		t.Error("Expected cache to be disabled")
+	}
+
+	client.SetCacheEnabled(true)
+	if !client.IsCacheEnabled() {
+		t.Error("Expected cache to be re-enabled")
+	}
+
+	// Test CacheStats (just verify it doesn't panic)
+	stats := client.CacheStats()
+	t.Logf("Cache stats: %+v", stats)
+
+	// Test ClearCache (just verify it doesn't panic)
+	client.ClearCache()
+}
+
+func TestClient_CacheKey(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			w.Write([]byte(`[]`))
+			return
+		}
+		w.WriteHeader(http.StatusNotFound)
+	}))
+	defer server.Close()
+
+	testCache := cache.New(5 * time.Minute)
+
+	client, err := NewClient(ClientConfig{
+		BaseURL:        server.URL,
+		Token:          "test-token",
+		RequestsPerSec: 10,
+		Cache:          testCache,
+		CacheEnabled:   true,
+	})
+	if err != nil {
+		t.Fatalf("Failed to create client: %v", err)
+	}
+
+	// Test that cache keys are generated correctly
+	key1 := client.cacheKey("/api/v1/courses/123")
+	key2 := client.cacheKey("/api/v1/courses/123")
+	key3 := client.cacheKey("/api/v1/courses/456")
+
+	// Same path should generate same key
+	if key1 != key2 {
+		t.Errorf("Same path should generate same key: %s != %s", key1, key2)
+	}
+
+	// Different paths should generate different keys
+	if key1 == key3 {
+		t.Errorf("Different paths should generate different keys: %s == %s", key1, key3)
+	}
+}
+
+func TestClient_CacheKey_WithMasquerade(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			w.Write([]byte(`[]`))
+			return
+		}
+		w.WriteHeader(http.StatusNotFound)
+	}))
+	defer server.Close()
+
+	testCache := cache.New(5 * time.Minute)
+
+	// Client without masquerade
+	client1, err := NewClient(ClientConfig{
+		BaseURL:        server.URL,
+		Token:          "test-token",
+		RequestsPerSec: 10,
+		Cache:          testCache,
+		CacheEnabled:   true,
+	})
+	if err != nil {
+		t.Fatalf("Failed to create client1: %v", err)
+	}
+
+	// Client with masquerade
+	client2, err := NewClient(ClientConfig{
+		BaseURL:        server.URL,
+		Token:          "test-token",
+		RequestsPerSec: 10,
+		AsUserID:       999,
+		Cache:          testCache,
+		CacheEnabled:   true,
+	})
+	if err != nil {
+		t.Fatalf("Failed to create client2: %v", err)
+	}
+
+	key1 := client1.cacheKey("/api/v1/courses/123")
+	key2 := client2.cacheKey("/api/v1/courses/123")
+
+	// Keys should be different when masquerading
+	if key1 == key2 {
+		t.Errorf("Keys should differ when masquerading: %s == %s", key1, key2)
+	}
+}
+
+func TestClient_SetQuotaTotal(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			w.Write([]byte(`[]`))
+			return
+		}
+		w.WriteHeader(http.StatusNotFound)
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{
+		BaseURL:        server.URL,
+		Token:          "test-token",
+		RequestsPerSec: 10,
+	})
+	if err != nil {
+		t.Fatalf("Failed to create client: %v", err)
+	}
+
+	// Default quota
+	defaultQuota := client.GetQuotaTotal()
+	if defaultQuota != defaultQuotaTotal {
+		t.Errorf("Expected default quota %f, got %f", defaultQuotaTotal, defaultQuota)
+	}
+
+	// Set custom quota
+	client.SetQuotaTotal(1000.0)
+	newQuota := client.GetQuotaTotal()
+	if newQuota != 1000.0 {
+		t.Errorf("Expected quota 1000.0, got %f", newQuota)
 	}
 }

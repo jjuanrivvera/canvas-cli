@@ -13,6 +13,7 @@ var (
 	instanceURL  string
 	outputFormat string
 	verbose      bool
+	noCache      bool  // Disable caching for API requests
 	asUserID     int64 // Masquerading: act as another user
 	version      string
 	commit       string
@@ -54,11 +55,14 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Enable verbose output")
 	rootCmd.PersistentFlags().Int64Var(&asUserID, "as-user", 0, "Masquerade as another user (admin feature, requires permission)")
 
+	rootCmd.PersistentFlags().BoolVar(&noCache, "no-cache", false, "Disable caching of API responses")
+
 	// Bind flags to viper
 	viper.BindPFlag("instance", rootCmd.PersistentFlags().Lookup("instance"))
 	viper.BindPFlag("output", rootCmd.PersistentFlags().Lookup("output"))
 	viper.BindPFlag("verbose", rootCmd.PersistentFlags().Lookup("verbose"))
 	viper.BindPFlag("as-user", rootCmd.PersistentFlags().Lookup("as-user"))
+	viper.BindPFlag("no-cache", rootCmd.PersistentFlags().Lookup("no-cache"))
 }
 
 // initConfig reads in config file and ENV variables if set.

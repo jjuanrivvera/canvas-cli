@@ -1,50 +1,81 @@
 package repl
 
 import (
-	"bufio"
 	"context"
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 
+	"github.com/chzyer/readline"
 	"github.com/spf13/cobra"
 )
 
 // REPL represents a Read-Eval-Print Loop session
 type REPL struct {
-	rootCmd *cobra.Command
-	reader  *bufio.Reader
-	writer  io.Writer
-	history []string
-	prompt  string
-	session *Session
+	rootCmd     *cobra.Command
+	rl          *readline.Instance
+	writer      io.Writer
+	history     []string
+	prompt      string
+	session     *Session
+	historyFile string
 }
 
 // New creates a new REPL instance
 func New(rootCmd *cobra.Command) *REPL {
+	// Get history file path
+	home, _ := os.UserHomeDir()
+	historyFile := filepath.Join(home, ".canvas-cli", "history")
+
+	// Ensure directory exists (best-effort, ignore errors)
+	_ = os.MkdirAll(filepath.Dir(historyFile), 0755)
+
 	return &REPL{
-		rootCmd: rootCmd,
-		reader:  bufio.NewReader(os.Stdin),
-		writer:  os.Stdout,
-		history: make([]string, 0),
-		prompt:  "canvas> ",
-		session: NewSession(),
+		rootCmd:     rootCmd,
+		writer:      os.Stdout,
+		history:     make([]string, 0),
+		prompt:      "canvas> ",
+		session:     NewSession(),
+		historyFile: historyFile,
 	}
 }
 
 // Run starts the REPL loop
 func (r *REPL) Run(ctx context.Context) error {
+	// Create readline instance with history support
+	rl, err := readline.NewEx(&readline.Config{
+		Prompt:                 r.prompt,
+		HistoryFile:            r.historyFile,
+		HistoryLimit:           1000,
+		DisableAutoSaveHistory: false,
+		InterruptPrompt:        "^C",
+		EOFPrompt:              "exit",
+		HistorySearchFold:      true,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to initialize readline: %w", err)
+	}
+	defer rl.Close()
+
+	r.rl = rl
+
 	fmt.Fprintf(r.writer, "Canvas CLI Interactive Mode\n")
-	fmt.Fprintf(r.writer, "Type 'help' for available commands, 'exit' to quit\n\n")
+	fmt.Fprintf(r.writer, "Type 'help' for available commands, 'exit' to quit\n")
+	fmt.Fprintf(r.writer, "Use arrow keys (↑↓) to navigate history, Ctrl+R to search\n\n")
 
 	for {
-		// Print prompt
-		fmt.Fprint(r.writer, r.prompt)
-
-		// Read input
-		input, err := r.reader.ReadString('\n')
+		// Read input with readline (supports arrow keys, history, etc.)
+		input, err := rl.Readline()
 		if err != nil {
+			if err == readline.ErrInterrupt {
+				if len(input) == 0 {
+					fmt.Fprintln(r.writer, "\nUse 'exit' to quit")
+					continue
+				}
+				continue
+			}
 			if err == io.EOF {
 				fmt.Fprintln(r.writer, "\nGoodbye!")
 				return nil
@@ -60,7 +91,7 @@ func (r *REPL) Run(ctx context.Context) error {
 			continue
 		}
 
-		// Add to history
+		// Add to in-memory history
 		r.history = append(r.history, input)
 
 		// Check for exit

@@ -1,12 +1,17 @@
 package commands
 
 import (
+	"context"
 	"fmt"
 	"os"
+	"strings"
+	"time"
 
 	"github.com/jjuanrivvera/canvas-cli/internal/api"
 	"github.com/jjuanrivvera/canvas-cli/internal/auth"
+	"github.com/jjuanrivvera/canvas-cli/internal/cache"
 	"github.com/jjuanrivvera/canvas-cli/internal/config"
+	"github.com/jjuanrivvera/canvas-cli/internal/output"
 )
 
 // getAPIClient creates an API client for the default or specified instance
@@ -22,11 +27,20 @@ func getAPIClient() (*api.Client, error) {
 			fmt.Sscanf(envRPS, "%f", &requestsPerSec)
 		}
 
+		// Create cache if not disabled
+		var apiCache cache.CacheInterface
+		cacheEnabled := !noCache
+		if cacheEnabled {
+			apiCache = createCache()
+		}
+
 		client, err := api.NewClient(api.ClientConfig{
 			BaseURL:        envURL,
 			Token:          envToken,
 			RequestsPerSec: requestsPerSec,
 			AsUserID:       asUserID,
+			Cache:          apiCache,
+			CacheEnabled:   cacheEnabled,
 		})
 		if err != nil {
 			return nil, fmt.Errorf("failed to create API client from environment: %w", err)
@@ -34,6 +48,9 @@ func getAPIClient() (*api.Client, error) {
 
 		if verbose {
 			fmt.Fprintln(os.Stderr, "Using Canvas credentials from environment variables")
+			if cacheEnabled {
+				fmt.Fprintln(os.Stderr, "Response caching enabled")
+			}
 		}
 
 		return client, nil
@@ -80,12 +97,21 @@ func getAPIClient() (*api.Client, error) {
 		return nil, fmt.Errorf("not authenticated with %s. Run 'canvas auth login' first", instance.Name)
 	}
 
+	// Create cache if not disabled
+	var apiCache cache.CacheInterface
+	cacheEnabled := !noCache
+	if cacheEnabled {
+		apiCache = createCache()
+	}
+
 	// Create API client
 	client, err := api.NewClient(api.ClientConfig{
 		BaseURL:        instance.URL,
 		Token:          token.AccessToken,
 		RequestsPerSec: cfg.Settings.RequestsPerSecond,
 		AsUserID:       asUserID,
+		Cache:          apiCache,
+		CacheEnabled:   cacheEnabled,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create API client: %w", err)
@@ -96,10 +122,86 @@ func getAPIClient() (*api.Client, error) {
 		fmt.Fprintf(os.Stderr, "WARNING: Masquerading as user %d. All actions will be recorded in the audit log.\n", asUserID)
 	}
 
+	if verbose && cacheEnabled {
+		fmt.Fprintln(os.Stderr, "Response caching enabled")
+	}
+
 	return client, nil
+}
+
+// createCache creates a multi-tier cache for API responses
+func createCache() cache.CacheInterface {
+	// Get cache directory
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		// Fall back to memory-only cache
+		return cache.New(5 * time.Minute)
+	}
+
+	cacheDir := homeDir + "/.canvas-cli/cache"
+
+	// Create multi-tier cache (memory + disk) with 5 minute TTL
+	multiCache, err := cache.NewMultiTierCache(
+		5*time.Minute, // Memory TTL
+		cacheDir,
+		5*time.Minute, // Disk TTL
+	)
+	if err != nil {
+		// Fall back to memory-only cache if disk cache fails
+		return cache.New(5 * time.Minute)
+	}
+
+	return multiCache
 }
 
 // getConfig loads the configuration
 func getConfig() (*config.Config, error) {
 	return config.Load()
+}
+
+// formatOutput formats and prints data according to the global outputFormat setting.
+// If outputFormat is "table" (default), it uses the custom display function if provided.
+// For other formats (json, yaml, csv), it uses the output formatter.
+func formatOutput(data interface{}, customTableDisplay func()) error {
+	format := output.FormatType(outputFormat)
+
+	// For table format, use custom display if provided
+	if format == output.FormatTable {
+		if customTableDisplay != nil {
+			customTableDisplay()
+			return nil
+		}
+	}
+
+	// For structured formats, use the formatter
+	return output.Write(os.Stdout, data, format)
+}
+
+// validateCourseID checks if a course ID exists and returns a user-friendly error if not.
+// Returns the course object if found, nil otherwise (for optional use of course data).
+func validateCourseID(client *api.Client, courseID int64) (*api.Course, error) {
+	if courseID <= 0 {
+		return nil, fmt.Errorf("invalid course ID: %d", courseID)
+	}
+
+	coursesService := api.NewCoursesService(client)
+	ctx := context.Background()
+
+	course, err := coursesService.Get(ctx, courseID, nil)
+	if err != nil {
+		// Check for common error patterns and provide helpful messages
+		errStr := err.Error()
+		if strings.Contains(errStr, "404") || strings.Contains(errStr, "not found") {
+			return nil, fmt.Errorf("course with ID %d not found. Use 'canvas courses list' to see available courses", courseID)
+		}
+		if strings.Contains(errStr, "401") || strings.Contains(errStr, "unauthorized") {
+			return nil, fmt.Errorf("you are not authorized to access course %d. Check your permissions or authentication", courseID)
+		}
+		if strings.Contains(errStr, "403") || strings.Contains(errStr, "forbidden") {
+			return nil, fmt.Errorf("access to course %d is forbidden. You may not have the required permissions", courseID)
+		}
+		return nil, fmt.Errorf("failed to verify course %d: %w", courseID, err)
+	}
+
+	return course, nil
 }
