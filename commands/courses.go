@@ -130,7 +130,7 @@ func runCoursesList(cmd *cobra.Command, args []string) error {
 			return nil
 		}
 
-		fmt.Printf("Found %d courses in account %d:\n\n", len(courses), coursesAccountID)
+		printVerbose("Found %d courses in account %d:\n\n", len(courses), coursesAccountID)
 	} else {
 		// User context (default) - list enrolled courses
 		coursesService := api.NewCoursesService(client)
@@ -155,7 +155,7 @@ func runCoursesList(cmd *cobra.Command, args []string) error {
 			return nil
 		}
 
-		fmt.Printf("Found %d enrolled courses:\n\n", len(courses))
+		printVerbose("Found %d enrolled courses:\n\n", len(courses))
 	}
 
 	// Format and display courses

@@ -258,7 +258,7 @@ func runPagesList(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	fmt.Printf("Found %d pages:\n\n", len(pages))
+	printVerbose("Found %d pages:\n\n", len(pages))
 	return formatOutput(pages, nil)
 }
 
@@ -436,7 +436,7 @@ func runPagesRevisions(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	fmt.Printf("Found %d revisions:\n\n", len(revisions))
+	printVerbose("Found %d revisions:\n\n", len(revisions))
 	return formatOutput(revisions, nil)
 }
 

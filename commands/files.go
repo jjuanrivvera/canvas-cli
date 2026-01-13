@@ -231,7 +231,7 @@ func runFilesList(cmd *cobra.Command, args []string) error {
 	}
 
 	// Display files
-	fmt.Printf("Found %d files:\n\n", len(files))
+	printVerbose("Found %d files:\n\n", len(files))
 
 	return formatOutput(files, nil)
 }

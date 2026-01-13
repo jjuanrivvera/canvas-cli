@@ -374,7 +374,7 @@ func runModulesList(cmd *cobra.Command, args []string) error {
 	}
 
 	// Format and display modules
-	fmt.Printf("Found %d modules:\n\n", len(modules))
+	printVerbose("Found %d modules:\n\n", len(modules))
 	return formatOutput(modules, nil)
 }
 
@@ -593,7 +593,7 @@ func runModulesItemsList(cmd *cobra.Command, args []string) error {
 	}
 
 	// Format and display items
-	fmt.Printf("Found %d items:\n\n", len(items))
+	printVerbose("Found %d items:\n\n", len(items))
 	return formatOutput(items, nil)
 }
 

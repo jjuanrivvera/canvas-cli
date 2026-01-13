@@ -65,15 +65,15 @@ func getAPIClient() (*api.Client, error) {
 	// Get instance
 	var instance *config.Instance
 	if instanceURL != "" {
-		// Find instance by URL
+		// Find instance by name or URL
 		for _, inst := range cfg.Instances {
-			if inst.URL == instanceURL {
+			if inst.Name == instanceURL || inst.URL == instanceURL {
 				instance = inst
 				break
 			}
 		}
 		if instance == nil {
-			return nil, fmt.Errorf("no instance found with URL: %s", instanceURL)
+			return nil, fmt.Errorf("no instance found with name or URL: %s. Use 'canvas auth list' to see configured instances", instanceURL)
 		}
 	} else {
 		// Use default instance
@@ -159,9 +159,17 @@ func getConfig() (*config.Config, error) {
 	return config.Load()
 }
 
+// printVerbose prints a message only in verbose mode
+func printVerbose(format string, args ...interface{}) {
+	if verbose {
+		fmt.Printf(format, args...)
+	}
+}
+
 // formatOutput formats and prints data according to the global outputFormat setting.
 // If outputFormat is "table" (default), it uses the custom display function if provided.
 // For other formats (json, yaml, csv), it uses the output formatter.
+// In table format, output is compact by default (key fields only). Use -v/--verbose for all fields.
 func formatOutput(data interface{}, customTableDisplay func()) error {
 	format := output.FormatType(outputFormat)
 
@@ -173,8 +181,8 @@ func formatOutput(data interface{}, customTableDisplay func()) error {
 		}
 	}
 
-	// For structured formats, use the formatter
-	return output.Write(os.Stdout, data, format)
+	// For structured formats, use the formatter with verbose option
+	return output.WriteWithOptions(os.Stdout, data, format, verbose)
 }
 
 // validateCourseID checks if a course ID exists and returns a user-friendly error if not.

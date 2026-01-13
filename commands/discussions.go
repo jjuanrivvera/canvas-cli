@@ -290,7 +290,7 @@ func runDiscussionsList(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	fmt.Printf("Found %d discussion topics:\n\n", len(topics))
+	printVerbose("Found %d discussion topics:\n\n", len(topics))
 	return formatOutput(topics, nil)
 }
 
@@ -462,7 +462,7 @@ func runDiscussionsEntries(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	fmt.Printf("Found %d entries:\n\n", len(entries))
+	printVerbose("Found %d entries:\n\n", len(entries))
 	return formatOutput(entries, nil)
 }
 

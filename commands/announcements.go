@@ -173,7 +173,7 @@ func runAnnouncementsList(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	fmt.Printf("Found %d announcements:\n\n", len(announcements))
+	printVerbose("Found %d announcements:\n\n", len(announcements))
 	return formatOutput(announcements, nil)
 }
 

@@ -221,7 +221,7 @@ func runCalendarList(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	fmt.Printf("Found %d calendar events:\n\n", len(events))
+	printVerbose("Found %d calendar events:\n\n", len(events))
 	return formatOutput(events, nil)
 }
 

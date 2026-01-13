@@ -265,7 +265,7 @@ func runUsersList(cmd *cobra.Command, args []string) error {
 	}
 
 	// Format and display users
-	fmt.Printf("Found %d users in %s:\n\n", len(users), contextName)
+	printVerbose("Found %d users in %s:\n\n", len(users), contextName)
 
 	return formatOutput(users, nil)
 }
@@ -343,7 +343,7 @@ func runUsersSearch(cmd *cobra.Command, args []string) error {
 	}
 
 	// Format and display users
-	fmt.Printf("Found %d users matching '%s':\n\n", len(users), searchTerm)
+	printVerbose("Found %d users matching '%s':\n\n", len(users), searchTerm)
 
 	return formatOutput(users, nil)
 }

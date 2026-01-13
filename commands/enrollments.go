@@ -145,7 +145,7 @@ func runEnrollmentsList(cmd *cobra.Command, args []string) error {
 	}
 
 	// Format and display enrollments
-	fmt.Printf("Found %d enrollments for %s:\n\n", len(enrollments), contextName)
+	printVerbose("Found %d enrollments for %s:\n\n", len(enrollments), contextName)
 	return formatOutput(enrollments, nil)
 }
 

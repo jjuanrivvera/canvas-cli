@@ -190,7 +190,7 @@ func runSubmissionsList(cmd *cobra.Command, args []string) error {
 	}
 
 	// Format and display submissions
-	fmt.Printf("Found %d submissions:\n\n", len(submissions))
+	printVerbose("Found %d submissions:\n\n", len(submissions))
 	return formatOutput(submissions, nil)
 }
 
@@ -323,7 +323,7 @@ func runSubmissionsBulkGrade(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("no grades found in CSV file")
 	}
 
-	fmt.Printf("Found %d grades in CSV file\n\n", len(grades))
+	printVerbose("Found %d grades in CSV file\n\n", len(grades))
 
 	if bulkGradeDryRun {
 		fmt.Println("DRY RUN - No changes will be applied")

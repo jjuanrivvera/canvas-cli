@@ -241,7 +241,7 @@ func runPlannerItems(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	fmt.Printf("Found %d planner items:\n\n", len(items))
+	printVerbose("Found %d planner items:\n\n", len(items))
 	return formatOutput(items, nil)
 }
 
@@ -270,7 +270,7 @@ func runPlannerNotesList(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	fmt.Printf("Found %d planner notes:\n\n", len(notes))
+	printVerbose("Found %d planner notes:\n\n", len(notes))
 	return formatOutput(notes, nil)
 }
 
@@ -515,7 +515,7 @@ func runPlannerOverrides(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	fmt.Printf("Found %d planner overrides:\n\n", len(overrides))
+	printVerbose("Found %d planner overrides:\n\n", len(overrides))
 	return formatOutput(overrides, nil)
 }
 

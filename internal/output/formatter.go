@@ -29,6 +29,11 @@ const (
 
 // NewFormatter creates a new formatter for the specified format type
 func NewFormatter(format FormatType) (Formatter, error) {
+	return NewFormatterWithOptions(format, false)
+}
+
+// NewFormatterWithOptions creates a new formatter with additional options
+func NewFormatterWithOptions(format FormatType, verbose bool) (Formatter, error) {
 	switch format {
 	case FormatJSON:
 		return &JSONFormatter{}, nil
@@ -37,7 +42,7 @@ func NewFormatter(format FormatType) (Formatter, error) {
 	case FormatCSV:
 		return &CSVFormatter{}, nil
 	case FormatTable:
-		return &TableFormatter{}, nil
+		return &TableFormatter{Verbose: verbose}, nil
 	default:
 		return nil, fmt.Errorf("unsupported format: %s", format)
 	}
@@ -104,7 +109,50 @@ func (f *CSVFormatter) Format(data interface{}) (string, error) {
 }
 
 // TableFormatter formats output as a table
-type TableFormatter struct{}
+type TableFormatter struct {
+	Verbose bool // When false, only show key fields
+}
+
+// keyFieldsMap defines which fields to show by default for each struct type
+// These are the most commonly needed fields for quick viewing
+var keyFieldsMap = map[string][]string{
+	// Course fields - expanded for better overview
+	"Course": {"id", "name", "course_code", "workflow_state", "account_id", "enrollment_term_id", "start_at", "end_at", "default_view"},
+	// User fields - expanded with sortable name
+	"User": {"id", "name", "sortable_name", "email", "login_id", "created_at"},
+	// Assignment fields - expanded with grading info
+	"Assignment": {"id", "name", "due_at", "points_possible", "grading_type", "published", "submission_types", "unlock_at", "lock_at"},
+	// Submission fields - expanded with more context
+	"Submission": {"id", "user_id", "assignment_id", "score", "grade", "workflow_state", "submitted_at", "graded_at", "late"},
+	// Module fields - good as is
+	"Module": {"id", "name", "position", "workflow_state", "published", "items_count", "unlock_at"},
+	// ModuleItem fields - expanded
+	"ModuleItem": {"id", "title", "type", "position", "module_id", "content_id", "indent", "published"},
+	// Page fields - good as is
+	"Page": {"url", "title", "created_at", "updated_at", "published", "front_page", "editing_roles"},
+	// Attachment (File) fields - expanded
+	"Attachment": {"id", "display_name", "filename", "content-type", "size", "created_at", "updated_at", "folder_id", "hidden"},
+	// DiscussionTopic fields - removed long message field
+	"DiscussionTopic": {"id", "title", "posted_at", "published", "discussion_type", "discussion_subentry_count", "user_name", "locked"},
+	// DiscussionEntry fields - condensed message
+	"DiscussionEntry": {"id", "user_id", "user_name", "created_at", "read_state", "rating_count"},
+	// CalendarEvent fields - expanded with location
+	"CalendarEvent": {"id", "title", "start_at", "end_at", "all_day", "location_name", "context_code", "workflow_state"},
+	// Enrollment fields - expanded with activity
+	"Enrollment": {"id", "user_id", "course_id", "type", "enrollment_state", "role", "created_at", "last_activity_at"},
+	// PlannerItem fields
+	"PlannerItem": {"plannable_id", "plannable_type", "plannable_date", "context_name", "context_type", "planner_override"},
+	// PlannerNote fields
+	"PlannerNote": {"id", "title", "todo_date", "course_id", "workflow_state"},
+	// PlannerOverride fields
+	"PlannerOverride": {"id", "plannable_id", "plannable_type", "marked_complete", "dismissed"},
+	// Folder fields - expanded
+	"Folder": {"id", "name", "full_name", "parent_folder_id", "files_count", "folders_count", "created_at", "hidden"},
+	// Account fields - expanded
+	"Account": {"id", "name", "workflow_state", "parent_account_id", "root_account_id", "default_time_zone"},
+	// PageRevision fields
+	"PageRevision": {"revision_id", "updated_at", "title", "edited_by"},
+}
 
 // Format formats data as a table
 func (f *TableFormatter) Format(data interface{}) (string, error) {
@@ -115,6 +163,11 @@ func (f *TableFormatter) Format(data interface{}) (string, error) {
 
 	// Get headers
 	headers := getHeaders(slice[0])
+
+	// Filter headers if not verbose
+	if !f.Verbose {
+		headers = f.filterKeyFields(slice[0], headers)
+	}
 
 	// Calculate column widths
 	widths := make([]int, len(headers))
@@ -190,6 +243,53 @@ func (f *TableFormatter) Format(data interface{}) (string, error) {
 	builder.WriteString("┘\n")
 
 	return builder.String(), nil
+}
+
+// filterKeyFields filters headers to only include key fields for the given item type
+func (f *TableFormatter) filterKeyFields(item interface{}, allHeaders []string) []string {
+	v := reflect.ValueOf(item)
+	if v.Kind() == reflect.Ptr {
+		v = v.Elem()
+	}
+
+	// Get struct type name
+	typeName := ""
+	if v.Kind() == reflect.Struct {
+		typeName = v.Type().Name()
+	}
+
+	// Look up key fields for this type
+	keyFields, found := keyFieldsMap[typeName]
+	if !found || len(keyFields) == 0 {
+		// If no key fields defined, show first 6 fields as default
+		if len(allHeaders) > 6 {
+			return allHeaders[:6]
+		}
+		return allHeaders
+	}
+
+	// Filter to only include key fields that exist in the struct
+	keyFieldSet := make(map[string]bool)
+	for _, field := range keyFields {
+		keyFieldSet[field] = true
+	}
+
+	filtered := make([]string, 0, len(keyFields))
+	for _, header := range allHeaders {
+		if keyFieldSet[header] {
+			filtered = append(filtered, header)
+		}
+	}
+
+	// If no matching fields found, return original headers limited to 6
+	if len(filtered) == 0 {
+		if len(allHeaders) > 6 {
+			return allHeaders[:6]
+		}
+		return allHeaders
+	}
+
+	return filtered
 }
 
 // toSlice converts data to a slice of interface{}
@@ -348,7 +448,12 @@ func formatValue(v interface{}) string {
 
 // Write writes formatted data to a writer
 func Write(w io.Writer, data interface{}, format FormatType) error {
-	formatter, err := NewFormatter(format)
+	return WriteWithOptions(w, data, format, false)
+}
+
+// WriteWithOptions writes formatted data to a writer with verbose option
+func WriteWithOptions(w io.Writer, data interface{}, format FormatType, verbose bool) error {
+	formatter, err := NewFormatterWithOptions(format, verbose)
 	if err != nil {
 		return err
 	}
