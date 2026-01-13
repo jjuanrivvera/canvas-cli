@@ -174,12 +174,7 @@ func runAnnouncementsList(cmd *cobra.Command, args []string) error {
 	}
 
 	fmt.Printf("Found %d announcements:\n\n", len(announcements))
-
-	for _, announcement := range announcements {
-		displayAnnouncement(&announcement)
-	}
-
-	return nil
+	return formatOutput(announcements, nil)
 }
 
 func runAnnouncementsGet(cmd *cobra.Command, args []string) error {
@@ -202,9 +197,7 @@ func runAnnouncementsGet(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to get announcement: %w", err)
 	}
 
-	displayAnnouncementFull(announcement)
-
-	return nil
+	return formatOutput(announcement, nil)
 }
 
 func runAnnouncementsCreate(cmd *cobra.Command, args []string) error {

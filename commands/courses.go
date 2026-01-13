@@ -159,19 +159,7 @@ func runCoursesList(cmd *cobra.Command, args []string) error {
 	}
 
 	// Format and display courses
-	return formatOutput(courses, func() {
-		for _, course := range courses {
-			fmt.Printf("📚 %s (%s)\n", course.Name, course.CourseCode)
-			fmt.Printf("   ID: %d\n", course.ID)
-			fmt.Printf("   State: %s\n", course.WorkflowState)
-
-			if course.Term != nil {
-				fmt.Printf("   Term: %s\n", course.Term.Name)
-			}
-
-			fmt.Println()
-		}
-	})
+	return formatOutput(courses, nil)
 }
 
 func runCoursesGet(cmd *cobra.Command, args []string) error {
@@ -198,26 +186,5 @@ func runCoursesGet(cmd *cobra.Command, args []string) error {
 	}
 
 	// Format and display course details
-	return formatOutput(course, func() {
-		fmt.Printf("📚 %s\n", course.Name)
-		fmt.Printf("   ID: %d\n", course.ID)
-		fmt.Printf("   Course Code: %s\n", course.CourseCode)
-		fmt.Printf("   State: %s\n", course.WorkflowState)
-
-		if course.Term != nil {
-			fmt.Printf("   Term: %s\n", course.Term.Name)
-		}
-
-		if !course.StartAt.IsZero() {
-			fmt.Printf("   Start: %s\n", course.StartAt.Format("2006-01-02"))
-		}
-
-		if !course.EndAt.IsZero() {
-			fmt.Printf("   End: %s\n", course.EndAt.Format("2006-01-02"))
-		}
-
-		if course.SyllabusBody != "" {
-			fmt.Printf("\nSyllabus:\n%s\n", course.SyllabusBody)
-		}
-	})
+	return formatOutput(course, nil)
 }

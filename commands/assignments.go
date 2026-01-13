@@ -7,7 +7,6 @@ import (
 	"io"
 	"os"
 	"strconv"
-	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -246,37 +245,7 @@ func runAssignmentsList(cmd *cobra.Command, args []string) error {
 	}
 
 	// Format and display assignments
-	return formatOutput(assignments, func() {
-		fmt.Printf("Found %d assignments:\n\n", len(assignments))
-
-		for _, assignment := range assignments {
-			fmt.Printf("📝 %s\n", assignment.Name)
-			fmt.Printf("   ID: %d\n", assignment.ID)
-			fmt.Printf("   Points: %.1f\n", assignment.PointsPossible)
-
-			if !assignment.DueAt.IsZero() {
-				fmt.Printf("   Due: %s\n", assignment.DueAt.Format("2006-01-02 15:04"))
-			} else {
-				fmt.Printf("   Due: No due date\n")
-			}
-
-			if len(assignment.SubmissionTypes) > 0 {
-				fmt.Printf("   Types: %s\n", strings.Join(assignment.SubmissionTypes, ", "))
-			}
-
-			if assignment.Published {
-				fmt.Printf("   Status: Published\n")
-			} else {
-				fmt.Printf("   Status: Unpublished\n")
-			}
-
-			if assignment.NeedsGradingCount > 0 {
-				fmt.Printf("   Needs Grading: %d\n", assignment.NeedsGradingCount)
-			}
-
-			fmt.Println()
-		}
-	})
+	return formatOutput(assignments, nil)
 }
 
 func runAssignmentsGet(cmd *cobra.Command, args []string) error {
@@ -308,62 +277,7 @@ func runAssignmentsGet(cmd *cobra.Command, args []string) error {
 	}
 
 	// Format and display assignment details
-	return formatOutput(assignment, func() {
-		fmt.Printf("📝 %s\n", assignment.Name)
-		fmt.Printf("   ID: %d\n", assignment.ID)
-		fmt.Printf("   Course ID: %d\n", assignment.CourseID)
-		fmt.Printf("   Points Possible: %.1f\n", assignment.PointsPossible)
-
-		if assignment.GradingType != "" {
-			fmt.Printf("   Grading Type: %s\n", assignment.GradingType)
-		}
-
-		if len(assignment.SubmissionTypes) > 0 {
-			fmt.Printf("   Submission Types: %s\n", strings.Join(assignment.SubmissionTypes, ", "))
-		}
-
-		if !assignment.DueAt.IsZero() {
-			fmt.Printf("   Due: %s\n", assignment.DueAt.Format("2006-01-02 15:04"))
-		} else {
-			fmt.Printf("   Due: No due date\n")
-		}
-
-		if !assignment.UnlockAt.IsZero() {
-			fmt.Printf("   Available From: %s\n", assignment.UnlockAt.Format("2006-01-02 15:04"))
-		}
-
-		if !assignment.LockAt.IsZero() {
-			fmt.Printf("   Available Until: %s\n", assignment.LockAt.Format("2006-01-02 15:04"))
-		}
-
-		if assignment.Published {
-			fmt.Printf("   Status: Published\n")
-		} else {
-			fmt.Printf("   Status: Unpublished\n")
-		}
-
-		if assignment.NeedsGradingCount > 0 {
-			fmt.Printf("   Needs Grading: %d submissions\n", assignment.NeedsGradingCount)
-		}
-
-		if assignment.Description != "" {
-			fmt.Printf("\nDescription:\n%s\n", assignment.Description)
-		}
-
-		if len(assignment.Rubric) > 0 {
-			fmt.Printf("\nRubric: %d criteria\n", len(assignment.Rubric))
-		}
-
-		if len(assignment.Overrides) > 0 {
-			fmt.Printf("\nOverrides: %d\n", len(assignment.Overrides))
-			for i, override := range assignment.Overrides {
-				fmt.Printf("  %d. %s\n", i+1, override.Title)
-				if !override.DueAt.IsZero() {
-					fmt.Printf("     Due: %s\n", override.DueAt.Format("2006-01-02 15:04"))
-				}
-			}
-		}
-	})
+	return formatOutput(assignment, nil)
 }
 
 func runAssignmentsCreate(cmd *cobra.Command, args []string) error {

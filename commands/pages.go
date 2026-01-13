@@ -259,12 +259,7 @@ func runPagesList(cmd *cobra.Command, args []string) error {
 	}
 
 	fmt.Printf("Found %d pages:\n\n", len(pages))
-
-	for _, page := range pages {
-		displayPage(&page)
-	}
-
-	return nil
+	return formatOutput(pages, nil)
 }
 
 func runPagesGet(cmd *cobra.Command, args []string) error {
@@ -281,9 +276,7 @@ func runPagesGet(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to get page: %w", err)
 	}
 
-	displayPageFull(page)
-
-	return nil
+	return formatOutput(page, nil)
 }
 
 func runPagesFront(cmd *cobra.Command, args []string) error {
@@ -300,9 +293,7 @@ func runPagesFront(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to get front page: %w", err)
 	}
 
-	displayPageFull(page)
-
-	return nil
+	return formatOutput(page, nil)
 }
 
 func runPagesCreate(cmd *cobra.Command, args []string) error {
@@ -446,12 +437,7 @@ func runPagesRevisions(cmd *cobra.Command, args []string) error {
 	}
 
 	fmt.Printf("Found %d revisions:\n\n", len(revisions))
-
-	for _, rev := range revisions {
-		displayRevision(&rev)
-	}
-
-	return nil
+	return formatOutput(revisions, nil)
 }
 
 func runPagesRevert(cmd *cobra.Command, args []string) error {

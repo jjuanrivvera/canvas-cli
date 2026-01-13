@@ -222,12 +222,7 @@ func runCalendarList(cmd *cobra.Command, args []string) error {
 	}
 
 	fmt.Printf("Found %d calendar events:\n\n", len(events))
-
-	for _, event := range events {
-		displayCalendarEvent(&event)
-	}
-
-	return nil
+	return formatOutput(events, nil)
 }
 
 func runCalendarGet(cmd *cobra.Command, args []string) error {
@@ -249,9 +244,7 @@ func runCalendarGet(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to get calendar event: %w", err)
 	}
 
-	displayCalendarEventFull(event)
-
-	return nil
+	return formatOutput(event, nil)
 }
 
 func runCalendarCreate(cmd *cobra.Command, args []string) error {

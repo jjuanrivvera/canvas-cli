@@ -374,13 +374,8 @@ func runModulesList(cmd *cobra.Command, args []string) error {
 	}
 
 	// Format and display modules
-	return formatOutput(modules, func() {
-		fmt.Printf("Found %d modules:\n\n", len(modules))
-
-		for _, module := range modules {
-			displayModule(&module)
-		}
-	})
+	fmt.Printf("Found %d modules:\n\n", len(modules))
+	return formatOutput(modules, nil)
 }
 
 func runModulesGet(cmd *cobra.Command, args []string) error {
@@ -408,16 +403,7 @@ func runModulesGet(cmd *cobra.Command, args []string) error {
 	}
 
 	// Format and display module details
-	return formatOutput(module, func() {
-		displayModule(module)
-
-		if len(module.Items) > 0 {
-			fmt.Printf("\nItems (%d):\n", len(module.Items))
-			for _, item := range module.Items {
-				displayModuleItem(&item, "  ")
-			}
-		}
-	})
+	return formatOutput(module, nil)
 }
 
 func runModulesCreate(cmd *cobra.Command, args []string) error {
@@ -607,13 +593,8 @@ func runModulesItemsList(cmd *cobra.Command, args []string) error {
 	}
 
 	// Format and display items
-	return formatOutput(items, func() {
-		fmt.Printf("Found %d items:\n\n", len(items))
-
-		for _, item := range items {
-			displayModuleItem(&item, "")
-		}
-	})
+	fmt.Printf("Found %d items:\n\n", len(items))
+	return formatOutput(items, nil)
 }
 
 func runModulesItemsGet(cmd *cobra.Command, args []string) error {
@@ -641,9 +622,7 @@ func runModulesItemsGet(cmd *cobra.Command, args []string) error {
 	}
 
 	// Format and display item details
-	return formatOutput(item, func() {
-		displayModuleItem(item, "")
-	})
+	return formatOutput(item, nil)
 }
 
 func runModulesItemsCreate(cmd *cobra.Command, args []string) error {

@@ -267,19 +267,7 @@ func runUsersList(cmd *cobra.Command, args []string) error {
 	// Format and display users
 	fmt.Printf("Found %d users in %s:\n\n", len(users), contextName)
 
-	return formatOutput(users, func() {
-		for _, user := range users {
-			fmt.Printf("👤 %s\n", user.Name)
-			fmt.Printf("   ID: %d\n", user.ID)
-			if user.LoginID != "" {
-				fmt.Printf("   Login: %s\n", user.LoginID)
-			}
-			if user.Email != "" {
-				fmt.Printf("   Email: %s\n", user.Email)
-			}
-			fmt.Println()
-		}
-	})
+	return formatOutput(users, nil)
 }
 
 func runUsersGet(cmd *cobra.Command, args []string) error {
@@ -306,22 +294,7 @@ func runUsersGet(cmd *cobra.Command, args []string) error {
 	}
 
 	// Format and display user details
-	return formatOutput(user, func() {
-		fmt.Printf("👤 %s\n", user.Name)
-		fmt.Printf("   ID: %d\n", user.ID)
-		if user.LoginID != "" {
-			fmt.Printf("   Login: %s\n", user.LoginID)
-		}
-		if user.Email != "" {
-			fmt.Printf("   Email: %s\n", user.Email)
-		}
-		if user.SisUserID != "" {
-			fmt.Printf("   SIS ID: %s\n", user.SisUserID)
-		}
-		if user.Bio != "" {
-			fmt.Printf("   Bio: %s\n", user.Bio)
-		}
-	})
+	return formatOutput(user, nil)
 }
 
 func runUsersMe(cmd *cobra.Command, args []string) error {
@@ -342,22 +315,7 @@ func runUsersMe(cmd *cobra.Command, args []string) error {
 	}
 
 	// Format and display user details
-	return formatOutput(user, func() {
-		fmt.Printf("👤 %s (You)\n", user.Name)
-		fmt.Printf("   ID: %d\n", user.ID)
-		if user.LoginID != "" {
-			fmt.Printf("   Login: %s\n", user.LoginID)
-		}
-		if user.Email != "" {
-			fmt.Printf("   Email: %s\n", user.Email)
-		}
-		if user.SisUserID != "" {
-			fmt.Printf("   SIS ID: %s\n", user.SisUserID)
-		}
-		if user.Bio != "" {
-			fmt.Printf("   Bio: %s\n", user.Bio)
-		}
-	})
+	return formatOutput(user, nil)
 }
 
 func runUsersSearch(cmd *cobra.Command, args []string) error {
@@ -387,19 +345,7 @@ func runUsersSearch(cmd *cobra.Command, args []string) error {
 	// Format and display users
 	fmt.Printf("Found %d users matching '%s':\n\n", len(users), searchTerm)
 
-	return formatOutput(users, func() {
-		for _, user := range users {
-			fmt.Printf("👤 %s\n", user.Name)
-			fmt.Printf("   ID: %d\n", user.ID)
-			if user.LoginID != "" {
-				fmt.Printf("   Login: %s\n", user.LoginID)
-			}
-			if user.Email != "" {
-				fmt.Printf("   Email: %s\n", user.Email)
-			}
-			fmt.Println()
-		}
-	})
+	return formatOutput(users, nil)
 }
 
 func runUsersCreate(cmd *cobra.Command, args []string) error {

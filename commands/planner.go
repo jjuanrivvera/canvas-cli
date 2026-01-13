@@ -242,12 +242,7 @@ func runPlannerItems(cmd *cobra.Command, args []string) error {
 	}
 
 	fmt.Printf("Found %d planner items:\n\n", len(items))
-
-	for _, item := range items {
-		displayPlannerItem(&item)
-	}
-
-	return nil
+	return formatOutput(items, nil)
 }
 
 func runPlannerNotesList(cmd *cobra.Command, args []string) error {
@@ -276,12 +271,7 @@ func runPlannerNotesList(cmd *cobra.Command, args []string) error {
 	}
 
 	fmt.Printf("Found %d planner notes:\n\n", len(notes))
-
-	for _, note := range notes {
-		displayPlannerNote(&note)
-	}
-
-	return nil
+	return formatOutput(notes, nil)
 }
 
 func runPlannerNotesGet(cmd *cobra.Command, args []string) error {
@@ -303,9 +293,7 @@ func runPlannerNotesGet(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to get planner note: %w", err)
 	}
 
-	displayPlannerNoteFull(note)
-
-	return nil
+	return formatOutput(note, nil)
 }
 
 func runPlannerNotesCreate(cmd *cobra.Command, args []string) error {
@@ -528,12 +516,7 @@ func runPlannerOverrides(cmd *cobra.Command, args []string) error {
 	}
 
 	fmt.Printf("Found %d planner overrides:\n\n", len(overrides))
-
-	for _, override := range overrides {
-		displayPlannerOverride(&override)
-	}
-
-	return nil
+	return formatOutput(overrides, nil)
 }
 
 func displayPlannerItem(item *api.PlannerItem) {

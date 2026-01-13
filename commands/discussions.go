@@ -291,12 +291,7 @@ func runDiscussionsList(cmd *cobra.Command, args []string) error {
 	}
 
 	fmt.Printf("Found %d discussion topics:\n\n", len(topics))
-
-	for _, topic := range topics {
-		displayDiscussionTopic(&topic)
-	}
-
-	return nil
+	return formatOutput(topics, nil)
 }
 
 func runDiscussionsGet(cmd *cobra.Command, args []string) error {
@@ -318,9 +313,7 @@ func runDiscussionsGet(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to get discussion: %w", err)
 	}
 
-	displayDiscussionTopicFull(topic)
-
-	return nil
+	return formatOutput(topic, nil)
 }
 
 func runDiscussionsCreate(cmd *cobra.Command, args []string) error {
@@ -470,12 +463,7 @@ func runDiscussionsEntries(cmd *cobra.Command, args []string) error {
 	}
 
 	fmt.Printf("Found %d entries:\n\n", len(entries))
-
-	for _, entry := range entries {
-		displayDiscussionEntry(&entry, 0)
-	}
-
-	return nil
+	return formatOutput(entries, nil)
 }
 
 func runDiscussionsPost(cmd *cobra.Command, args []string) error {
