@@ -7,8 +7,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/jjuanrivvera/canvas-cli/commands"
 	"github.com/spf13/cobra/doc"
+
+	"github.com/jjuanrivvera/canvas-cli/commands"
 )
 
 func main() {
