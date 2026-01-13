@@ -30,6 +30,14 @@ Step-by-step guides for common Canvas CLI workflows.
 
     [:octicons-arrow-right-24: Scripting](scripting.md)
 
+-   :material-webhook:{ .lg .middle } **Webhooks**
+
+    ---
+
+    Receive real-time Canvas events and build integrations
+
+    [:octicons-arrow-right-24: Webhooks](webhooks.md)
+
 </div>
 
 ## Quick Tips

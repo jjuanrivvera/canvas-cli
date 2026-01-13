@@ -119,6 +119,7 @@ nav:
     - Bulk Grading: tutorials/bulk-grading.md
     - Course Sync: tutorials/course-sync.md
     - Scripting & Automation: tutorials/scripting.md
+    - Webhooks: tutorials/webhooks.md
   - Development:
     - development/index.md
     - Architecture: development/architecture.md
