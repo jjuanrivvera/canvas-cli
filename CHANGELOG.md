@@ -131,12 +131,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Planned for v1.2+
+### Planned
 - Canvas Studio integration
 - Quizzes module
 - GraphQL API support
-- Shell completion generation
-- Man page generation
+
+## [1.4.0] - 2026-01-13
+
+### Added
+
+#### Authentication Improvements
+- **Automatic OAuth Token Refresh**: Access tokens are now automatically refreshed using refresh tokens when they expire, eliminating the need for manual re-authentication
+- **Instance Config Lookup**: `canvas auth login --instance <name>` now automatically loads the URL and OAuth credentials from your config file
+- **Positional Instance Name**: `canvas config add` now accepts instance name as a positional argument: `canvas config add production --url https://canvas.example.com`
+
+#### Table Output Improvements
+- **Compact Table Output**: Default table output now shows only key fields for cleaner display
+- **Verbose Mode**: Use `-v/--verbose` flag to see all fields in table output
+- **Improved Field Selection**: Key fields are optimized for each resource type (Course, User, Assignment, etc.)
+- **Instance Name Support**: The `--instance` flag now accepts instance names (not just URLs)
+
+### Changed
+- `canvas config add <name> --url <url>` syntax replaces `canvas config add --name <name> --url <url>`
+- Table formatter now uses structured formatters instead of custom display functions
+- Removed "Found X items:" messages in compact (non-verbose) mode
+
+### Fixed
+- Pre-commit hook now includes golangci-lint for catching lint issues before push
+- Removed unused display functions that were causing lint warnings
+- Documentation updated to reflect correct CLI syntax and behavior
+
+### Developer Experience
+- **Pre-commit Linting**: Added golangci-lint to pre-commit hook for early lint error detection
+- **Documentation Accuracy**: Fixed documentation to match actual CLI behavior (sync command syntax, environment variables, flags)
 
 ## [1.1.0] - 2026-01-10
 

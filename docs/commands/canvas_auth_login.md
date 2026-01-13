@@ -14,14 +14,22 @@ The login command starts an OAuth flow to authenticate with Canvas.
 By default, it will try to open a local callback server. If that fails,
 it will fall back to out-of-band (manual copy-paste) mode.
 
-OAuth credentials (client ID and client secret) are required and can be
-provided via flags or entered interactively when prompted.
+If --instance is provided and the instance exists in your config, the URL
+and OAuth credentials will be loaded automatically. You can override them
+with flags.
 
 Examples:
+  # Login using a configured instance (recommended)
+  canvas auth login --instance prod
+
+  # Login with URL (creates new instance)
   canvas auth login https://canvas.instructure.com
-  canvas auth login https://myschool.instructure.com --instance myschool
-  canvas auth login https://canvas.instructure.com --client-id YOUR_ID --client-secret YOUR_SECRET
-  canvas auth login --mode oob  # Force out-of-band mode
+
+  # Login with custom OAuth credentials
+  canvas auth login --instance prod --client-id YOUR_ID --client-secret YOUR_SECRET
+
+  # Force out-of-band mode (for headless systems)
+  canvas auth login --instance prod --mode oob
 
 ```
 canvas auth login [instance-url] [flags]

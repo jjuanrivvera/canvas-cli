@@ -22,10 +22,17 @@ First, set up both Canvas instances:
 
 ```bash
 # Add production instance
-canvas config add production --url https://canvas.example.com --token YOUR_PROD_TOKEN
+canvas config add production --url https://canvas.example.com
 
 # Add sandbox instance
-canvas config add sandbox --url https://canvas-sandbox.example.com --token YOUR_SANDBOX_TOKEN
+canvas config add sandbox --url https://canvas-sandbox.example.com
+```
+
+Then authenticate with each:
+
+```bash
+canvas auth login --instance production
+canvas auth login --instance sandbox
 ```
 
 Verify your instances:
@@ -70,34 +77,24 @@ canvas courses list --instance sandbox
 
 ## Step 4: Sync Course Content
 
-Sync the course from production to sandbox:
+Sync the course using the following syntax:
 
 ```bash
-canvas sync course 123 \
-  --from production \
-  --to sandbox \
-  --destination-course 456
+canvas sync course <source-instance> <source-course-id> <target-instance> <target-course-id>
 ```
 
-### Sync Options
-
-| Option | Description |
-|--------|-------------|
-| `--modules` | Sync modules and items |
-| `--assignments` | Sync assignments |
-| `--pages` | Sync pages |
-| `--files` | Sync files |
-| `--all` | Sync all content types |
-
-Example with specific content:
+Example - sync course 123 from production to course 456 on sandbox:
 
 ```bash
-canvas sync course 123 \
-  --from production \
-  --to sandbox \
-  --destination-course 456 \
-  --modules \
-  --assignments
+canvas sync course production 123 sandbox 456
+```
+
+### Interactive Mode
+
+For conflict resolution during sync:
+
+```bash
+canvas sync course production 123 sandbox 456 --interactive
 ```
 
 ## Step 5: Verify Sync
@@ -116,7 +113,7 @@ canvas assignments list --course-id 456 --instance sandbox
 Sync a production course to sandbox for testing changes:
 
 ```bash
-canvas sync course 123 --from production --to sandbox --all
+canvas sync course production 123 sandbox 456
 ```
 
 ### Semester Rollover
@@ -124,12 +121,7 @@ canvas sync course 123 --from production --to sandbox --all
 Copy a course template to create a new semester's course:
 
 ```bash
-canvas sync course 100 \
-  --from production \
-  --to production \
-  --destination-course 200 \
-  --modules \
-  --pages
+canvas sync course production 100 production 200
 ```
 
 ### Multi-Institution Deployment
@@ -138,10 +130,25 @@ Sync course content between institutions:
 
 ```bash
 # Configure second institution
-canvas config add partner --url https://partner.instructure.com --token TOKEN
+canvas config add partner --url https://partner.instructure.com
+canvas auth login --instance partner
 
 # Sync course
-canvas sync course 123 --from production --to partner --all
+canvas sync course production 123 partner 456
+```
+
+## Syncing Assignments Only
+
+To sync only assignments between courses:
+
+```bash
+canvas sync assignments <source-instance> <source-course-id> <target-instance> <target-course-id>
+```
+
+Example:
+
+```bash
+canvas sync assignments production 123 sandbox 456
 ```
 
 ## Tips
@@ -149,11 +156,14 @@ canvas sync course 123 --from production --to partner --all
 !!! warning "Enrollment Data"
     Sync does **not** copy enrollment or grade data. Only course structure and content are synced.
 
-!!! tip "Incremental Sync"
-    For large courses, sync specific content types incrementally rather than using `--all`.
-
 !!! tip "Verify Before Production"
     Always sync to a sandbox first to verify the results before syncing to production.
+
+!!! tip "Verbose Mode"
+    Use `--verbose` to see detailed progress during sync:
+    ```bash
+    canvas sync course production 123 sandbox 456 --verbose
+    ```
 
 ## Troubleshooting
 

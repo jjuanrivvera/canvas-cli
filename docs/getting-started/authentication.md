@@ -75,7 +75,7 @@ This is the most user-friendly method and works on most systems.
 For systems without a browser or remote SSH sessions:
 
 ```bash
-canvas auth login --instance https://canvas.instructure.com --oob
+canvas auth login --instance https://canvas.instructure.com --mode oob
 ```
 
 This will:
@@ -221,14 +221,14 @@ Canvas CLI requests the following OAuth scopes:
 
 ### Manual Token Usage
 
-If you have an access token:
+If you have an access token, use environment variables:
 
 ```bash
-# Use directly
-canvas courses list --token YOUR_ACCESS_TOKEN
-
-# Or set environment variable
+# Set environment variables
+export CANVAS_URL="https://canvas.instructure.com"
 export CANVAS_TOKEN="YOUR_ACCESS_TOKEN"
+
+# Commands will use these automatically
 canvas courses list
 ```
 
@@ -276,7 +276,7 @@ echo ".canvas-cli/" >> .gitignore
 
 Use OOB flow:
 ```bash
-canvas auth login --instance https://canvas.instructure.com --oob
+canvas auth login --instance https://canvas.instructure.com --mode oob
 ```
 
 ### "Failed to access keychain"
@@ -306,26 +306,20 @@ Ensure your Canvas instance allows OAuth from localhost:
 
 ## Advanced Configuration
 
-### Custom Redirect Port
+### Force OOB Mode
+
+For headless servers or SSH sessions without X forwarding:
 
 ```bash
-canvas auth login \
-  --instance https://canvas.instructure.com \
-  --port 9000
+canvas auth login --instance https://canvas.instructure.com --mode oob
 ```
 
-### Specify Redirect URI
+### Verbose Output
+
+For troubleshooting authentication issues:
 
 ```bash
-canvas auth login \
-  --instance https://canvas.instructure.com \
-  --redirect-uri http://localhost:8080/callback
-```
-
-### Debug Authentication
-
-```bash
-canvas auth login --instance https://canvas.instructure.com --debug
+canvas auth login --instance https://canvas.instructure.com --verbose
 ```
 
 ## Next Steps

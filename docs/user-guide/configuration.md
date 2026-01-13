@@ -10,23 +10,31 @@ Canvas CLI stores configuration in `~/.canvas-cli/config.yaml`.
 default_instance: production
 instances:
   production:
+    name: production
     url: https://canvas.example.com
-    token: your-api-token
   sandbox:
+    name: sandbox
     url: https://canvas-sandbox.example.com
-    token: sandbox-token
 ```
+
+!!! note "Token Storage"
+    OAuth tokens are stored securely in your system keychain, not in the config file.
 
 ## Managing Instances
 
 ### Add an Instance
 
 ```bash
-# Add with API token
-canvas config add production --url https://canvas.example.com --token YOUR_TOKEN
-
-# Add without token (will prompt for OAuth)
+# Add a new instance
 canvas config add production --url https://canvas.example.com
+
+# Add with description
+canvas config add staging --url https://canvas-staging.example.com --description "Staging environment"
+```
+
+After adding, authenticate with:
+```bash
+canvas auth login --instance production
 ```
 
 ### List Instances
@@ -55,22 +63,24 @@ canvas config show
 
 ## Environment Variables
 
-Canvas CLI supports environment variables for configuration:
+Canvas CLI supports environment variables for configuration (useful for CI/CD):
 
 | Variable | Description |
 |----------|-------------|
-| `CANVAS_INSTANCE` | Canvas instance URL |
-| `CANVAS_TOKEN` | API token |
-| `CANVAS_OUTPUT` | Default output format |
-| `CANVAS_NO_CACHE` | Disable caching (true/false) |
+| `CANVAS_URL` | Canvas instance URL |
+| `CANVAS_TOKEN` | API access token |
+| `CANVAS_REQUESTS_PER_SEC` | Rate limit (default: 5.0) |
 
 Example:
 
 ```bash
-export CANVAS_INSTANCE=https://canvas.example.com
+export CANVAS_URL=https://canvas.example.com
 export CANVAS_TOKEN=your-api-token
 canvas courses list
 ```
+
+!!! tip "Priority"
+    Environment variables take precedence over the config file.
 
 ## Command-Line Overrides
 
@@ -108,6 +118,8 @@ canvas config use sandbox
 ### Syncing Between Instances
 
 ```bash
-# Sync a course from production to sandbox
-canvas sync course 123 --from production --to sandbox
+# Sync course 123 from production to course 456 on sandbox
+canvas sync course production 123 sandbox 456
 ```
+
+See the [Course Sync Tutorial](../tutorials/course-sync.md) for more details.

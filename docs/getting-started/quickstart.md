@@ -18,9 +18,11 @@ canvas auth login
 This will open your browser for OAuth authentication. After authorizing, you'll be redirected back to the CLI.
 
 !!! tip "API Token Alternative"
-    If OAuth isn't available, you can use an API token:
+    If OAuth isn't available, you can use environment variables:
     ```bash
-    canvas config add mycanvas --url https://canvas.example.com --token YOUR_API_TOKEN
+    export CANVAS_URL="https://canvas.example.com"
+    export CANVAS_TOKEN="YOUR_API_TOKEN"
+    canvas courses list
     ```
 
 ## Step 2: Verify Authentication
