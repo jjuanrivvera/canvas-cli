@@ -2,10 +2,12 @@
 
 [![Go Version](https://img.shields.io/badge/Go-1.21+-00ADD8?style=flat&logo=go)](https://go.dev/)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Release](https://img.shields.io/github/v/release/jjuanrivvera/canvas-cli)](https://github.com/jjuanrivvera/canvas-cli/releases)
 [![Go Report Card](https://goreportcard.com/badge/github.com/jjuanrivvera/canvas-cli)](https://goreportcard.com/report/github.com/jjuanrivvera/canvas-cli)
-[![Test Coverage](https://img.shields.io/badge/coverage-90%25-brightgreen.svg)](COVERAGE_REPORT.md)
 
 A powerful command-line interface for [Canvas LMS](https://www.instructure.com/canvas), built with Go.
+
+**[Documentation](https://jjuanrivvera.github.io/canvas-cli/)** | **[Installation](https://jjuanrivvera.github.io/canvas-cli/getting-started/installation/)** | **[Commands](https://jjuanrivvera.github.io/canvas-cli/commands/)**
 
 ## Features
 
@@ -14,56 +16,41 @@ A powerful command-line interface for [Canvas LMS](https://www.instructure.com/c
 - **Smart Rate Limiting** - Adaptive throttling based on API quotas
 - **Multiple Outputs** - Table, JSON, YAML, and CSV formats
 - **Interactive Mode** - REPL shell with command history and completion
+- **89+ Commands** - Full coverage of Canvas LMS resources
 
-## Architecture
+## Installation
 
-```mermaid
-graph TB
-    subgraph CLI["CLI Layer"]
-        CMD[Cobra Commands]
-        REPL[Interactive REPL]
-        OUT[Output Formatters]
-    end
+### Homebrew (macOS/Linux)
 
-    subgraph Core["Core Services"]
-        API[API Client]
-        AUTH[OAuth + PKCE]
-        CACHE[Smart Cache]
-        BATCH[Batch Processor]
-    end
-
-    subgraph Storage["Storage Layer"]
-        KEYRING[System Keyring]
-        CONFIG[Config Manager]
-        ENCRYPT[AES-256 Fallback]
-    end
-
-    CMD --> API
-    REPL --> CMD
-    CMD --> OUT
-    API --> AUTH
-    API --> CACHE
-    API --> BATCH
-    AUTH --> KEYRING
-    AUTH --> ENCRYPT
-    CONFIG --> Storage
-
-    API <-->|REST| CANVAS[(Canvas LMS API)]
+```bash
+brew tap jjuanrivvera/canvas-cli
+brew install canvas-cli
 ```
+
+### Go Install
+
+```bash
+go install github.com/jjuanrivvera/canvas-cli/cmd/canvas@latest
+```
+
+### Binary Download
+
+Download from [GitHub Releases](https://github.com/jjuanrivvera/canvas-cli/releases).
 
 ## Quick Start
 
 ```bash
-# Install
-go install github.com/jjuanrivvera/canvas-cli/cmd/canvas@latest
-
-# Authenticate
+# Authenticate with your Canvas instance
 canvas auth login https://your-school.instructure.com
 
-# Start using
+# List your courses
 canvas courses list
-canvas assignments list 12345
-canvas shell  # Interactive mode
+
+# Get assignments for a course
+canvas assignments list <course-id>
+
+# Start interactive mode
+canvas shell
 ```
 
 ## Command Overview
@@ -84,15 +71,7 @@ canvas shell  # Interactive mode
 | **Files** | `upload`, `download` |
 | **Utilities** | `shell`, `doctor`, `webhook`, `version` |
 
-## Documentation
-
-| Guide | Description |
-|-------|-------------|
-| [Installation](docs/INSTALLATION.md) | Build from source, platform-specific setup |
-| [Authentication](docs/AUTHENTICATION.md) | OAuth setup, multi-instance, security |
-| [Commands](docs/COMMANDS.md) | Complete reference with all flags |
-| [Examples](docs/EXAMPLES.md) | Workflows, automation, scripting |
-| [Architecture](docs/ARCHITECTURE.md) | Design decisions, internals |
+See [full command reference](https://jjuanrivvera.github.io/canvas-cli/commands/) for all options and flags.
 
 ## Configuration
 
@@ -108,7 +87,7 @@ settings:
   cache_enabled: true
 ```
 
-See [Authentication Guide](docs/AUTHENTICATION.md) for detailed setup.
+See [Authentication Guide](https://jjuanrivvera.github.io/canvas-cli/getting-started/authentication/) for detailed setup.
 
 ## Contributing
 
@@ -117,7 +96,3 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 ## License
 
 [MIT License](LICENSE)
-
----
-
-Built for the Canvas LMS community. Based on the [Canvas REST API](https://canvas.instructure.com/doc/api/).

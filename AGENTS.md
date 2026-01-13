@@ -138,3 +138,72 @@ Single workflow `.github/workflows/ci.yml` runs:
 - Security (govulncheck, gosec)
 - Test matrix (ubuntu/macos/windows × Go 1.21/1.22)
 - Build artifacts
+
+## Documentation
+
+Documentation is built with MkDocs Material and deployed to GitHub Pages.
+
+**Live site**: https://jjuanrivvera.github.io/canvas-cli/
+
+### Local Development
+
+```bash
+# Install dependencies
+pip install mkdocs-material mkdocs-git-revision-date-localized-plugin
+
+# Generate CLI reference and serve locally
+go run ./tools/gendocs/main.go
+mkdocs serve
+```
+
+### Deployment
+
+Documentation auto-deploys on push to `main` when `docs/**` or `mkdocs.yml` changes.
+
+**Manual trigger** (via GitHub UI):
+1. Go to Actions → Documentation workflow
+2. Click "Run workflow"
+
+**Manual trigger** (via CLI):
+```bash
+gh workflow run docs.yml
+```
+
+**If deployment gets stuck** in "queued" status:
+```bash
+# Force a Pages build
+gh api -X POST repos/jjuanrivvera/canvas-cli/pages/builds
+
+# Check status
+gh api repos/jjuanrivvera/canvas-cli/pages --jq '.status'
+```
+
+## Releases
+
+Releases use GoReleaser and auto-publish to GitHub Releases + Homebrew tap.
+
+### Creating a Release
+
+```bash
+# 1. Ensure main is up to date
+git checkout main && git merge develop
+
+# 2. Create and push tag
+git tag -a v1.x.x -m "Release v1.x.x"
+git push origin main --tags
+
+# 3. Sync develop
+git checkout develop && git merge main
+git push origin develop
+```
+
+GoReleaser automatically:
+- Builds binaries for linux/darwin/windows (amd64/arm64)
+- Creates GitHub release with changelog
+- Updates Homebrew formula in `jjuanrivvera/homebrew-canvas-cli`
+
+### Homebrew Tap
+
+The formula is at: https://github.com/jjuanrivvera/homebrew-canvas-cli
+
+**Required secret**: `HOMEBREW_TAP_TOKEN` - a PAT with `repo` scope for the tap repository
