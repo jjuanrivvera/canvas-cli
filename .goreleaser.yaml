@@ -1,0 +1,129 @@
+# GoReleaser configuration for Canvas CLI
+# Documentation: https://goreleaser.com
+
+version: 2
+
+project_name: canvas-cli
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: canvas
+    main: ./cmd/canvas
+    binary: canvas
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.commit={{.Commit}}
+      - -X main.date={{.Date}}
+    ignore:
+      - goos: windows
+        goarch: arm64
+
+archives:
+  - id: default
+    formats:
+      - tar.gz
+    format_overrides:
+      - goos: windows
+        formats:
+          - zip
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+    files:
+      - README.md
+      - LICENSE
+
+checksum:
+  name_template: 'checksums.txt'
+  algorithm: sha256
+
+snapshot:
+  version_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  sort: asc
+  use: github
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^ci:'
+      - '^chore:'
+      - Merge pull request
+      - Merge branch
+  groups:
+    - title: 'New Features'
+      regexp: '^feat'
+      order: 0
+    - title: 'Bug Fixes'
+      regexp: '^fix'
+      order: 1
+    - title: 'Performance Improvements'
+      regexp: '^perf'
+      order: 2
+    - title: 'Other Changes'
+      order: 999
+
+release:
+  github:
+    owner: jjuanrivvera
+    name: canvas-cli
+  draft: false
+  prerelease: auto
+  name_template: "v{{.Version}}"
+  header: |
+    ## Canvas CLI v{{.Version}}
+
+    ### Installation
+
+    **Homebrew (macOS/Linux)**
+    ```bash
+    brew tap jjuanrivvera/canvas-cli
+    brew install canvas-cli
+    ```
+
+    **Go**
+    ```bash
+    go install github.com/jjuanrivvera/canvas-cli/cmd/canvas@v{{.Version}}
+    ```
+
+    **Binary Download**
+    Download the appropriate archive for your platform below.
+
+brews:
+  - name: canvas-cli
+    ids:
+      - default
+    repository:
+      owner: jjuanrivvera
+      name: homebrew-canvas-cli
+      branch: main
+      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
+    directory: Formula
+    homepage: "https://github.com/jjuanrivvera/canvas-cli"
+    description: "A powerful command-line interface for Canvas LMS"
+    license: "MIT"
+    commit_author:
+      name: goreleaserbot
+      email: bot@goreleaser.com
+    commit_msg_template: "Brew formula update for {{ .ProjectName }} version {{ .Tag }}"
+    test: |
+      system "#{bin}/canvas", "version"
+    install: |
+      bin.install "canvas"
