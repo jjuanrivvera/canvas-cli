@@ -231,31 +231,9 @@ func runFilesList(cmd *cobra.Command, args []string) error {
 	}
 
 	// Display files
-	fmt.Printf("Found %d files:\n\n", len(files))
+	printVerbose("Found %d files:\n\n", len(files))
 
-	for _, file := range files {
-		fmt.Printf("📄 %s\n", file.DisplayName)
-		fmt.Printf("   ID: %d\n", file.ID)
-		fmt.Printf("   Filename: %s\n", file.Filename)
-		if file.Size > 0 {
-			fmt.Printf("   Size: %s\n", formatFileSize(file.Size))
-		}
-		if file.ContentType != "" {
-			fmt.Printf("   Type: %s\n", file.ContentType)
-		}
-		if !file.CreatedAt.IsZero() {
-			fmt.Printf("   Created: %s\n", file.CreatedAt.Format("2006-01-02 15:04"))
-		}
-		if file.Locked {
-			fmt.Printf("   🔒 Locked\n")
-		}
-		if file.Hidden {
-			fmt.Printf("   👁️  Hidden\n")
-		}
-		fmt.Println()
-	}
-
-	return nil
+	return formatOutput(files, nil)
 }
 
 func runFilesGet(cmd *cobra.Command, args []string) error {
@@ -282,35 +260,7 @@ func runFilesGet(cmd *cobra.Command, args []string) error {
 	}
 
 	// Display file details
-	fmt.Printf("📄 %s\n", file.DisplayName)
-	fmt.Printf("   ID: %d\n", file.ID)
-	fmt.Printf("   Filename: %s\n", file.Filename)
-	if file.UUID != "" {
-		fmt.Printf("   UUID: %s\n", file.UUID)
-	}
-	if file.Size > 0 {
-		fmt.Printf("   Size: %s\n", formatFileSize(file.Size))
-	}
-	if file.ContentType != "" {
-		fmt.Printf("   Content Type: %s\n", file.ContentType)
-	}
-	if file.URL != "" {
-		fmt.Printf("   URL: %s\n", file.URL)
-	}
-	if !file.CreatedAt.IsZero() {
-		fmt.Printf("   Created: %s\n", file.CreatedAt.Format("2006-01-02 15:04"))
-	}
-	if !file.UpdatedAt.IsZero() {
-		fmt.Printf("   Updated: %s\n", file.UpdatedAt.Format("2006-01-02 15:04"))
-	}
-	if file.Locked {
-		fmt.Printf("   🔒 Locked\n")
-	}
-	if file.Hidden {
-		fmt.Printf("   👁️  Hidden\n")
-	}
-
-	return nil
+	return formatOutput(file, nil)
 }
 
 func runFilesUpload(cmd *cobra.Command, args []string) error {

@@ -145,48 +145,8 @@ func runEnrollmentsList(cmd *cobra.Command, args []string) error {
 	}
 
 	// Format and display enrollments
-	fmt.Printf("Found %d enrollments for %s:\n\n", len(enrollments), contextName)
-
-	return formatOutput(enrollments, func() {
-		for _, enrollment := range enrollments {
-			// Get enrollment type emoji
-			typeEmoji := "📋"
-			switch enrollment.Type {
-			case "StudentEnrollment":
-				typeEmoji = "🎓"
-			case "TeacherEnrollment":
-				typeEmoji = "👨‍🏫"
-			case "TaEnrollment":
-				typeEmoji = "👤"
-			case "ObserverEnrollment":
-				typeEmoji = "👁️"
-			case "DesignerEnrollment":
-				typeEmoji = "🎨"
-			}
-
-			fmt.Printf("%s Enrollment %d\n", typeEmoji, enrollment.ID)
-			fmt.Printf("   Type: %s\n", enrollment.Type)
-			fmt.Printf("   State: %s\n", enrollment.EnrollmentState)
-
-			if enrollment.User != nil {
-				fmt.Printf("   User: %s (ID: %d)\n", enrollment.User.Name, enrollment.User.ID)
-			}
-
-			if enrollment.CourseID > 0 {
-				fmt.Printf("   Course ID: %d\n", enrollment.CourseID)
-			}
-
-			if enrollment.CourseSectionID > 0 {
-				fmt.Printf("   Section ID: %d\n", enrollment.CourseSectionID)
-			}
-
-			if enrollment.Role != "" {
-				fmt.Printf("   Role: %s\n", enrollment.Role)
-			}
-
-			fmt.Println()
-		}
-	})
+	printVerbose("Found %d enrollments for %s:\n\n", len(enrollments), contextName)
+	return formatOutput(enrollments, nil)
 }
 
 func runEnrollmentsGet(cmd *cobra.Command, args []string) error {
@@ -228,60 +188,5 @@ func runEnrollmentsGet(cmd *cobra.Command, args []string) error {
 	}
 
 	// Format and display enrollment details
-	return formatOutput(enrollment, func() {
-		fmt.Printf("Enrollment Details\n")
-		fmt.Printf("==================\n\n")
-		fmt.Printf("ID:             %d\n", enrollment.ID)
-		fmt.Printf("Type:           %s\n", enrollment.Type)
-		fmt.Printf("State:          %s\n", enrollment.EnrollmentState)
-		fmt.Printf("Course ID:      %d\n", enrollment.CourseID)
-
-		if enrollment.CourseSectionID > 0 {
-			fmt.Printf("Section ID:     %d\n", enrollment.CourseSectionID)
-		}
-
-		if enrollment.User != nil {
-			fmt.Printf("User:           %s (ID: %d)\n", enrollment.User.Name, enrollment.User.ID)
-		}
-
-		if enrollment.Role != "" {
-			fmt.Printf("Role:           %s\n", enrollment.Role)
-		}
-
-		if enrollment.RoleID > 0 {
-			fmt.Printf("Role ID:        %d\n", enrollment.RoleID)
-		}
-
-		if !enrollment.CreatedAt.IsZero() {
-			fmt.Printf("Created:        %s\n", enrollment.CreatedAt.Format("2006-01-02 15:04"))
-		}
-
-		if !enrollment.UpdatedAt.IsZero() {
-			fmt.Printf("Updated:        %s\n", enrollment.UpdatedAt.Format("2006-01-02 15:04"))
-		}
-
-		if !enrollment.StartAt.IsZero() {
-			fmt.Printf("Starts:         %s\n", enrollment.StartAt.Format("2006-01-02 15:04"))
-		}
-
-		if !enrollment.EndAt.IsZero() {
-			fmt.Printf("Ends:           %s\n", enrollment.EndAt.Format("2006-01-02 15:04"))
-		}
-
-		if enrollment.Grades != nil {
-			fmt.Printf("\nGrades:\n")
-			if enrollment.Grades.CurrentScore > 0 {
-				fmt.Printf("   Current Score: %.2f\n", enrollment.Grades.CurrentScore)
-			}
-			if enrollment.Grades.FinalScore > 0 {
-				fmt.Printf("   Final Score:   %.2f\n", enrollment.Grades.FinalScore)
-			}
-			if enrollment.Grades.CurrentGrade != "" {
-				fmt.Printf("   Current Grade: %s\n", enrollment.Grades.CurrentGrade)
-			}
-			if enrollment.Grades.FinalGrade != "" {
-				fmt.Printf("   Final Grade:   %s\n", enrollment.Grades.FinalGrade)
-			}
-		}
-	})
+	return formatOutput(enrollment, nil)
 }

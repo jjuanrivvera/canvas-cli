@@ -258,13 +258,8 @@ func runPagesList(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	fmt.Printf("Found %d pages:\n\n", len(pages))
-
-	for _, page := range pages {
-		displayPage(&page)
-	}
-
-	return nil
+	printVerbose("Found %d pages:\n\n", len(pages))
+	return formatOutput(pages, nil)
 }
 
 func runPagesGet(cmd *cobra.Command, args []string) error {
@@ -281,9 +276,7 @@ func runPagesGet(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to get page: %w", err)
 	}
 
-	displayPageFull(page)
-
-	return nil
+	return formatOutput(page, nil)
 }
 
 func runPagesFront(cmd *cobra.Command, args []string) error {
@@ -300,9 +293,7 @@ func runPagesFront(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to get front page: %w", err)
 	}
 
-	displayPageFull(page)
-
-	return nil
+	return formatOutput(page, nil)
 }
 
 func runPagesCreate(cmd *cobra.Command, args []string) error {
@@ -445,13 +436,8 @@ func runPagesRevisions(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	fmt.Printf("Found %d revisions:\n\n", len(revisions))
-
-	for _, rev := range revisions {
-		displayRevision(&rev)
-	}
-
-	return nil
+	printVerbose("Found %d revisions:\n\n", len(revisions))
+	return formatOutput(revisions, nil)
 }
 
 func runPagesRevert(cmd *cobra.Command, args []string) error {
@@ -501,32 +487,6 @@ func displayPage(page *api.Page) {
 	}
 
 	fmt.Printf("   Updated: %s\n", page.UpdatedAt.Format("2006-01-02 15:04"))
-
-	fmt.Println()
-}
-
-func displayPageFull(page *api.Page) {
-	displayPage(page)
-
-	if page.EditingRoles != "" {
-		fmt.Printf("   Editing Roles: %s\n", page.EditingRoles)
-	}
-
-	if page.LastEditedBy != nil {
-		fmt.Printf("   Last Edited By: %s\n", page.LastEditedBy.Name)
-	}
-
-	if page.Body != "" {
-		fmt.Printf("\nContent:\n")
-		// Truncate body for display
-		body := page.Body
-		if len(body) > 500 {
-			body = body[:500] + "..."
-		}
-		// Strip HTML tags for display
-		body = stripHTMLTags(body)
-		fmt.Println(body)
-	}
 
 	fmt.Println()
 }

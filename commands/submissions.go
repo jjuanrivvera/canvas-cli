@@ -190,56 +190,8 @@ func runSubmissionsList(cmd *cobra.Command, args []string) error {
 	}
 
 	// Format and display submissions
-	return formatOutput(submissions, func() {
-		fmt.Printf("Found %d submissions:\n\n", len(submissions))
-
-		for _, submission := range submissions {
-			// Get user name if available
-			userName := "Unknown"
-			if submission.User != nil {
-				userName = submission.User.Name
-			}
-
-			fmt.Printf("📄 Submission by %s\n", userName)
-			fmt.Printf("   ID: %d\n", submission.ID)
-			fmt.Printf("   User ID: %d\n", submission.UserID)
-			fmt.Printf("   State: %s\n", submission.WorkflowState)
-
-			if submission.SubmissionType != "" {
-				fmt.Printf("   Type: %s\n", submission.SubmissionType)
-			}
-
-			if submission.Score > 0 {
-				fmt.Printf("   Score: %.1f\n", submission.Score)
-			}
-
-			if submission.Grade != "" {
-				fmt.Printf("   Grade: %s\n", submission.Grade)
-			}
-
-			if !submission.SubmittedAt.IsZero() {
-				fmt.Printf("   Submitted: %s\n", submission.SubmittedAt.Format("2006-01-02 15:04"))
-			}
-
-			if !submission.GradedAt.IsZero() {
-				fmt.Printf("   Graded: %s\n", submission.GradedAt.Format("2006-01-02 15:04"))
-			}
-
-			if submission.Late {
-				fmt.Printf("   ⚠️  Late submission\n")
-			}
-
-			if submission.Missing {
-				fmt.Printf("   ⚠️  Missing\n")
-			}
-
-			if len(submission.SubmissionComments) > 0 {
-				fmt.Printf("   Comments: %d\n", len(submission.SubmissionComments))
-			}
-
-			fmt.Println()
-		}
-	})
+	printVerbose("Found %d submissions:\n\n", len(submissions))
+	return formatOutput(submissions, nil)
 }
 
 func runSubmissionsGet(cmd *cobra.Command, args []string) error {
@@ -265,100 +217,7 @@ func runSubmissionsGet(cmd *cobra.Command, args []string) error {
 	}
 
 	// Format and display submission details
-	return formatOutput(submission, func() {
-		// Get user name if available
-		userName := "Unknown"
-		if submission.User != nil {
-			userName = submission.User.Name
-		}
-
-		fmt.Printf("📄 Submission by %s\n", userName)
-		fmt.Printf("   ID: %d\n", submission.ID)
-		fmt.Printf("   User ID: %d\n", submission.UserID)
-		fmt.Printf("   Assignment ID: %d\n", submission.AssignmentID)
-		fmt.Printf("   State: %s\n", submission.WorkflowState)
-
-		if submission.SubmissionType != "" {
-			fmt.Printf("   Type: %s\n", submission.SubmissionType)
-		}
-
-		if submission.Attempt > 0 {
-			fmt.Printf("   Attempt: %d\n", submission.Attempt)
-		}
-
-		if submission.Score > 0 {
-			fmt.Printf("   Score: %.1f\n", submission.Score)
-		}
-
-		if submission.Grade != "" {
-			fmt.Printf("   Grade: %s\n", submission.Grade)
-		}
-
-		if !submission.SubmittedAt.IsZero() {
-			fmt.Printf("   Submitted: %s\n", submission.SubmittedAt.Format("2006-01-02 15:04"))
-		}
-
-		if !submission.GradedAt.IsZero() {
-			fmt.Printf("   Graded: %s\n", submission.GradedAt.Format("2006-01-02 15:04"))
-			if submission.GraderID > 0 {
-				fmt.Printf("   Grader ID: %d\n", submission.GraderID)
-			}
-		}
-
-		if submission.Late {
-			fmt.Printf("   ⚠️  Late submission")
-			if submission.SecondsLate > 0 {
-				hours := submission.SecondsLate / 3600
-				minutes := (submission.SecondsLate % 3600) / 60
-				fmt.Printf(" (%dh %dm)", hours, minutes)
-			}
-			fmt.Println()
-		}
-
-		if submission.Missing {
-			fmt.Printf("   ⚠️  Missing\n")
-		}
-
-		if submission.ExcusedTLN {
-			fmt.Printf("   ✓ Excused\n")
-		}
-
-		if submission.Body != "" {
-			fmt.Printf("\nSubmission Text:\n%s\n", submission.Body)
-		}
-
-		if submission.URL != "" {
-			fmt.Printf("\nSubmission URL:\n%s\n", submission.URL)
-		}
-
-		if len(submission.Attachments) > 0 {
-			fmt.Printf("\nAttachments:\n")
-			for i, att := range submission.Attachments {
-				fmt.Printf("  %d. %s\n", i+1, att.DisplayName)
-				if att.Size > 0 {
-					fmt.Printf("     Size: %d bytes\n", att.Size)
-				}
-				if att.URL != "" {
-					fmt.Printf("     URL: %s\n", att.URL)
-				}
-			}
-		}
-
-		if len(submission.SubmissionComments) > 0 {
-			fmt.Printf("\nComments (%d):\n", len(submission.SubmissionComments))
-			for i, comment := range submission.SubmissionComments {
-				authorName := "Unknown"
-				if comment.AuthorName != "" {
-					authorName = comment.AuthorName
-				}
-				fmt.Printf("  %d. %s:\n", i+1, authorName)
-				fmt.Printf("     %s\n", comment.Comment)
-				if !comment.CreatedAt.IsZero() {
-					fmt.Printf("     Posted: %s\n", comment.CreatedAt.Format("2006-01-02 15:04"))
-				}
-			}
-		}
-	})
+	return formatOutput(submission, nil)
 }
 
 func runSubmissionsGrade(cmd *cobra.Command, args []string) error {
@@ -464,7 +323,7 @@ func runSubmissionsBulkGrade(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("no grades found in CSV file")
 	}
 
-	fmt.Printf("Found %d grades in CSV file\n\n", len(grades))
+	printVerbose("Found %d grades in CSV file\n\n", len(grades))
 
 	if bulkGradeDryRun {
 		fmt.Println("DRY RUN - No changes will be applied")

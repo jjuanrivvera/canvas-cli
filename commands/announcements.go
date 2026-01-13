@@ -173,13 +173,8 @@ func runAnnouncementsList(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	fmt.Printf("Found %d announcements:\n\n", len(announcements))
-
-	for _, announcement := range announcements {
-		displayAnnouncement(&announcement)
-	}
-
-	return nil
+	printVerbose("Found %d announcements:\n\n", len(announcements))
+	return formatOutput(announcements, nil)
 }
 
 func runAnnouncementsGet(cmd *cobra.Command, args []string) error {
@@ -202,9 +197,7 @@ func runAnnouncementsGet(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to get announcement: %w", err)
 	}
 
-	displayAnnouncementFull(announcement)
-
-	return nil
+	return formatOutput(announcement, nil)
 }
 
 func runAnnouncementsCreate(cmd *cobra.Command, args []string) error {
@@ -317,32 +310,6 @@ func displayAnnouncement(announcement *api.DiscussionTopic) {
 
 	if announcement.Author != nil {
 		fmt.Printf("   By: %s\n", announcement.Author.Name)
-	}
-
-	fmt.Println()
-}
-
-func displayAnnouncementFull(announcement *api.DiscussionTopic) {
-	displayAnnouncement(announcement)
-
-	if announcement.Published {
-		fmt.Printf("   Published: Yes\n")
-	} else {
-		fmt.Printf("   Published: No (Draft)\n")
-	}
-
-	if announcement.Locked {
-		fmt.Printf("   Locked: Yes\n")
-	}
-
-	if announcement.Message != "" {
-		fmt.Printf("\nMessage:\n")
-		message := announcement.Message
-		if len(message) > 500 {
-			message = message[:500] + "..."
-		}
-		message = stripHTMLTags(message)
-		fmt.Println(message)
 	}
 
 	fmt.Println()

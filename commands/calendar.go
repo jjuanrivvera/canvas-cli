@@ -221,13 +221,8 @@ func runCalendarList(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	fmt.Printf("Found %d calendar events:\n\n", len(events))
-
-	for _, event := range events {
-		displayCalendarEvent(&event)
-	}
-
-	return nil
+	printVerbose("Found %d calendar events:\n\n", len(events))
+	return formatOutput(events, nil)
 }
 
 func runCalendarGet(cmd *cobra.Command, args []string) error {
@@ -249,9 +244,7 @@ func runCalendarGet(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to get calendar event: %w", err)
 	}
 
-	displayCalendarEventFull(event)
-
-	return nil
+	return formatOutput(event, nil)
 }
 
 func runCalendarCreate(cmd *cobra.Command, args []string) error {
@@ -439,36 +432,6 @@ func displayCalendarEvent(event *api.CalendarEvent) {
 	}
 
 	fmt.Printf("   Context: %s\n", event.ContextCode)
-
-	fmt.Println()
-}
-
-func displayCalendarEventFull(event *api.CalendarEvent) {
-	displayCalendarEvent(event)
-
-	fmt.Printf("   State: %s\n", event.WorkflowState)
-
-	if event.LocationAddress != "" {
-		fmt.Printf("   Address: %s\n", event.LocationAddress)
-	}
-
-	if event.ContextName != "" {
-		fmt.Printf("   Context Name: %s\n", event.ContextName)
-	}
-
-	if event.SeriesNaturalLang != "" {
-		fmt.Printf("   Recurrence: %s\n", event.SeriesNaturalLang)
-	}
-
-	if event.Description != "" {
-		fmt.Printf("\nDescription:\n")
-		description := event.Description
-		if len(description) > 500 {
-			description = description[:500] + "..."
-		}
-		description = stripHTMLTags(description)
-		fmt.Println(description)
-	}
 
 	fmt.Println()
 }

@@ -290,13 +290,8 @@ func runDiscussionsList(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	fmt.Printf("Found %d discussion topics:\n\n", len(topics))
-
-	for _, topic := range topics {
-		displayDiscussionTopic(&topic)
-	}
-
-	return nil
+	printVerbose("Found %d discussion topics:\n\n", len(topics))
+	return formatOutput(topics, nil)
 }
 
 func runDiscussionsGet(cmd *cobra.Command, args []string) error {
@@ -318,9 +313,7 @@ func runDiscussionsGet(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to get discussion: %w", err)
 	}
 
-	displayDiscussionTopicFull(topic)
-
-	return nil
+	return formatOutput(topic, nil)
 }
 
 func runDiscussionsCreate(cmd *cobra.Command, args []string) error {
@@ -469,13 +462,8 @@ func runDiscussionsEntries(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	fmt.Printf("Found %d entries:\n\n", len(entries))
-
-	for _, entry := range entries {
-		displayDiscussionEntry(&entry, 0)
-	}
-
-	return nil
+	printVerbose("Found %d entries:\n\n", len(entries))
+	return formatOutput(entries, nil)
 }
 
 func runDiscussionsPost(cmd *cobra.Command, args []string) error {
@@ -625,38 +613,6 @@ func displayDiscussionTopic(topic *api.DiscussionTopic) {
 
 	if topic.PostedAt != nil {
 		fmt.Printf("   Posted: %s\n", topic.PostedAt.Format("2006-01-02 15:04"))
-	}
-
-	fmt.Println()
-}
-
-func displayDiscussionTopicFull(topic *api.DiscussionTopic) {
-	displayDiscussionTopic(topic)
-
-	if topic.Author != nil {
-		fmt.Printf("   Author: %s\n", topic.Author.Name)
-	}
-
-	if topic.RequireInitialPost {
-		fmt.Printf("   Requires Initial Post: Yes\n")
-	}
-
-	if topic.AllowRating {
-		fmt.Printf("   Allow Rating: Yes\n")
-	}
-
-	if topic.Subscribed {
-		fmt.Printf("   Subscribed: Yes\n")
-	}
-
-	if topic.Message != "" {
-		fmt.Printf("\nMessage:\n")
-		message := topic.Message
-		if len(message) > 500 {
-			message = message[:500] + "..."
-		}
-		message = stripHTMLTags(message)
-		fmt.Println(message)
 	}
 
 	fmt.Println()
