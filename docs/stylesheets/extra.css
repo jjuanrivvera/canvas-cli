@@ -1,0 +1,101 @@
+/* Custom styles for Canvas CLI documentation */
+
+/* Logo/brand adjustments */
+.md-header__button.md-logo {
+  margin: 0.2rem;
+  padding: 0.2rem;
+}
+
+/* Code block styling */
+.highlight code {
+  font-size: 0.85em;
+}
+
+/* Table improvements */
+.md-typeset table:not([class]) {
+  font-size: 0.85em;
+}
+
+.md-typeset table:not([class]) th {
+  background-color: var(--md-primary-fg-color);
+  color: var(--md-primary-bg-color);
+  font-weight: 700;
+}
+
+/* Card grid improvements */
+.md-typeset .grid.cards > ul > li {
+  border-radius: 0.5rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.md-typeset .grid.cards > ul > li:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Navigation tab styling */
+.md-tabs__link {
+  font-weight: 500;
+}
+
+/* Admonition icon colors */
+.md-typeset .admonition.tip,
+.md-typeset details.tip {
+  border-color: var(--md-accent-fg-color);
+}
+
+.md-typeset .tip > .admonition-title::before,
+.md-typeset .tip > summary::before {
+  background-color: var(--md-accent-fg-color);
+}
+
+/* Command reference styling */
+.md-typeset h3 code {
+  background-color: var(--md-code-bg-color);
+  padding: 0.2em 0.4em;
+  border-radius: 0.2rem;
+}
+
+/* Footer adjustments */
+.md-footer-meta {
+  background-color: var(--md-primary-fg-color--dark);
+}
+
+/* Search highlight */
+.md-search__output mark {
+  background-color: var(--md-accent-fg-color);
+  color: var(--md-accent-bg-color);
+}
+
+/* Code copy button */
+.md-clipboard {
+  color: var(--md-default-fg-color--lighter);
+}
+
+.md-clipboard:hover {
+  color: var(--md-accent-fg-color);
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 76.1875em) {
+  .md-nav__source {
+    background-color: var(--md-primary-fg-color--dark);
+  }
+}
+
+/* Feature cards on home page */
+.md-typeset .feature-card {
+  padding: 1rem;
+  border-radius: 0.5rem;
+  background: var(--md-code-bg-color);
+}
+
+/* Command table styling */
+.md-typeset .command-table th {
+  white-space: nowrap;
+}
+
+.md-typeset .command-table td:first-child {
+  font-family: var(--md-code-font-family);
+  font-size: 0.85em;
+}
