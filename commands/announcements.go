@@ -314,29 +314,3 @@ func displayAnnouncement(announcement *api.DiscussionTopic) {
 
 	fmt.Println()
 }
-
-func displayAnnouncementFull(announcement *api.DiscussionTopic) {
-	displayAnnouncement(announcement)
-
-	if announcement.Published {
-		fmt.Printf("   Published: Yes\n")
-	} else {
-		fmt.Printf("   Published: No (Draft)\n")
-	}
-
-	if announcement.Locked {
-		fmt.Printf("   Locked: Yes\n")
-	}
-
-	if announcement.Message != "" {
-		fmt.Printf("\nMessage:\n")
-		message := announcement.Message
-		if len(message) > 500 {
-			message = message[:500] + "..."
-		}
-		message = stripHTMLTags(message)
-		fmt.Println(message)
-	}
-
-	fmt.Println()
-}

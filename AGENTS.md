@@ -32,6 +32,7 @@ make setup-hooks        # Install git pre-commit hooks
 
 Run `make setup-hooks` to enable. Runs automatically on each commit:
 - `gofmt` - formatting check
+- `golangci-lint` - comprehensive linting (if installed)
 - `go vet` - static analysis
 - `go test -short` - quick test pass
 

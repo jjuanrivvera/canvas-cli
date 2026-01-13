@@ -491,32 +491,6 @@ func displayPage(page *api.Page) {
 	fmt.Println()
 }
 
-func displayPageFull(page *api.Page) {
-	displayPage(page)
-
-	if page.EditingRoles != "" {
-		fmt.Printf("   Editing Roles: %s\n", page.EditingRoles)
-	}
-
-	if page.LastEditedBy != nil {
-		fmt.Printf("   Last Edited By: %s\n", page.LastEditedBy.Name)
-	}
-
-	if page.Body != "" {
-		fmt.Printf("\nContent:\n")
-		// Truncate body for display
-		body := page.Body
-		if len(body) > 500 {
-			body = body[:500] + "..."
-		}
-		// Strip HTML tags for display
-		body = stripHTMLTags(body)
-		fmt.Println(body)
-	}
-
-	fmt.Println()
-}
-
 func displayRevision(rev *api.PageRevision) {
 	latestMark := ""
 	if rev.Latest {

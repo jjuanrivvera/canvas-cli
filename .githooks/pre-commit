@@ -16,6 +16,19 @@ if [ -n "$UNFORMATTED" ]; then
 fi
 echo "✓ Format OK"
 
+# Run golangci-lint (if installed)
+if command -v golangci-lint &> /dev/null; then
+    echo "→ Running golangci-lint..."
+    if ! golangci-lint run ./... 2>&1; then
+        echo "✗ golangci-lint failed"
+        exit 1
+    fi
+    echo "✓ Lint OK"
+else
+    echo "→ Skipping golangci-lint (not installed)"
+    echo "  Install: go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest"
+fi
+
 # Run go vet
 echo "→ Running go vet..."
 if ! go vet ./... 2>&1; then

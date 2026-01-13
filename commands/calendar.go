@@ -435,33 +435,3 @@ func displayCalendarEvent(event *api.CalendarEvent) {
 
 	fmt.Println()
 }
-
-func displayCalendarEventFull(event *api.CalendarEvent) {
-	displayCalendarEvent(event)
-
-	fmt.Printf("   State: %s\n", event.WorkflowState)
-
-	if event.LocationAddress != "" {
-		fmt.Printf("   Address: %s\n", event.LocationAddress)
-	}
-
-	if event.ContextName != "" {
-		fmt.Printf("   Context Name: %s\n", event.ContextName)
-	}
-
-	if event.SeriesNaturalLang != "" {
-		fmt.Printf("   Recurrence: %s\n", event.SeriesNaturalLang)
-	}
-
-	if event.Description != "" {
-		fmt.Printf("\nDescription:\n")
-		description := event.Description
-		if len(description) > 500 {
-			description = description[:500] + "..."
-		}
-		description = stripHTMLTags(description)
-		fmt.Println(description)
-	}
-
-	fmt.Println()
-}

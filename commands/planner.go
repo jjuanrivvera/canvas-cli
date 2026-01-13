@@ -519,38 +519,6 @@ func runPlannerOverrides(cmd *cobra.Command, args []string) error {
 	return formatOutput(overrides, nil)
 }
 
-func displayPlannerItem(item *api.PlannerItem) {
-	typeIcon := "📋"
-	switch item.PlannableType {
-	case "Assignment":
-		typeIcon = "📝"
-	case "Quiz":
-		typeIcon = "❓"
-	case "DiscussionTopic":
-		typeIcon = "💬"
-	case "CalendarEvent":
-		typeIcon = "📅"
-	case "PlannerNote":
-		typeIcon = "📌"
-	}
-
-	fmt.Printf("%s [%s] ID: %d\n", typeIcon, item.PlannableType, item.PlannableID)
-
-	if item.ContextName != "" {
-		fmt.Printf("   Context: %s\n", item.ContextName)
-	}
-
-	if item.PlannableDate != nil {
-		fmt.Printf("   Date: %s\n", item.PlannableDate.Format("2006-01-02 15:04"))
-	}
-
-	if item.HTMLURL != "" {
-		fmt.Printf("   URL: %s\n", item.HTMLURL)
-	}
-
-	fmt.Println()
-}
-
 func displayPlannerNote(note *api.PlannerNote) {
 	fmt.Printf("📌 [%d] %s\n", note.ID, note.Title)
 
@@ -563,41 +531,6 @@ func displayPlannerNote(note *api.PlannerNote) {
 	}
 
 	fmt.Printf("   State: %s\n", note.WorkflowState)
-
-	fmt.Println()
-}
-
-func displayPlannerNoteFull(note *api.PlannerNote) {
-	displayPlannerNote(note)
-
-	if note.Details != "" {
-		fmt.Printf("   Details: %s\n", note.Details)
-	}
-
-	fmt.Printf("   Created: %s\n", note.CreatedAt.Format("2006-01-02 15:04"))
-	fmt.Printf("   Updated: %s\n", note.UpdatedAt.Format("2006-01-02 15:04"))
-
-	fmt.Println()
-}
-
-func displayPlannerOverride(override *api.PlannerOverride) {
-	stateIcon := "📋"
-	if override.MarkedComplete {
-		stateIcon = "✅"
-	} else if override.Dismissed {
-		stateIcon = "🚫"
-	}
-
-	fmt.Printf("%s [%d] %s %d\n", stateIcon, override.ID, override.PlannableType, override.PlannableID)
-
-	if override.MarkedComplete {
-		fmt.Printf("   Status: Complete\n")
-	}
-	if override.Dismissed {
-		fmt.Printf("   Status: Dismissed\n")
-	}
-
-	fmt.Printf("   Updated: %s\n", override.UpdatedAt.Format("2006-01-02 15:04"))
 
 	fmt.Println()
 }

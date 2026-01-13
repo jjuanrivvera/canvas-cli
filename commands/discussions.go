@@ -618,38 +618,6 @@ func displayDiscussionTopic(topic *api.DiscussionTopic) {
 	fmt.Println()
 }
 
-func displayDiscussionTopicFull(topic *api.DiscussionTopic) {
-	displayDiscussionTopic(topic)
-
-	if topic.Author != nil {
-		fmt.Printf("   Author: %s\n", topic.Author.Name)
-	}
-
-	if topic.RequireInitialPost {
-		fmt.Printf("   Requires Initial Post: Yes\n")
-	}
-
-	if topic.AllowRating {
-		fmt.Printf("   Allow Rating: Yes\n")
-	}
-
-	if topic.Subscribed {
-		fmt.Printf("   Subscribed: Yes\n")
-	}
-
-	if topic.Message != "" {
-		fmt.Printf("\nMessage:\n")
-		message := topic.Message
-		if len(message) > 500 {
-			message = message[:500] + "..."
-		}
-		message = stripHTMLTags(message)
-		fmt.Println(message)
-	}
-
-	fmt.Println()
-}
-
 func displayDiscussionEntry(entry *api.DiscussionEntry, indent int) {
 	prefix := ""
 	for i := 0; i < indent; i++ {
