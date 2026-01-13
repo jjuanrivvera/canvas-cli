@@ -18,11 +18,11 @@ var configCmd = &cobra.Command{
 	Long: `Manage Canvas CLI configuration including Canvas instances and settings.
 
 Examples:
-  canvas config list                                    # List all configured instances
-  canvas config add --name prod --url https://canvas.example.com
-  canvas config use prod                                # Switch to prod instance
-  canvas config show                                    # Show current configuration
-  canvas config remove staging                          # Remove an instance`,
+  canvas config list                              # List all configured instances
+  canvas config add prod --url https://canvas.example.com
+  canvas config use prod                          # Switch to prod instance
+  canvas config show                              # Show current configuration
+  canvas config remove staging                    # Remove an instance`,
 }
 
 var configListCmd = &cobra.Command{
@@ -33,13 +33,14 @@ var configListCmd = &cobra.Command{
 }
 
 var configAddCmd = &cobra.Command{
-	Use:   "add",
+	Use:   "add [name]",
 	Short: "Add a new Canvas instance",
 	Long: `Add a new Canvas instance to the configuration.
 
 Examples:
-  canvas config add --name production --url https://canvas.example.com
-  canvas config add --name staging --url https://canvas-staging.example.com --description "Staging environment"`,
+  canvas config add production --url https://canvas.example.com
+  canvas config add staging --url https://canvas-staging.example.com --description "Staging environment"`,
+	Args: cobra.ExactArgs(1),
 	RunE: runConfigAdd,
 }
 
@@ -76,7 +77,6 @@ var configShowCmd = &cobra.Command{
 
 // Config command flags
 var (
-	configName        string
 	configURL         string
 	configDescription string
 	configClientID    string
@@ -94,11 +94,9 @@ func init() {
 	configCmd.AddCommand(configShowCmd)
 
 	// Flags for add command
-	configAddCmd.Flags().StringVar(&configName, "name", "", "Instance name (required)")
 	configAddCmd.Flags().StringVar(&configURL, "url", "", "Canvas instance URL (required)")
 	configAddCmd.Flags().StringVar(&configDescription, "description", "", "Instance description")
 	configAddCmd.Flags().StringVar(&configClientID, "client-id", "", "OAuth client ID")
-	configAddCmd.MarkFlagRequired("name")
 	configAddCmd.MarkFlagRequired("url")
 
 	// Flags for remove command
@@ -115,7 +113,7 @@ func runConfigList(_ *cobra.Command, _ []string) error {
 	if len(instances) == 0 {
 		fmt.Println("No instances configured.")
 		fmt.Println("\nTo add an instance:")
-		fmt.Println("  canvas config add --name <name> --url <canvas-url>")
+		fmt.Println("  canvas config add <name> --url <canvas-url>")
 		return nil
 	}
 
@@ -147,7 +145,9 @@ func runConfigList(_ *cobra.Command, _ []string) error {
 	return nil
 }
 
-func runConfigAdd(_ *cobra.Command, _ []string) error {
+func runConfigAdd(_ *cobra.Command, args []string) error {
+	instanceName := args[0]
+
 	// Validate URL
 	parsedURL, err := url.Parse(configURL)
 	if err != nil {
@@ -172,7 +172,7 @@ func runConfigAdd(_ *cobra.Command, _ []string) error {
 	}
 
 	instance := &config.Instance{
-		Name:        configName,
+		Name:        instanceName,
 		URL:         configURL,
 		Description: configDescription,
 		ClientID:    configClientID,
@@ -182,14 +182,14 @@ func runConfigAdd(_ *cobra.Command, _ []string) error {
 		return fmt.Errorf("failed to add instance: %w", err)
 	}
 
-	fmt.Printf("Instance %q added successfully.\n", configName)
+	fmt.Printf("Instance %q added successfully.\n", instanceName)
 
-	if cfg.DefaultInstance == configName {
+	if cfg.DefaultInstance == instanceName {
 		fmt.Printf("Set as default instance.\n")
 	}
 
 	fmt.Println("\nNext step: Authenticate with this instance:")
-	fmt.Printf("  canvas auth login --instance %s\n", configName)
+	fmt.Printf("  canvas auth login --instance %s\n", instanceName)
 
 	return nil
 }

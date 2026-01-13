@@ -22,10 +22,10 @@ First, set up both Canvas instances:
 
 ```bash
 # Add production instance
-canvas config add --name production --url https://canvas.example.com --token YOUR_PROD_TOKEN
+canvas config add production --url https://canvas.example.com --token YOUR_PROD_TOKEN
 
 # Add sandbox instance
-canvas config add --name sandbox --url https://canvas-sandbox.example.com --token YOUR_SANDBOX_TOKEN
+canvas config add sandbox --url https://canvas-sandbox.example.com --token YOUR_SANDBOX_TOKEN
 ```
 
 Verify your instances:
@@ -138,7 +138,7 @@ Sync course content between institutions:
 
 ```bash
 # Configure second institution
-canvas config add --name partner --url https://partner.instructure.com --token TOKEN
+canvas config add partner --url https://partner.instructure.com --token TOKEN
 
 # Sync course
 canvas sync course 123 --from production --to partner --all

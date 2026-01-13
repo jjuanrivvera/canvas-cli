@@ -20,7 +20,7 @@ This will open your browser for OAuth authentication. After authorizing, you'll 
 !!! tip "API Token Alternative"
     If OAuth isn't available, you can use an API token:
     ```bash
-    canvas config add --name mycanvas --url https://canvas.example.com --token YOUR_API_TOKEN
+    canvas config add mycanvas --url https://canvas.example.com --token YOUR_API_TOKEN
     ```
 
 ## Step 2: Verify Authentication
