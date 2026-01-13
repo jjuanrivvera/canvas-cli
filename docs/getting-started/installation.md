@@ -257,6 +257,6 @@ docker rmi ghcr.io/jjuanrivvera/canvas-cli:latest
 ## Next Steps
 
 After installation, continue with:
-- [Authentication Guide](AUTHENTICATION.md) - Set up OAuth
-- [Command Reference](COMMANDS.md) - Learn available commands
-- [Examples](EXAMPLES.md) - See common use cases
+- [Authentication Guide](authentication.md) - Set up OAuth
+- [Command Reference](../commands/index.md) - Learn available commands
+- [Tutorials](../tutorials/index.md) - See common use cases
