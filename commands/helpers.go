@@ -104,15 +104,35 @@ func getAPIClient() (*api.Client, error) {
 		apiCache = createCache()
 	}
 
+	// Create auto-refreshing token source if we have OAuth credentials
+	var clientConfig api.ClientConfig
+	if instance.ClientID != "" && instance.ClientSecret != "" {
+		// Create oauth2 config for token refresh
+		oauth2Config := auth.CreateOAuth2ConfigForInstance(instance.URL, instance.ClientID, instance.ClientSecret)
+		tokenSource := auth.NewAutoRefreshTokenSource(oauth2Config, tokenStore, instance.Name, token)
+
+		clientConfig = api.ClientConfig{
+			BaseURL:        instance.URL,
+			TokenSource:    tokenSource,
+			RequestsPerSec: cfg.Settings.RequestsPerSecond,
+			AsUserID:       asUserID,
+			Cache:          apiCache,
+			CacheEnabled:   cacheEnabled,
+		}
+	} else {
+		// Fall back to static token (no auto-refresh)
+		clientConfig = api.ClientConfig{
+			BaseURL:        instance.URL,
+			Token:          token.AccessToken,
+			RequestsPerSec: cfg.Settings.RequestsPerSecond,
+			AsUserID:       asUserID,
+			Cache:          apiCache,
+			CacheEnabled:   cacheEnabled,
+		}
+	}
+
 	// Create API client
-	client, err := api.NewClient(api.ClientConfig{
-		BaseURL:        instance.URL,
-		Token:          token.AccessToken,
-		RequestsPerSec: cfg.Settings.RequestsPerSecond,
-		AsUserID:       asUserID,
-		Cache:          apiCache,
-		CacheEnabled:   cacheEnabled,
-	})
+	client, err := api.NewClient(clientConfig)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create API client: %w", err)
 	}
