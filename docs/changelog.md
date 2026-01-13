@@ -225,4 +225,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 For more details on each change, see the [commit history](https://github.com/jjuanrivvera/canvas-cli/commits/main).
 
-For planned features and roadmap, see [SPECIFICATION.md](SPECIFICATION.md).
+For planned features and roadmap, see [GitHub Issues](https://github.com/jjuanrivvera/canvas-cli/issues).
