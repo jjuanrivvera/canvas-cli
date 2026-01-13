@@ -25,6 +25,7 @@ var (
 	pagesMakePublished bool
 	pagesFrontPage     bool
 	pagesPublishAt     string
+	pagesForce         bool
 )
 
 // pagesCmd represents the pages command group
@@ -210,6 +211,7 @@ func init() {
 
 	// Delete flags
 	pagesDeleteCmd.Flags().Int64Var(&pagesCourseID, "course-id", 0, "Course ID (required)")
+	pagesDeleteCmd.Flags().BoolVarP(&pagesForce, "force", "f", false, "Skip confirmation prompt")
 	pagesDeleteCmd.MarkFlagRequired("course-id")
 
 	// Duplicate flags
@@ -378,6 +380,16 @@ func runPagesUpdate(cmd *cobra.Command, args []string) error {
 }
 
 func runPagesDelete(cmd *cobra.Command, args []string) error {
+	// Confirm deletion
+	confirmed, err := confirmDelete("page", args[0], pagesForce)
+	if err != nil {
+		return err
+	}
+	if !confirmed {
+		fmt.Println("Delete cancelled")
+		return nil
+	}
+
 	client, err := getAPIClient()
 	if err != nil {
 		return err

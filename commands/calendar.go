@@ -29,6 +29,7 @@ var (
 	calendarAllDay          bool
 	calendarWhich           string
 	calendarCancelReason    string
+	calendarForce           bool
 )
 
 // calendarCmd represents the calendar command group
@@ -173,6 +174,7 @@ func init() {
 	// Delete flags
 	calendarDeleteCmd.Flags().StringVar(&calendarCancelReason, "reason", "", "Cancellation reason")
 	calendarDeleteCmd.Flags().StringVar(&calendarWhich, "which", "", "For series: one, all, following")
+	calendarDeleteCmd.Flags().BoolVarP(&calendarForce, "force", "f", false, "Skip confirmation prompt")
 
 	// Reserve flags (none needed)
 }
@@ -348,6 +350,16 @@ func runCalendarDelete(cmd *cobra.Command, args []string) error {
 	eventID, err := strconv.ParseInt(args[0], 10, 64)
 	if err != nil {
 		return fmt.Errorf("invalid event ID: %s", args[0])
+	}
+
+	// Confirm deletion
+	confirmed, err := confirmDelete("calendar event", eventID, calendarForce)
+	if err != nil {
+		return err
+	}
+	if !confirmed {
+		fmt.Println("Delete cancelled")
+		return nil
 	}
 
 	client, err := getAPIClient()

@@ -2,12 +2,17 @@ package api
 
 import (
 	"context"
+	"crypto/md5"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"log/slog"
 	"net/http"
+	"os"
+	"path/filepath"
 	"regexp"
 	"strconv"
+	"time"
 )
 
 // CanvasVersion represents the Canvas version information
@@ -65,8 +70,91 @@ func (v *CanvasVersion) String() string {
 	return v.Raw
 }
 
+// versionCacheItem represents a cached version detection result
+type versionCacheItem struct {
+	Version    *CanvasVersion `json:"version"`
+	Expiration time.Time      `json:"expiration"`
+	Unknown    bool           `json:"unknown"` // true if version couldn't be detected
+}
+
+// getVersionCachePath returns the path to the version cache file for a specific base URL
+func getVersionCachePath(baseURL string) string {
+	// Get cache directory
+	cacheDir, err := os.UserCacheDir()
+	if err != nil {
+		cacheDir = os.TempDir()
+	}
+	cacheDir = filepath.Join(cacheDir, "canvas-cli")
+
+	// Create cache directory if it doesn't exist
+	if err := os.MkdirAll(cacheDir, 0700); err != nil {
+		// If we can't create the cache directory, just return the path anyway
+		// The write will fail later but that's acceptable for caching
+		slog.Debug("Failed to create cache directory", "error", err)
+	}
+
+	// Hash the baseURL to create a unique cache file name
+	hash := md5.Sum([]byte(baseURL))
+	filename := "version_" + hex.EncodeToString(hash[:]) + ".json"
+
+	return filepath.Join(cacheDir, filename)
+}
+
+// loadCachedVersion loads the version from cache if available and not expired
+func loadCachedVersion(baseURL string) (*CanvasVersion, bool, bool) {
+	cachePath := getVersionCachePath(baseURL)
+
+	data, err := os.ReadFile(cachePath)
+	if err != nil {
+		return nil, false, false
+	}
+
+	var item versionCacheItem
+	if err := json.Unmarshal(data, &item); err != nil {
+		return nil, false, false
+	}
+
+	// Check if expired (24 hours)
+	if time.Now().After(item.Expiration) {
+		os.Remove(cachePath)
+		return nil, false, false
+	}
+
+	return item.Version, true, item.Unknown
+}
+
+// saveCachedVersion saves the version detection result to cache
+func saveCachedVersion(baseURL string, version *CanvasVersion, unknown bool) {
+	cachePath := getVersionCachePath(baseURL)
+
+	item := versionCacheItem{
+		Version:    version,
+		Expiration: time.Now().Add(24 * time.Hour),
+		Unknown:    unknown,
+	}
+
+	data, err := json.Marshal(item)
+	if err != nil {
+		return
+	}
+
+	if err := os.WriteFile(cachePath, data, 0600); err != nil {
+		slog.Debug("Failed to write version cache", "error", err)
+	}
+}
+
 // DetectCanvasVersion detects the Canvas version from the API
+// It caches the result for 24 hours to avoid repeated warnings
 func DetectCanvasVersion(ctx context.Context, client *http.Client, baseURL string) (*CanvasVersion, error) {
+	// Check cache first
+	if cachedVersion, found, wasUnknown := loadCachedVersion(baseURL); found {
+		// Don't log warnings for cached unknown versions to reduce noise
+		if !wasUnknown {
+			slog.Debug("Using cached Canvas version", "version", cachedVersion.String())
+		}
+		return cachedVersion, nil
+	}
+
 	// Try to get version from /api/v1/accounts endpoint
 	// Canvas includes version info in the X-Canvas-Meta header
 	req, err := http.NewRequestWithContext(ctx, "GET", baseURL+"/api/v1/accounts", nil)
@@ -90,20 +178,24 @@ func DetectCanvasVersion(ctx context.Context, client *http.Client, baseURL strin
 				v, err := ParseVersion(version)
 				if err == nil {
 					slog.Info("Detected Canvas version", "version", v.String())
+					saveCachedVersion(baseURL, v, false)
 					return v, nil
 				}
 			}
 		}
 	}
 
-	// If we can't detect the version, assume latest
-	slog.Warn("Could not detect Canvas version, assuming latest")
-	return &CanvasVersion{
+	// If we can't detect the version, assume latest and cache it
+	// Only warn once when first detecting, cached lookups won't show the warning
+	slog.Warn("Could not detect Canvas version, assuming latest (this warning will not repeat for 24 hours)")
+	unknownVersion := &CanvasVersion{
 		Major: 999,
 		Minor: 999,
 		Patch: 999,
 		Raw:   "unknown",
-	}, nil
+	}
+	saveCachedVersion(baseURL, unknownVersion, true)
+	return unknownVersion, nil
 }
 
 // FeatureChecker checks if a feature is available based on Canvas version

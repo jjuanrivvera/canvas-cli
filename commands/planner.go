@@ -20,6 +20,7 @@ var (
 	plannerDetails       string
 	plannerTodoDate      string
 	plannerPlannableType string
+	plannerForce         bool
 )
 
 // plannerCmd represents the planner command group
@@ -202,6 +203,9 @@ func init() {
 	plannerNotesUpdateCmd.Flags().StringVar(&plannerTodoDate, "todo-date", "", "New todo date")
 	plannerNotesUpdateCmd.Flags().Int64Var(&plannerCourseID, "course-id", 0, "New course association")
 
+	// Notes delete flags
+	plannerNotesDeleteCmd.Flags().BoolVarP(&plannerForce, "force", "f", false, "Skip confirmation prompt")
+
 	// Overrides flags
 	plannerOverridesCmd.Flags().StringVar(&plannerPlannableType, "type", "", "Filter by type (Assignment, Quiz, etc.)")
 }
@@ -377,6 +381,16 @@ func runPlannerNotesDelete(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("invalid note ID: %s", args[0])
 	}
 
+	// Confirm deletion
+	confirmed, err := confirmDelete("planner note", noteID, plannerForce)
+	if err != nil {
+		return err
+	}
+	if !confirmed {
+		fmt.Println("Delete cancelled")
+		return nil
+	}
+
 	client, err := getAPIClient()
 	if err != nil {
 		return err
@@ -400,6 +414,19 @@ func runPlannerComplete(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("invalid ID: %s", args[1])
 	}
 
+	// Validate plannable type
+	validTypes := []string{"Assignment", "Quiz", "DiscussionTopic", "WikiPage", "CalendarEvent", "PlannerNote", "Announcement"}
+	isValidType := false
+	for _, t := range validTypes {
+		if t == plannableType {
+			isValidType = true
+			break
+		}
+	}
+	if !isValidType {
+		return fmt.Errorf("invalid plannable type: %s\nValid types: Assignment, Quiz, DiscussionTopic, WikiPage, CalendarEvent, PlannerNote, Announcement", plannableType)
+	}
+
 	client, err := getAPIClient()
 	if err != nil {
 		return err
@@ -416,6 +443,10 @@ func runPlannerComplete(cmd *cobra.Command, args []string) error {
 	ctx := context.Background()
 	override, err := plannerService.CreateOverride(ctx, params)
 	if err != nil {
+		// Check if this is a server error, which often indicates the item doesn't exist in the planner
+		if api.IsServerError(err) {
+			return fmt.Errorf("failed to mark as complete: %w\n\nThis may occur if:\n  1. The item doesn't appear in your planner (check 'canvas planner items')\n  2. You don't have student enrollment in the course\n  3. The Canvas server is experiencing issues", err)
+		}
 		return fmt.Errorf("failed to mark as complete: %w", err)
 	}
 
@@ -428,6 +459,19 @@ func runPlannerDismiss(cmd *cobra.Command, args []string) error {
 	plannableID, err := strconv.ParseInt(args[1], 10, 64)
 	if err != nil {
 		return fmt.Errorf("invalid ID: %s", args[1])
+	}
+
+	// Validate plannable type
+	validTypes := []string{"Assignment", "Quiz", "DiscussionTopic", "WikiPage", "CalendarEvent", "PlannerNote", "Announcement"}
+	isValidType := false
+	for _, t := range validTypes {
+		if t == plannableType {
+			isValidType = true
+			break
+		}
+	}
+	if !isValidType {
+		return fmt.Errorf("invalid plannable type: %s\nValid types: Assignment, Quiz, DiscussionTopic, WikiPage, CalendarEvent, PlannerNote, Announcement", plannableType)
 	}
 
 	client, err := getAPIClient()
@@ -446,6 +490,10 @@ func runPlannerDismiss(cmd *cobra.Command, args []string) error {
 	ctx := context.Background()
 	override, err := plannerService.CreateOverride(ctx, params)
 	if err != nil {
+		// Check if this is a server error, which often indicates the item doesn't exist in the planner
+		if api.IsServerError(err) {
+			return fmt.Errorf("failed to dismiss: %w\n\nThis may occur if:\n  1. The item doesn't appear in your planner (check 'canvas planner items')\n  2. You don't have student enrollment in the course\n  3. The Canvas server is experiencing issues", err)
+		}
 		return fmt.Errorf("failed to dismiss: %w", err)
 	}
 
