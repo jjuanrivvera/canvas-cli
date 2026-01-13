@@ -39,14 +39,22 @@ The login command starts an OAuth flow to authenticate with Canvas.
 By default, it will try to open a local callback server. If that fails,
 it will fall back to out-of-band (manual copy-paste) mode.
 
-OAuth credentials (client ID and client secret) are required and can be
-provided via flags or entered interactively when prompted.
+If --instance is provided and the instance exists in your config, the URL
+and OAuth credentials will be loaded automatically. You can override them
+with flags.
 
 Examples:
+  # Login using a configured instance (recommended)
+  canvas auth login --instance prod
+
+  # Login with URL (creates new instance)
   canvas auth login https://canvas.instructure.com
-  canvas auth login https://myschool.instructure.com --instance myschool
-  canvas auth login https://canvas.instructure.com --client-id YOUR_ID --client-secret YOUR_SECRET
-  canvas auth login --mode oob  # Force out-of-band mode`,
+
+  # Login with custom OAuth credentials
+  canvas auth login --instance prod --client-id YOUR_ID --client-secret YOUR_SECRET
+
+  # Force out-of-band mode (for headless systems)
+  canvas auth login --instance prod --mode oob`,
 	Args: cobra.MaximumNArgs(1),
 	RunE: runAuthLogin,
 }
@@ -95,11 +103,40 @@ func init() {
 }
 
 func runAuthLogin(cmd *cobra.Command, args []string) error {
-	// Get instance URL
+	// Load config to check for existing instances
+	cfg, err := config.Load()
+	if err != nil {
+		return fmt.Errorf("failed to load config: %w", err)
+	}
+
 	var instanceURL string
+	var existingInstance *config.Instance
+
+	// If --instance is provided, try to look it up from config
+	if authInstanceName != "" {
+		if inst, err := cfg.GetInstance(authInstanceName); err == nil {
+			existingInstance = inst
+			instanceURL = inst.URL
+			// Use stored client ID/secret if not provided via flags
+			if authClientID == "" && inst.ClientID != "" {
+				authClientID = inst.ClientID
+			}
+			if authClientSecret == "" && inst.ClientSecret != "" {
+				authClientSecret = inst.ClientSecret
+			}
+		}
+	}
+
+	// If URL provided as positional arg, use it (overrides config lookup)
 	if len(args) > 0 {
 		instanceURL = args[0]
-	} else {
+	}
+
+	// Still no URL? Error out
+	if instanceURL == "" {
+		if authInstanceName != "" {
+			return fmt.Errorf("instance %q not found in config. Either add it first with 'canvas config add' or provide the URL", authInstanceName)
+		}
 		return fmt.Errorf("instance URL is required")
 	}
 
@@ -109,13 +146,17 @@ func runAuthLogin(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("invalid URL: %w", err)
 	}
 
-	// Determine instance name
+	// Determine instance name if not provided
 	if authInstanceName == "" {
-		// Use hostname as instance name
 		authInstanceName = getHostnameFromURL(normalizedURL)
 	}
 
 	authInstanceName = config.SanitizeInstanceName(authInstanceName)
+
+	// If we found an existing instance, update the URL in case it was normalized
+	if existingInstance != nil {
+		existingInstance.URL = normalizedURL
+	}
 
 	fmt.Printf("🔐 Logging in to Canvas instance: %s\n", normalizedURL)
 	fmt.Printf("Instance name: %s\n\n", authInstanceName)
@@ -178,12 +219,6 @@ func runAuthLogin(cmd *cobra.Command, args []string) error {
 	tokenStore := auth.NewFallbackTokenStore(configDir)
 	if err := tokenStore.Save(authInstanceName, token); err != nil {
 		return fmt.Errorf("failed to save token: %w", err)
-	}
-
-	// Load config
-	cfg, err := config.Load()
-	if err != nil {
-		return fmt.Errorf("failed to load config: %w", err)
 	}
 
 	// Add or update instance
