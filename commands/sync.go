@@ -200,12 +200,29 @@ func getAPIClientForInstance(instanceName string) (*api.Client, error) {
 		return nil, fmt.Errorf("not authenticated with %s. Run 'canvas auth login' first", instance.Name)
 	}
 
+	// Create auto-refreshing token source if we have OAuth credentials
+	var clientConfig api.ClientConfig
+	if instance.ClientID != "" && instance.ClientSecret != "" {
+		// Create oauth2 config for token refresh
+		oauth2Config := auth.CreateOAuth2ConfigForInstance(instance.URL, instance.ClientID, instance.ClientSecret)
+		tokenSource := auth.NewAutoRefreshTokenSource(oauth2Config, tokenStore, instance.Name, token)
+
+		clientConfig = api.ClientConfig{
+			BaseURL:        instance.URL,
+			TokenSource:    tokenSource,
+			RequestsPerSec: cfg.Settings.RequestsPerSecond,
+		}
+	} else {
+		// Fall back to static token (no auto-refresh)
+		clientConfig = api.ClientConfig{
+			BaseURL:        instance.URL,
+			Token:          token.AccessToken,
+			RequestsPerSec: cfg.Settings.RequestsPerSecond,
+		}
+	}
+
 	// Create API client
-	client, err := api.NewClient(api.ClientConfig{
-		BaseURL:        instance.URL,
-		Token:          token.AccessToken,
-		RequestsPerSec: cfg.Settings.RequestsPerSecond,
-	})
+	client, err := api.NewClient(clientConfig)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create API client: %w", err)
 	}

@@ -15,6 +15,7 @@ import (
 	"sync"
 	"time"
 
+	"golang.org/x/oauth2"
 	"golang.org/x/time/rate"
 
 	"github.com/jjuanrivvera/canvas-cli/internal/cache"
@@ -59,8 +60,9 @@ type HTTPClient interface {
 type Client struct {
 	httpClient     *http.Client
 	baseURL        string
-	token          string
-	asUserID       int64 // For admin masquerading
+	token          string             // Static token (used if tokenSource is nil)
+	tokenSource    oauth2.TokenSource // Auto-refreshing token source (preferred)
+	asUserID       int64              // For admin masquerading
 	rateLimiter    *AdaptiveRateLimiter
 	retryPolicy    *RetryPolicy
 	version        *CanvasVersion
@@ -140,7 +142,8 @@ func (l *AdaptiveRateLimiter) GetCurrentRate() float64 {
 // ClientConfig holds configuration for the API client
 type ClientConfig struct {
 	BaseURL        string
-	Token          string
+	Token          string             // Static token (used if TokenSource is nil)
+	TokenSource    oauth2.TokenSource // Auto-refreshing token source (preferred over Token)
 	RequestsPerSec float64
 	Timeout        time.Duration
 	Logger         *slog.Logger
@@ -155,8 +158,9 @@ func NewClient(config ClientConfig) (*Client, error) {
 		return nil, fmt.Errorf("base URL is required")
 	}
 
-	if config.Token == "" {
-		return nil, fmt.Errorf("token is required")
+	// Require either Token or TokenSource
+	if config.Token == "" && config.TokenSource == nil {
+		return nil, fmt.Errorf("token or token source is required")
 	}
 
 	if config.RequestsPerSec == 0 {
@@ -188,6 +192,7 @@ func NewClient(config ClientConfig) (*Client, error) {
 		},
 		baseURL:      config.BaseURL,
 		token:        config.Token,
+		tokenSource:  config.TokenSource,
 		asUserID:     config.AsUserID,
 		rateLimiter:  NewAdaptiveRateLimiter(config.RequestsPerSec),
 		retryPolicy:  DefaultRetryPolicy(),
@@ -226,11 +231,31 @@ func (c *Client) SupportsFeature(feature string) bool {
 	return c.featureChecker.SupportsFeature(feature)
 }
 
+// getToken retrieves the current access token, refreshing if necessary
+func (c *Client) getToken() (string, error) {
+	// Prefer token source (supports auto-refresh)
+	if c.tokenSource != nil {
+		token, err := c.tokenSource.Token()
+		if err != nil {
+			return "", err
+		}
+		return token.AccessToken, nil
+	}
+	// Fall back to static token
+	return c.token, nil
+}
+
 // doRequest performs an HTTP request with rate limiting and retry logic
 func (c *Client) doRequest(ctx context.Context, method, path string, body io.Reader) (*http.Response, error) {
 	// Wait for rate limiter
 	if err := c.rateLimiter.Wait(ctx); err != nil {
 		return nil, fmt.Errorf("rate limiter error: %w", err)
+	}
+
+	// Get current token (may trigger refresh if using token source)
+	token, err := c.getToken()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get token: %w", err)
 	}
 
 	// Build full URL with masquerade parameter if set
@@ -254,7 +279,7 @@ func (c *Client) doRequest(ctx context.Context, method, path string, body io.Rea
 		}
 
 		// Set headers
-		req.Header.Set("Authorization", "Bearer "+c.token)
+		req.Header.Set("Authorization", "Bearer "+token)
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Accept", "application/json")
 
