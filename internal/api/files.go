@@ -19,6 +19,20 @@ type FilesService struct {
 	client *Client
 }
 
+// isCanvasDomain checks if the given URL belongs to the same Canvas instance
+// This is used to prevent leaking the Authorization header to third-party storage providers
+func isCanvasDomain(redirectURL, baseURL string) bool {
+	redirectParsed, err := url.Parse(redirectURL)
+	if err != nil {
+		return false
+	}
+	baseParsed, err := url.Parse(baseURL)
+	if err != nil {
+		return false
+	}
+	return redirectParsed.Host == baseParsed.Host
+}
+
 // NewFilesService creates a new files service
 func NewFilesService(client *Client) *FilesService {
 	return &FilesService{client: client}
@@ -313,8 +327,11 @@ func (s *FilesService) upload(ctx context.Context, uploadPath, filePath string, 
 			return nil, fmt.Errorf("failed to create confirmation request: %w", err)
 		}
 
-		// Add authorization header if the redirect is to Canvas
-		confirmReq.Header.Set("Authorization", "Bearer "+s.client.token)
+		// Add authorization header only if the redirect is to Canvas domain
+		// This prevents leaking the bearer token to third-party storage providers
+		if isCanvasDomain(location, s.client.baseURL) {
+			confirmReq.Header.Set("Authorization", "Bearer "+s.client.token)
+		}
 
 		confirmResp, err := s.client.httpClient.Do(confirmReq)
 		if err != nil {

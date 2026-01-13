@@ -87,7 +87,11 @@ func getVersionCachePath(baseURL string) string {
 	cacheDir = filepath.Join(cacheDir, "canvas-cli")
 
 	// Create cache directory if it doesn't exist
-	os.MkdirAll(cacheDir, 0700)
+	if err := os.MkdirAll(cacheDir, 0700); err != nil {
+		// If we can't create the cache directory, just return the path anyway
+		// The write will fail later but that's acceptable for caching
+		slog.Debug("Failed to create cache directory", "error", err)
+	}
 
 	// Hash the baseURL to create a unique cache file name
 	hash := md5.Sum([]byte(baseURL))
@@ -134,7 +138,9 @@ func saveCachedVersion(baseURL string, version *CanvasVersion, unknown bool) {
 		return
 	}
 
-	os.WriteFile(cachePath, data, 0600)
+	if err := os.WriteFile(cachePath, data, 0600); err != nil {
+		slog.Debug("Failed to write version cache", "error", err)
+	}
 }
 
 // DetectCanvasVersion detects the Canvas version from the API
