@@ -23,10 +23,10 @@ instances:
 
 ```bash
 # Add with API token
-canvas config add production https://canvas.example.com --token YOUR_TOKEN
+canvas config add --name production --url https://canvas.example.com --token YOUR_TOKEN
 
 # Add without token (will prompt for OAuth)
-canvas config add production https://canvas.example.com
+canvas config add --name production --url https://canvas.example.com
 ```
 
 ### List Instances

@@ -140,16 +140,13 @@ Canvas CLI supports multiple Canvas installations:
 
 ```bash
 # Add production instance
-canvas config add production \
-  --url https://canvas.instructure.com
+canvas config add --name production --url https://canvas.instructure.com
 
 # Add staging instance
-canvas config add staging \
-  --url https://staging.canvas.instructure.com
+canvas config add --name staging --url https://staging.canvas.instructure.com
 
 # Add self-hosted instance
-canvas config add onprem \
-  --url https://canvas.company.com
+canvas config add --name onprem --url https://canvas.company.com
 ```
 
 ### Switch Between Instances
