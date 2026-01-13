@@ -26,6 +26,7 @@ var (
 	filesDestination  string
 	filesHidden       bool
 	filesLocked       bool
+	filesForce        bool
 )
 
 // filesCmd represents the files command group
@@ -161,6 +162,9 @@ func init() {
 
 	// Download flags
 	filesDownloadCmd.Flags().StringVar(&filesDestination, "destination", "", "Destination file path (default: current directory with original filename)")
+
+	// Delete flags
+	filesDeleteCmd.Flags().BoolVarP(&filesForce, "force", "f", false, "Skip confirmation prompt")
 
 	// Quota flags
 	filesQuotaCmd.Flags().Int64Var(&filesCourseID, "course-id", 0, "Course ID")
@@ -427,6 +431,16 @@ func runFilesDelete(cmd *cobra.Command, args []string) error {
 	fileID, err := strconv.ParseInt(args[0], 10, 64)
 	if err != nil {
 		return fmt.Errorf("invalid file ID: %w", err)
+	}
+
+	// Confirm deletion
+	confirmed, err := confirmDelete("file", fileID, filesForce)
+	if err != nil {
+		return err
+	}
+	if !confirmed {
+		fmt.Println("Delete cancelled")
+		return nil
 	}
 
 	// Get API client

@@ -15,6 +15,7 @@ var (
 	modulesInclude    []string
 	modulesSearchTerm string
 	modulesStudentID  string
+	modulesForce      bool
 	// Create/Update flags
 	modulesName                      string
 	modulesUnlockAt                  string
@@ -287,6 +288,7 @@ func init() {
 
 	// Delete flags
 	modulesDeleteCmd.Flags().Int64Var(&modulesCourseID, "course-id", 0, "Course ID (required)")
+	modulesDeleteCmd.Flags().BoolVarP(&modulesForce, "force", "f", false, "Skip confirmation prompt")
 	modulesDeleteCmd.MarkFlagRequired("course-id")
 
 	// Relock flags
@@ -330,6 +332,7 @@ func init() {
 	// Items delete flags
 	modulesItemsDeleteCmd.Flags().Int64Var(&modulesCourseID, "course-id", 0, "Course ID (required)")
 	modulesItemsDeleteCmd.Flags().Int64Var(&modulesModuleID, "module-id", 0, "Module ID (required)")
+	modulesItemsDeleteCmd.Flags().BoolVarP(&modulesForce, "force", "f", false, "Skip confirmation prompt")
 	modulesItemsDeleteCmd.MarkFlagRequired("course-id")
 	modulesItemsDeleteCmd.MarkFlagRequired("module-id")
 
@@ -522,6 +525,16 @@ func runModulesDelete(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	// Confirm deletion
+	confirmed, err := confirmDelete("module", moduleID, modulesForce)
+	if err != nil {
+		return err
+	}
+	if !confirmed {
+		fmt.Println("Cancelled.")
+		return nil
+	}
+
 	modulesService := api.NewModulesService(client)
 
 	ctx := context.Background()
@@ -690,6 +703,16 @@ func runModulesItemsDelete(cmd *cobra.Command, args []string) error {
 	// Validate course ID exists
 	if _, err := validateCourseID(client, modulesCourseID); err != nil {
 		return err
+	}
+
+	// Confirm deletion
+	confirmed, err := confirmDelete("module item", itemID, modulesForce)
+	if err != nil {
+		return err
+	}
+	if !confirmed {
+		fmt.Println("Cancelled.")
+		return nil
 	}
 
 	modulesService := api.NewModulesService(client)

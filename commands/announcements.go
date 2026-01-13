@@ -21,6 +21,7 @@ var (
 	announcementsMessage    string
 	announcementsDelayedAt  string
 	announcementsPublished  bool
+	announcementsForce      bool
 )
 
 // announcementsCmd represents the announcements command group
@@ -140,6 +141,7 @@ func init() {
 
 	// Delete flags
 	announcementsDeleteCmd.Flags().Int64Var(&announcementsCourseID, "course-id", 0, "Course ID (required)")
+	announcementsDeleteCmd.Flags().BoolVarP(&announcementsForce, "force", "f", false, "Skip confirmation prompt")
 	announcementsDeleteCmd.MarkFlagRequired("course-id")
 }
 
@@ -274,6 +276,16 @@ func runAnnouncementsDelete(cmd *cobra.Command, args []string) error {
 	announcementID, err := strconv.ParseInt(args[0], 10, 64)
 	if err != nil {
 		return fmt.Errorf("invalid announcement ID: %s", args[0])
+	}
+
+	// Confirm deletion
+	confirmed, err := confirmDelete("announcement", announcementID, announcementsForce)
+	if err != nil {
+		return err
+	}
+	if !confirmed {
+		fmt.Println("Delete cancelled")
+		return nil
 	}
 
 	client, err := getAPIClient()

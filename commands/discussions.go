@@ -28,6 +28,7 @@ var (
 	discussionsRequireInitPost bool
 	discussionsPinned          bool
 	discussionsLocked          bool
+	discussionsForce           bool
 )
 
 // discussionsCmd represents the discussions command group
@@ -125,25 +126,31 @@ Examples:
 
 // discussionsPostCmd represents the discussions post command
 var discussionsPostCmd = &cobra.Command{
-	Use:   "post <topic-id> <message>",
+	Use:   "post <topic-id> [message]",
 	Short: "Post a new entry to a discussion",
 	Long: `Post a new entry to a discussion topic.
 
+The message can be provided as a positional argument or using the --message flag.
+
 Examples:
-  canvas discussions post --course-id 123 456 "My response to the discussion"`,
-	Args: cobra.ExactArgs(2),
+  canvas discussions post --course-id 123 456 "My response to the discussion"
+  canvas discussions post --course-id 123 456 --message "My response to the discussion"`,
+	Args: cobra.RangeArgs(1, 2),
 	RunE: runDiscussionsPost,
 }
 
 // discussionsReplyCmd represents the discussions reply command
 var discussionsReplyCmd = &cobra.Command{
-	Use:   "reply <topic-id> <entry-id> <message>",
+	Use:   "reply <topic-id> <entry-id> [message]",
 	Short: "Reply to an entry in a discussion",
 	Long: `Reply to a specific entry in a discussion topic.
 
+The message can be provided as a positional argument or using the --message flag.
+
 Examples:
-  canvas discussions reply --course-id 123 456 789 "My reply to this entry"`,
-	Args: cobra.ExactArgs(3),
+  canvas discussions reply --course-id 123 456 789 "My reply to this entry"
+  canvas discussions reply --course-id 123 456 789 --message "My reply to this entry"`,
+	Args: cobra.RangeArgs(2, 3),
 	RunE: runDiscussionsReply,
 }
 
@@ -229,6 +236,7 @@ func init() {
 
 	// Delete flags
 	discussionsDeleteCmd.Flags().Int64Var(&discussionsCourseID, "course-id", 0, "Course ID (required)")
+	discussionsDeleteCmd.Flags().BoolVarP(&discussionsForce, "force", "f", false, "Skip confirmation prompt")
 	discussionsDeleteCmd.MarkFlagRequired("course-id")
 
 	// Entries flags
@@ -237,10 +245,12 @@ func init() {
 
 	// Post flags
 	discussionsPostCmd.Flags().Int64Var(&discussionsCourseID, "course-id", 0, "Course ID (required)")
+	discussionsPostCmd.Flags().StringVarP(&discussionsMessage, "message", "m", "", "Message content (alternative to positional argument)")
 	discussionsPostCmd.MarkFlagRequired("course-id")
 
 	// Reply flags
 	discussionsReplyCmd.Flags().Int64Var(&discussionsCourseID, "course-id", 0, "Course ID (required)")
+	discussionsReplyCmd.Flags().StringVarP(&discussionsMessage, "message", "m", "", "Message content (alternative to positional argument)")
 	discussionsReplyCmd.MarkFlagRequired("course-id")
 
 	// Subscribe flags
@@ -409,6 +419,16 @@ func runDiscussionsDelete(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("invalid topic ID: %s", args[0])
 	}
 
+	// Confirm deletion
+	confirmed, err := confirmDelete("discussion", topicID, discussionsForce)
+	if err != nil {
+		return err
+	}
+	if !confirmed {
+		fmt.Println("Delete cancelled")
+		return nil
+	}
+
 	client, err := getAPIClient()
 	if err != nil {
 		return err
@@ -464,6 +484,16 @@ func runDiscussionsPost(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("invalid topic ID: %s", args[0])
 	}
 
+	// Get message from positional arg or --message flag
+	var message string
+	if len(args) > 1 {
+		message = args[1]
+	} else if discussionsMessage != "" {
+		message = discussionsMessage
+	} else {
+		return fmt.Errorf("message is required: provide it as a positional argument or use --message flag")
+	}
+
 	client, err := getAPIClient()
 	if err != nil {
 		return err
@@ -472,7 +502,7 @@ func runDiscussionsPost(cmd *cobra.Command, args []string) error {
 	discussionsService := api.NewDiscussionsService(client)
 
 	ctx := context.Background()
-	entry, err := discussionsService.PostEntry(ctx, discussionsCourseID, topicID, args[1])
+	entry, err := discussionsService.PostEntry(ctx, discussionsCourseID, topicID, message)
 	if err != nil {
 		return fmt.Errorf("failed to post entry: %w", err)
 	}
@@ -494,6 +524,16 @@ func runDiscussionsReply(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("invalid entry ID: %s", args[1])
 	}
 
+	// Get message from positional arg or --message flag
+	var message string
+	if len(args) > 2 {
+		message = args[2]
+	} else if discussionsMessage != "" {
+		message = discussionsMessage
+	} else {
+		return fmt.Errorf("message is required: provide it as a positional argument or use --message flag")
+	}
+
 	client, err := getAPIClient()
 	if err != nil {
 		return err
@@ -502,7 +542,7 @@ func runDiscussionsReply(cmd *cobra.Command, args []string) error {
 	discussionsService := api.NewDiscussionsService(client)
 
 	ctx := context.Background()
-	entry, err := discussionsService.PostReply(ctx, discussionsCourseID, topicID, entryID, args[2])
+	entry, err := discussionsService.PostReply(ctx, discussionsCourseID, topicID, entryID, message)
 	if err != nil {
 		return fmt.Errorf("failed to post reply: %w", err)
 	}

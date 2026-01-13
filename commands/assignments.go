@@ -1,7 +1,6 @@
 package commands
 
 import (
-	"bufio"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -14,6 +13,8 @@ import (
 
 	"github.com/jjuanrivvera/canvas-cli/internal/api"
 )
+
+var assignmentForce bool
 
 var (
 	assignmentsCourseID   int64
@@ -205,6 +206,7 @@ func init() {
 
 	// Delete flags
 	assignmentsDeleteCmd.Flags().Int64Var(&assignmentsCourseID, "course-id", 0, "Course ID (required)")
+	assignmentsDeleteCmd.Flags().BoolVarP(&assignmentForce, "force", "f", false, "Skip confirmation prompt")
 	assignmentsDeleteCmd.MarkFlagRequired("course-id")
 }
 
@@ -568,15 +570,11 @@ func runAssignmentsDelete(cmd *cobra.Command, args []string) error {
 	}
 
 	// Confirm deletion
-	fmt.Printf("Are you sure you want to delete assignment %d? [y/N]: ", assignmentID)
-	reader := bufio.NewReader(os.Stdin)
-	response, err := reader.ReadString('\n')
+	confirmed, err := confirmDelete("assignment", assignmentID, assignmentForce)
 	if err != nil {
-		return fmt.Errorf("failed to read response: %w", err)
+		return err
 	}
-
-	response = strings.TrimSpace(strings.ToLower(response))
-	if response != "y" && response != "yes" {
+	if !confirmed {
 		fmt.Println("Cancelled.")
 		return nil
 	}

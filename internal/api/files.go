@@ -1,10 +1,12 @@
 package api
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"io"
+	"mime/multipart"
 	"net/http"
 	"net/url"
 	"os"
@@ -155,7 +157,10 @@ func (s *FilesService) UploadToUser(ctx context.Context, userID int64, filePath 
 	return s.upload(ctx, uploadPath, filePath, params)
 }
 
-// upload is a helper that handles the Canvas two-step upload process
+// upload is a helper that handles the Canvas three-step upload process
+// Step 1: Request upload parameters from Canvas
+// Step 2: Upload file to the provided URL using multipart/form-data with upload_params
+// Step 3: Confirm upload (follow redirect or parse response)
 func (s *FilesService) upload(ctx context.Context, uploadPath, filePath string, params *UploadParams) (*Attachment, error) {
 	// Open the file to upload
 	file, err := os.Open(filePath)
@@ -208,42 +213,130 @@ func (s *FilesService) upload(ctx context.Context, uploadPath, filePath string, 
 	var uploadResponse struct {
 		UploadURL    string                 `json:"upload_url"`
 		UploadParams map[string]interface{} `json:"upload_params"`
+		FileParam    string                 `json:"file_param"`
 	}
 
 	if err := s.client.PostJSON(ctx, uploadPath, uploadBody, &uploadResponse); err != nil {
 		return nil, fmt.Errorf("failed to initialize upload: %w", err)
 	}
 
-	// Step 2: Upload the actual file to the provided URL
-	// Create multipart form data
-	req, err := http.NewRequestWithContext(ctx, "POST", uploadResponse.UploadURL, file)
+	// Step 2: Upload the actual file to the provided URL using multipart/form-data
+	// Create a buffer to write our multipart form data
+	var requestBody bytes.Buffer
+	writer := multipart.NewWriter(&requestBody)
+
+	// Add all upload params from Canvas first (order matters for some storage providers)
+	for key, value := range uploadResponse.UploadParams {
+		var strValue string
+		switch v := value.(type) {
+		case string:
+			strValue = v
+		case float64:
+			strValue = strconv.FormatFloat(v, 'f', -1, 64)
+		case bool:
+			strValue = strconv.FormatBool(v)
+		default:
+			strValue = fmt.Sprintf("%v", v)
+		}
+		if err := writer.WriteField(key, strValue); err != nil {
+			return nil, fmt.Errorf("failed to write form field %s: %w", key, err)
+		}
+	}
+
+	// Determine the file field name (usually "file" but Canvas tells us)
+	fileFieldName := "file"
+	if uploadResponse.FileParam != "" {
+		fileFieldName = uploadResponse.FileParam
+	}
+
+	// Add the file itself
+	part, err := writer.CreateFormFile(fileFieldName, fileName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create form file: %w", err)
+	}
+
+	// Reset file position and copy content
+	if _, err := file.Seek(0, 0); err != nil {
+		return nil, fmt.Errorf("failed to seek file: %w", err)
+	}
+	if _, err := io.Copy(part, file); err != nil {
+		return nil, fmt.Errorf("failed to copy file content: %w", err)
+	}
+
+	// Close the writer to finalize the multipart message
+	if err := writer.Close(); err != nil {
+		return nil, fmt.Errorf("failed to close multipart writer: %w", err)
+	}
+
+	// Create the upload request
+	req, err := http.NewRequestWithContext(ctx, "POST", uploadResponse.UploadURL, &requestBody)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create upload request: %w", err)
 	}
+	req.Header.Set("Content-Type", writer.FormDataContentType())
 
-	// Set content type to file's MIME type
-	if params.ContentType != "" {
-		req.Header.Set("Content-Type", params.ContentType)
+	// Create a custom client that doesn't follow redirects automatically
+	// We need to handle the redirect ourselves to get the file confirmation
+	noRedirectClient := &http.Client{
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
 	}
 
 	// Execute the upload
-	resp, err := s.client.httpClient.Do(req)
+	resp, err := noRedirectClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to upload file: %w", err)
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
-		return nil, fmt.Errorf("upload failed with status %d", resp.StatusCode)
-	}
+	// Handle different response scenarios
+	switch resp.StatusCode {
+	case http.StatusOK, http.StatusCreated:
+		// Direct response with file info
+		var uploadedFile Attachment
+		if err := json.NewDecoder(resp.Body).Decode(&uploadedFile); err != nil {
+			return nil, fmt.Errorf("failed to parse upload response: %w", err)
+		}
+		return &uploadedFile, nil
 
-	// Parse the response to get the uploaded file info
-	var uploadedFile Attachment
-	if err := json.NewDecoder(resp.Body).Decode(&uploadedFile); err != nil {
-		return nil, fmt.Errorf("failed to parse upload response: %w", err)
-	}
+	case http.StatusFound, http.StatusSeeOther, http.StatusMovedPermanently, http.StatusTemporaryRedirect:
+		// Step 3: Follow redirect to confirm upload
+		location := resp.Header.Get("Location")
+		if location == "" {
+			return nil, fmt.Errorf("redirect response missing Location header")
+		}
 
-	return &uploadedFile, nil
+		// Make a GET request to the redirect URL to confirm the upload
+		confirmReq, err := http.NewRequestWithContext(ctx, "GET", location, nil)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create confirmation request: %w", err)
+		}
+
+		// Add authorization header if the redirect is to Canvas
+		confirmReq.Header.Set("Authorization", "Bearer "+s.client.token)
+
+		confirmResp, err := s.client.httpClient.Do(confirmReq)
+		if err != nil {
+			return nil, fmt.Errorf("failed to confirm upload: %w", err)
+		}
+		defer confirmResp.Body.Close()
+
+		if confirmResp.StatusCode != http.StatusOK && confirmResp.StatusCode != http.StatusCreated {
+			bodyBytes, _ := io.ReadAll(confirmResp.Body)
+			return nil, fmt.Errorf("upload confirmation failed with status %d: %s", confirmResp.StatusCode, string(bodyBytes))
+		}
+
+		var uploadedFile Attachment
+		if err := json.NewDecoder(confirmResp.Body).Decode(&uploadedFile); err != nil {
+			return nil, fmt.Errorf("failed to parse confirmation response: %w", err)
+		}
+		return &uploadedFile, nil
+
+	default:
+		bodyBytes, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("upload failed with status %d: %s", resp.StatusCode, string(bodyBytes))
+	}
 }
 
 // Download downloads a file to the specified destination

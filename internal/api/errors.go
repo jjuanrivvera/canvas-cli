@@ -84,3 +84,13 @@ func IsForbiddenError(err error) bool {
 	}
 	return false
 }
+
+// IsServerError checks if the error is a server error (5xx)
+// Uses errors.As to properly handle wrapped errors
+func IsServerError(err error) bool {
+	var apiErr *APIError
+	if errors.As(err, &apiErr) {
+		return apiErr.StatusCode >= 500 && apiErr.StatusCode < 600
+	}
+	return false
+}
