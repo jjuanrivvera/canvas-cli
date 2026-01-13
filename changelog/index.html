@@ -1000,6 +1000,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/webhooks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Webhooks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1431,10 +1459,71 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#planned-for-v12" class="md-nav__link">
+  <a href="#planned" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Planned for v1.2+
+        Planned
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#140-2026-01-13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.4.0] - 2026-01-13
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.4.0] - 2026-01-13">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#developer-experience" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Developer Experience
       
     </span>
   </a>
@@ -1459,7 +1548,7 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#added_1" class="md-nav__link">
+  <a href="#added_2" class="md-nav__link">
     <span class="md-ellipsis">
       
         Added
@@ -1626,10 +1715,71 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#planned-for-v12" class="md-nav__link">
+  <a href="#planned" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Planned for v1.2+
+        Planned
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#140-2026-01-13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.4.0] - 2026-01-13
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.4.0] - 2026-01-13">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#developer-experience" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Developer Experience
       
     </span>
   </a>
@@ -1654,7 +1804,7 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#added_1" class="md-nav__link">
+  <a href="#added_2" class="md-nav__link">
     <span class="md-ellipsis">
       
         Added
@@ -1855,16 +2005,46 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
 <li>Standard Go project layout</li>
 </ul>
 <h2 id="unreleased">[Unreleased]<a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
-<h3 id="planned-for-v12">Planned for v1.2+<a class="headerlink" href="#planned-for-v12" title="Permanent link">&para;</a></h3>
+<h3 id="planned">Planned<a class="headerlink" href="#planned" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Canvas Studio integration</li>
 <li>Quizzes module</li>
 <li>GraphQL API support</li>
-<li>Shell completion generation</li>
-<li>Man page generation</li>
+</ul>
+<h2 id="140-2026-01-13">[1.4.0] - 2026-01-13<a class="headerlink" href="#140-2026-01-13" title="Permanent link">&para;</a></h2>
+<h3 id="added_1">Added<a class="headerlink" href="#added_1" title="Permanent link">&para;</a></h3>
+<h4 id="authentication-improvements">Authentication Improvements<a class="headerlink" href="#authentication-improvements" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Automatic OAuth Token Refresh</strong>: Access tokens are now automatically refreshed using refresh tokens when they expire, eliminating the need for manual re-authentication</li>
+<li><strong>Instance Config Lookup</strong>: <code>canvas auth login --instance &lt;name&gt;</code> now automatically loads the URL and OAuth credentials from your config file</li>
+<li><strong>Positional Instance Name</strong>: <code>canvas config add</code> now accepts instance name as a positional argument: <code>canvas config add production --url https://canvas.example.com</code></li>
+</ul>
+<h4 id="table-output-improvements">Table Output Improvements<a class="headerlink" href="#table-output-improvements" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Compact Table Output</strong>: Default table output now shows only key fields for cleaner display</li>
+<li><strong>Verbose Mode</strong>: Use <code>-v/--verbose</code> flag to see all fields in table output</li>
+<li><strong>Improved Field Selection</strong>: Key fields are optimized for each resource type (Course, User, Assignment, etc.)</li>
+<li><strong>Instance Name Support</strong>: The <code>--instance</code> flag now accepts instance names (not just URLs)</li>
+</ul>
+<h3 id="changed">Changed<a class="headerlink" href="#changed" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>canvas config add &lt;name&gt; --url &lt;url&gt;</code> syntax replaces <code>canvas config add --name &lt;name&gt; --url &lt;url&gt;</code></li>
+<li>Table formatter now uses structured formatters instead of custom display functions</li>
+<li>Removed "Found X items:" messages in compact (non-verbose) mode</li>
+</ul>
+<h3 id="fixed">Fixed<a class="headerlink" href="#fixed" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Pre-commit hook now includes golangci-lint for catching lint issues before push</li>
+<li>Removed unused display functions that were causing lint warnings</li>
+<li>Documentation updated to reflect correct CLI syntax and behavior</li>
+</ul>
+<h3 id="developer-experience">Developer Experience<a class="headerlink" href="#developer-experience" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Pre-commit Linting</strong>: Added golangci-lint to pre-commit hook for early lint error detection</li>
+<li><strong>Documentation Accuracy</strong>: Fixed documentation to match actual CLI behavior (sync command syntax, environment variables, flags)</li>
 </ul>
 <h2 id="110-2026-01-10">[1.1.0] - 2026-01-10<a class="headerlink" href="#110-2026-01-10" title="Permanent link">&para;</a></h2>
-<h3 id="added_1">Added<a class="headerlink" href="#added_1" title="Permanent link">&para;</a></h3>
+<h3 id="added_2">Added<a class="headerlink" href="#added_2" title="Permanent link">&para;</a></h3>
 <h4 id="commands-modules">Commands - Modules<a class="headerlink" href="#commands-modules" title="Permanent link">&para;</a></h4>
 <ul>
 <li><code>canvas modules list</code> - List modules in a course</li>
@@ -1953,7 +2133,7 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
 </ul>
 <hr />
 <p>For more details on each change, see the <a href="https://github.com/jjuanrivvera/canvas-cli/commits/main">commit history</a>.</p>
-<p>For planned features and roadmap, see <a href="https://github.com/jjuanrivvera/canvas-cli/issues">GitHub Issues</a>.</p>
+<p>For planned features and roadmap, see <a href="SPECIFICATION.md">SPECIFICATION.md</a>.</p>
 
 
 
@@ -1976,7 +2156,7 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="January 13, 2026 18:12:30 UTC"><span class="timeago" datetime="2026-01-13T18:12:30+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="January 13, 2026 18:12:30 UTC">2026-01-13</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="January 13, 2026 23:00:52 UTC"><span class="timeago" datetime="2026-01-13T23:00:52+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="January 13, 2026 23:00:52 UTC">2026-01-13</span>
   </span>
 
     
