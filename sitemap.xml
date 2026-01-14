@@ -2,586 +2,1242 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/changelog/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/security/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_accounts/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_accounts_get/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_accounts_list/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_accounts_sub/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_admins/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_admins_add/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_admins_list/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_admins_remove/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_analytics/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_analytics_activity/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_analytics_assignments/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_analytics_department/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_analytics_students/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_analytics_user/</loc>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_announcements/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_announcements_create/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_announcements_delete/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_announcements_get/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_announcements_list/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_announcements_update/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_api/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_assignment-groups/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_assignment-groups_create/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_assignment-groups_delete/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_assignment-groups_get/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_assignment-groups_list/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_assignment-groups_update/</loc>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_assignments/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_assignments_create/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_assignments_delete/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_assignments_get/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_assignments_list/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_assignments_update/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_auth/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_auth_login/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_auth_logout/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_auth_status/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_blueprint/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_blueprint_associations/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_blueprint_associations_add/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_blueprint_associations_list/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_blueprint_associations_remove/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_blueprint_changes/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_blueprint_get/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_blueprint_migrations/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_blueprint_migrations_get/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_blueprint_migrations_list/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_blueprint_sync/</loc>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_cache/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_cache_clear/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_cache_stats/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_calendar/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_calendar_create/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_calendar_delete/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_calendar_get/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_calendar_list/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_calendar_reserve/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_calendar_update/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_completion/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_config/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_config_add/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_config_list/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_config_remove/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_config_show/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_config_use/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_content-migrations/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_content-migrations_content/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_content-migrations_create/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_content-migrations_get/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_content-migrations_issues/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_content-migrations_list/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_content-migrations_migrators/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_conversations/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_conversations_add-recipients/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_conversations_archive/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_conversations_create/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_conversations_delete/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_conversations_get/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_conversations_list/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_conversations_mark-all-read/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_conversations_mark-read/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_conversations_reply/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_conversations_star/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_conversations_unarchive/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_conversations_unread-count/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_conversations_unstar/</loc>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_courses/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_courses_create/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_courses_delete/</loc>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_courses_get/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_courses_list/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_courses_update/</loc>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_discussions/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_discussions_create/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_discussions_delete/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_discussions_entries/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_discussions_get/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_discussions_list/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_discussions_post/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_discussions_reply/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_discussions_subscribe/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_discussions_unsubscribe/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_discussions_update/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_doctor/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_enrollments/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_enrollments_accept/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_enrollments_conclude/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_enrollments_create/</loc>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_enrollments_get/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_enrollments_list/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_enrollments_reactivate/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_enrollments_reject/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_external-tools/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_external-tools_create/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_external-tools_delete/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_external-tools_get/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_external-tools_launch/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_external-tools_list/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_external-tools_update/</loc>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_files/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_files_delete/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_files_download/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_files_get/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_files_list/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_files_quota/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_files_upload/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_grades/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_grades_columns/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_grades_columns_create/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_grades_columns_data/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_grades_columns_data_list/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_grades_columns_data_set/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_grades_columns_delete/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_grades_columns_get/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_grades_columns_list/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_grades_columns_update/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_grades_feed/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_grades_history/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_groups/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_groups_categories/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_groups_categories_create/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_groups_categories_delete/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_groups_categories_get/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_groups_categories_groups/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_groups_categories_list/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_groups_categories_update/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_groups_create/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_groups_delete/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_groups_get/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_groups_list/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_groups_members/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_groups_members_add/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_groups_members_list/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_groups_members_remove/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_groups_update/</loc>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_modules/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_modules_create/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_modules_delete/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_modules_get/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_modules_items/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_modules_items_create/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_modules_items_delete/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_modules_items_done/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_modules_items_get/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_modules_items_list/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_modules_items_update/</loc>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_modules_list/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_modules_publish/</loc>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_modules_relock/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_modules_unpublish/</loc>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_modules_update/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_outcomes/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_outcomes_alignments/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_outcomes_create/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_outcomes_get/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_outcomes_groups/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_outcomes_groups_get/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_outcomes_groups_list/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_outcomes_link/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_outcomes_list/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_outcomes_results/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_outcomes_unlink/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_outcomes_update/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_overrides/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_overrides_create/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_overrides_delete/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_overrides_get/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_overrides_list/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_overrides_update/</loc>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_pages/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_pages_create/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_pages_delete/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_pages_duplicate/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_pages_front/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_pages_get/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_pages_list/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_pages_revert/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_pages_revisions/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_pages_update/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_peer-reviews/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_peer-reviews_create/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_peer-reviews_delete/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_peer-reviews_list/</loc>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_planner/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_planner_complete/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_planner_dismiss/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_planner_items/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_planner_notes/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_planner_notes_create/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_planner_notes_delete/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_planner_notes_get/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_planner_notes_list/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_planner_notes_update/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_planner_overrides/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_quizzes/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_quizzes_create/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_quizzes_delete/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_quizzes_get/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_quizzes_list/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_quizzes_questions/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_quizzes_questions_create/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_quizzes_questions_delete/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_quizzes_questions_get/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_quizzes_questions_list/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_quizzes_submissions/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_quizzes_submissions_get/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_quizzes_submissions_list/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_quizzes_update/</loc>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_repl/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_roles/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_roles_activate/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_roles_create/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_roles_deactivate/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_roles_get/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_roles_list/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_roles_update/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_rubrics/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_rubrics_associate/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_rubrics_create/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_rubrics_delete/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_rubrics_get/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_rubrics_list/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_rubrics_update/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_sections/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_sections_create/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_sections_crosslist/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_sections_delete/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_sections_get/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_sections_list/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_sections_uncrosslist/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_sections_update/</loc>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_shell/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_sis-imports/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_sis-imports_abort/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_sis-imports_create/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_sis-imports_errors/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_sis-imports_get/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_sis-imports_list/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_sis-imports_restore/</loc>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_submissions/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_submissions_add-comment/</loc>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_submissions_bulk-grade/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_submissions_comments/</loc>
+         <lastmod>2026-01-14</lastmod>
+    </url>
+    <url>
+         <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_submissions_delete-comment/</loc>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_submissions_get/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_submissions_grade/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_submissions_list/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_sync/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_sync_assignments/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_sync_course/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_telemetry/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_telemetry_clear/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_telemetry_disable/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_telemetry_enable/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_telemetry_show/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_telemetry_status/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_users/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_users_create/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_users_get/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_users_list/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_users_me/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_users_search/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_users_update/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_version/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_webhook/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_webhook_events/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/commands/canvas_webhook_listen/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/development/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/development/architecture/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/development/contributing/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/getting-started/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/getting-started/authentication/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/getting-started/installation/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/getting-started/quickstart/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/reference/environment-variables/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/reference/exit-codes/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/tutorials/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/tutorials/bulk-grading/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/tutorials/course-sync/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/tutorials/scripting/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/tutorials/webhooks/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/user-guide/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/user-guide/configuration/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/user-guide/output-formats/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
     <url>
          <loc>https://jjuanrivvera.github.io/canvas-cli/user-guide/shell-completion/</loc>
-         <lastmod>2026-01-13</lastmod>
+         <lastmod>2026-01-14</lastmod>
     </url>
 </urlset>
