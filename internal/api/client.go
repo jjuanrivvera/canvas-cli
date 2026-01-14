@@ -72,6 +72,7 @@ type Client struct {
 	quotaTotal     float64 // Detected or configured quota total
 	cache          cache.CacheInterface
 	cacheEnabled   bool
+	userAgent      string // User-Agent header for API requests
 	mu             sync.RWMutex
 }
 
@@ -151,6 +152,7 @@ type ClientConfig struct {
 	AsUserID       int64 // For admin masquerading (appends as_user_id param)
 	Cache          cache.CacheInterface
 	CacheEnabled   bool
+	UserAgent      string // User-Agent header for API requests (required by Canvas)
 }
 
 // NewClient creates a new Canvas API client
@@ -174,6 +176,11 @@ func NewClient(config ClientConfig) (*Client, error) {
 
 	if config.Logger == nil {
 		config.Logger = slog.Default()
+	}
+
+	// Set default User-Agent if not provided (required by Canvas API)
+	if config.UserAgent == "" {
+		config.UserAgent = "canvas-cli"
 	}
 
 	// Create HTTP transport with connection pool configuration
@@ -201,6 +208,7 @@ func NewClient(config ClientConfig) (*Client, error) {
 		quotaTotal:   defaultQuotaTotal, // Will be updated from headers if available
 		cache:        config.Cache,
 		cacheEnabled: config.CacheEnabled && config.Cache != nil,
+		userAgent:    config.UserAgent,
 	}
 
 	// Detect Canvas version
@@ -283,6 +291,7 @@ func (c *Client) doRequest(ctx context.Context, method, path string, body io.Rea
 		req.Header.Set("Authorization", "Bearer "+token)
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Accept", "application/json")
+		req.Header.Set("User-Agent", c.userAgent)
 
 		// Make request
 		resp, err := c.httpClient.Do(req)

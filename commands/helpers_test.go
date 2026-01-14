@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -320,5 +321,92 @@ func TestGetAPIClient_NoCache(t *testing.T) {
 	// Verify cache is disabled
 	if client.IsCacheEnabled() {
 		t.Error("Expected cache to be disabled when noCache=true")
+	}
+}
+
+func TestGetUserAgent_DevVersion(t *testing.T) {
+	// Save original version
+	originalVersion := version
+	defer func() { version = originalVersion }()
+
+	// Test with dev version
+	version = "dev"
+	ua := getUserAgent()
+	if ua != "canvas-cli/dev" {
+		t.Errorf("Expected 'canvas-cli/dev', got '%s'", ua)
+	}
+
+	// Test with empty version
+	version = ""
+	ua = getUserAgent()
+	if ua != "canvas-cli/dev" {
+		t.Errorf("Expected 'canvas-cli/dev' for empty version, got '%s'", ua)
+	}
+}
+
+func TestGetUserAgent_ReleaseVersion(t *testing.T) {
+	// Save original version
+	originalVersion := version
+	defer func() { version = originalVersion }()
+
+	// Test with release version
+	version = "v1.5.0"
+	ua := getUserAgent()
+	if ua != "canvas-cli/v1.5.0" {
+		t.Errorf("Expected 'canvas-cli/v1.5.0', got '%s'", ua)
+	}
+
+	// Test with another version format
+	version = "1.6.0-beta"
+	ua = getUserAgent()
+	if ua != "canvas-cli/1.6.0-beta" {
+		t.Errorf("Expected 'canvas-cli/1.6.0-beta', got '%s'", ua)
+	}
+}
+
+func TestGetAPIClient_UserAgentSet(t *testing.T) {
+	// This test verifies that the User-Agent is set when creating a client via env vars
+	var receivedUserAgent string
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		receivedUserAgent = r.Header.Get("User-Agent")
+		if r.URL.Path == "/api/v1/accounts" {
+			w.Write([]byte("[]"))
+			return
+		}
+		if r.URL.Path == "/api/v1/courses" {
+			w.Header().Set("Content-Type", "application/json")
+			w.Write([]byte("[]"))
+			return
+		}
+		http.NotFound(w, r)
+	}))
+	defer server.Close()
+
+	// Set environment variables
+	os.Setenv("CANVAS_URL", server.URL)
+	os.Setenv("CANVAS_TOKEN", "test-token-123")
+	defer os.Unsetenv("CANVAS_URL")
+	defer os.Unsetenv("CANVAS_TOKEN")
+
+	// Save and set version for test
+	originalVersion := version
+	version = "v1.5.0"
+	defer func() { version = originalVersion }()
+
+	// Create API client
+	client, err := getAPIClient()
+	if err != nil {
+		t.Fatalf("Expected no error, got: %v", err)
+	}
+
+	// Make a request to capture User-Agent header
+	ctx := context.Background()
+	_, _ = client.Get(ctx, "/api/v1/courses")
+
+	// Verify User-Agent was set correctly
+	expectedUA := "canvas-cli/v1.5.0"
+	if receivedUserAgent != expectedUA {
+		t.Errorf("Expected User-Agent '%s', got '%s'", expectedUA, receivedUserAgent)
 	}
 }
