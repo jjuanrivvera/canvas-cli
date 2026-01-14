@@ -12,6 +12,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"time"
 )
 
 // FilesService handles file-related API calls
@@ -292,6 +293,7 @@ func (s *FilesService) upload(ctx context.Context, uploadPath, filePath string, 
 	// Create a custom client that doesn't follow redirects automatically
 	// We need to handle the redirect ourselves to get the file confirmation
 	noRedirectClient := &http.Client{
+		Timeout: 5 * time.Minute, // File uploads may take longer
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			return http.ErrUseLastResponse
 		},

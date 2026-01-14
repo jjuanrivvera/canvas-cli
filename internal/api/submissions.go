@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/url"
 	"strconv"
@@ -501,4 +502,24 @@ func (s *SubmissionsService) InitiateFileUpload(ctx context.Context, courseID, a
 	}
 
 	return result, nil
+}
+
+// DeleteComment deletes a submission comment
+func (s *SubmissionsService) DeleteComment(ctx context.Context, courseID, assignmentID, userID, commentID int64) (*SubmissionComment, error) {
+	path := fmt.Sprintf("/api/v1/courses/%d/assignments/%d/submissions/%d/comments/%d", courseID, assignmentID, userID, commentID)
+
+	resp, err := s.client.Delete(ctx, path)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	// Canvas returns the deleted comment
+	var comment SubmissionComment
+	if err := json.NewDecoder(resp.Body).Decode(&comment); err != nil {
+		// If decode fails, it may return empty response for deletion
+		return nil, nil
+	}
+
+	return &comment, nil
 }

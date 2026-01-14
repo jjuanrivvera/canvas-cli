@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -377,17 +378,17 @@ type RubricAssessment struct {
 
 // AssignmentOverride represents an assignment override
 type AssignmentOverride struct {
-	ID              int64     `json:"id"`
-	AssignmentID    int64     `json:"assignment_id"`
-	StudentIDs      []int64   `json:"student_ids,omitempty"`
-	GroupID         int64     `json:"group_id,omitempty"`
-	CourseSectionID int64     `json:"course_section_id,omitempty"`
-	Title           string    `json:"title"`
-	DueAt           time.Time `json:"due_at"`
-	AllDay          bool      `json:"all_day"`
-	AllDayDate      string    `json:"all_day_date"`
-	UnlockAt        time.Time `json:"unlock_at"`
-	LockAt          time.Time `json:"lock_at"`
+	ID              int64      `json:"id"`
+	AssignmentID    int64      `json:"assignment_id"`
+	StudentIDs      []int64    `json:"student_ids,omitempty"`
+	GroupID         int64      `json:"group_id,omitempty"`
+	CourseSectionID int64      `json:"course_section_id,omitempty"`
+	Title           string     `json:"title"`
+	DueAt           *time.Time `json:"due_at,omitempty"`
+	AllDay          bool       `json:"all_day"`
+	AllDayDate      string     `json:"all_day_date,omitempty"`
+	UnlockAt        *time.Time `json:"unlock_at,omitempty"`
+	LockAt          *time.Time `json:"lock_at,omitempty"`
 }
 
 // SectionGradingCount represents grading count by section
@@ -422,17 +423,50 @@ type ErrorDetail struct {
 
 // Error implements the error interface
 func (e *APIError) Error() string {
+	var msg string
 	if len(e.Errors) > 0 {
-		msg := e.Errors[0].Message
-		if e.Suggestion != "" {
-			msg += "\n\nSuggestion: " + e.Suggestion
+		msg = e.Errors[0].Message
+	} else {
+		// Provide a descriptive message based on status code
+		switch e.StatusCode {
+		case 400:
+			msg = "Bad request: the server could not understand the request"
+		case 401:
+			msg = "Unauthorized: authentication is required or has failed"
+		case 403:
+			msg = "Forbidden: you don't have permission to access this resource"
+		case 404:
+			msg = "Not found: the requested resource does not exist"
+		case 409:
+			msg = "Conflict: the request conflicts with the current state of the resource"
+		case 422:
+			msg = "Unprocessable entity: the request was well-formed but contains invalid data"
+		case 429:
+			msg = "Rate limit exceeded: too many requests"
+		case 500:
+			msg = "Internal server error: Canvas encountered an unexpected condition"
+		case 502:
+			msg = "Bad gateway: Canvas received an invalid response from an upstream server"
+		case 503:
+			msg = "Service unavailable: Canvas is temporarily overloaded or under maintenance"
+		default:
+			if e.StatusCode >= 400 && e.StatusCode < 500 {
+				msg = fmt.Sprintf("Client error (HTTP %d)", e.StatusCode)
+			} else if e.StatusCode >= 500 {
+				msg = fmt.Sprintf("Server error (HTTP %d)", e.StatusCode)
+			} else {
+				msg = "Unknown API error"
+			}
 		}
-		if e.DocsURL != "" {
-			msg += "\nDocs: " + e.DocsURL
-		}
-		return msg
 	}
-	return "Unknown API error"
+
+	if e.Suggestion != "" {
+		msg += "\n\nSuggestion: " + e.Suggestion
+	}
+	if e.DocsURL != "" {
+		msg += "\nDocs: " + e.DocsURL
+	}
+	return msg
 }
 
 // RateLimitInfo represents rate limit information from response headers

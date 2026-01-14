@@ -159,8 +159,9 @@ func (f *OAuthFlow) startLocalServer(ctx context.Context) (*oauth2.Token, error)
 		}
 
 		// Exchange code for token with PKCE verifier
+		// Use request context for proper cancellation propagation
 		token, err := f.oauth2Config.Exchange(
-			context.Background(),
+			r.Context(),
 			code,
 			oauth2.SetAuthURLParam("code_verifier", f.pkce.Verifier),
 		)

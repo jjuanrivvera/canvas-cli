@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"strconv"
-	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -67,7 +66,7 @@ var pagesGetCmd = &cobra.Command{
 Examples:
   canvas pages get --course-id 123 my-page-title
   canvas pages get --course-id 123 page_id:456`,
-	Args: cobra.ExactArgs(1),
+	Args: ExactArgsWithUsage(1, "url-or-id"),
 	RunE: runPagesGet,
 }
 
@@ -105,7 +104,7 @@ Examples:
   canvas pages update --course-id 123 my-page --title "New Title"
   canvas pages update --course-id 123 my-page --body "<p>Updated content</p>"
   canvas pages update --course-id 123 my-page --published`,
-	Args: cobra.ExactArgs(1),
+	Args: ExactArgsWithUsage(1, "url-or-id"),
 	RunE: runPagesUpdate,
 }
 
@@ -117,7 +116,7 @@ var pagesDeleteCmd = &cobra.Command{
 
 Examples:
   canvas pages delete --course-id 123 my-page-url`,
-	Args: cobra.ExactArgs(1),
+	Args: ExactArgsWithUsage(1, "url-or-id"),
 	RunE: runPagesDelete,
 }
 
@@ -129,7 +128,7 @@ var pagesDuplicateCmd = &cobra.Command{
 
 Examples:
   canvas pages duplicate --course-id 123 my-page-url`,
-	Args: cobra.ExactArgs(1),
+	Args: ExactArgsWithUsage(1, "url-or-id"),
 	RunE: runPagesDuplicate,
 }
 
@@ -141,7 +140,7 @@ var pagesRevisionsCmd = &cobra.Command{
 
 Examples:
   canvas pages revisions --course-id 123 my-page-url`,
-	Args: cobra.ExactArgs(1),
+	Args: ExactArgsWithUsage(1, "url-or-id"),
 	RunE: runPagesRevisions,
 }
 
@@ -153,7 +152,7 @@ var pagesRevertCmd = &cobra.Command{
 
 Examples:
   canvas pages revert --course-id 123 my-page-url 5`,
-	Args: cobra.ExactArgs(2),
+	Args: ExactArgsWithUsage(2, "url-or-id", "revision-id"),
 	RunE: runPagesRevert,
 }
 
@@ -320,10 +319,7 @@ func runPagesCreate(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to create page: %w", err)
 	}
 
-	fmt.Println("Page created successfully!")
-	displayPage(page)
-
-	return nil
+	return formatSuccessOutput(page, "Page created successfully!")
 }
 
 func runPagesUpdate(cmd *cobra.Command, args []string) error {
@@ -364,10 +360,7 @@ func runPagesUpdate(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to update page: %w", err)
 	}
 
-	fmt.Println("Page updated successfully!")
-	displayPage(page)
-
-	return nil
+	return formatSuccessOutput(page, "Page updated successfully!")
 }
 
 func runPagesDelete(cmd *cobra.Command, args []string) error {
@@ -411,10 +404,7 @@ func runPagesDuplicate(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to duplicate page: %w", err)
 	}
 
-	fmt.Println("Page duplicated successfully!")
-	displayPage(page)
-
-	return nil
+	return formatSuccessOutput(page, "Page duplicated successfully!")
 }
 
 func runPagesRevisions(cmd *cobra.Command, args []string) error {
@@ -459,71 +449,5 @@ func runPagesRevert(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to revert to revision: %w", err)
 	}
 
-	fmt.Println("Page reverted successfully!")
-	displayRevision(revision)
-
-	return nil
-}
-
-func displayPage(page *api.Page) {
-	stateIcon := "📄"
-	if page.FrontPage {
-		stateIcon = "🏠"
-	} else if page.Published {
-		stateIcon = "📝"
-	}
-
-	fmt.Printf("%s %s\n", stateIcon, page.Title)
-	fmt.Printf("   URL: %s\n", page.URL)
-
-	if page.Published {
-		fmt.Printf("   Published: Yes\n")
-	} else {
-		fmt.Printf("   Published: No (Draft)\n")
-	}
-
-	if page.FrontPage {
-		fmt.Printf("   Front Page: Yes\n")
-	}
-
-	fmt.Printf("   Updated: %s\n", page.UpdatedAt.Format("2006-01-02 15:04"))
-
-	fmt.Println()
-}
-
-func displayRevision(rev *api.PageRevision) {
-	latestMark := ""
-	if rev.Latest {
-		latestMark = " [Latest]"
-	}
-
-	fmt.Printf("Revision %d%s\n", rev.RevisionID, latestMark)
-	fmt.Printf("   Updated: %s\n", rev.UpdatedAt.Format("2006-01-02 15:04"))
-
-	if rev.EditedBy != nil {
-		fmt.Printf("   Edited By: %s\n", rev.EditedBy.Name)
-	}
-
-	if rev.Title != "" {
-		fmt.Printf("   Title: %s\n", rev.Title)
-	}
-
-	fmt.Println()
-}
-
-func stripHTMLTags(s string) string {
-	// Simple HTML tag stripper
-	result := s
-	for {
-		start := strings.Index(result, "<")
-		if start == -1 {
-			break
-		}
-		end := strings.Index(result[start:], ">")
-		if end == -1 {
-			break
-		}
-		result = result[:start] + result[start+end+1:]
-	}
-	return result
+	return formatSuccessOutput(revision, "Page reverted successfully!")
 }

@@ -81,7 +81,7 @@ var plannerNotesGetCmd = &cobra.Command{
 
 Examples:
   canvas planner notes get 123`,
-	Args: cobra.ExactArgs(1),
+	Args: ExactArgsWithUsage(1, "note-id"),
 	RunE: runPlannerNotesGet,
 }
 
@@ -107,7 +107,7 @@ var plannerNotesUpdateCmd = &cobra.Command{
 Examples:
   canvas planner notes update 123 --title "Updated Title"
   canvas planner notes update 123 --todo-date 2024-12-20`,
-	Args: cobra.ExactArgs(1),
+	Args: ExactArgsWithUsage(1, "note-id"),
 	RunE: runPlannerNotesUpdate,
 }
 
@@ -119,7 +119,7 @@ var plannerNotesDeleteCmd = &cobra.Command{
 
 Examples:
   canvas planner notes delete 123`,
-	Args: cobra.ExactArgs(1),
+	Args: ExactArgsWithUsage(1, "note-id"),
 	RunE: runPlannerNotesDelete,
 }
 
@@ -134,7 +134,7 @@ Type can be: Assignment, Quiz, DiscussionTopic, WikiPage, CalendarEvent
 Examples:
   canvas planner complete Assignment 123
   canvas planner complete Quiz 456`,
-	Args: cobra.ExactArgs(2),
+	Args: ExactArgsWithUsage(2, "type", "id"),
 	RunE: runPlannerComplete,
 }
 
@@ -148,7 +148,7 @@ Type can be: Assignment, Quiz, DiscussionTopic, WikiPage, CalendarEvent
 
 Examples:
   canvas planner dismiss CalendarEvent 789`,
-	Args: cobra.ExactArgs(2),
+	Args: ExactArgsWithUsage(2, "type", "id"),
 	RunE: runPlannerDismiss,
 }
 
@@ -317,10 +317,7 @@ func runPlannerNotesCreate(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to create planner note: %w", err)
 	}
 
-	fmt.Println("Planner note created successfully!")
-	displayPlannerNote(note)
-
-	return nil
+	return formatSuccessOutput(note, "Planner note created successfully!")
 }
 
 func runPlannerNotesUpdate(cmd *cobra.Command, args []string) error {
@@ -357,10 +354,7 @@ func runPlannerNotesUpdate(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to update planner note: %w", err)
 	}
 
-	fmt.Println("Planner note updated successfully!")
-	displayPlannerNote(note)
-
-	return nil
+	return formatSuccessOutput(note, "Planner note updated successfully!")
 }
 
 func runPlannerNotesDelete(cmd *cobra.Command, args []string) error {
@@ -517,20 +511,4 @@ func runPlannerOverrides(cmd *cobra.Command, args []string) error {
 
 	printVerbose("Found %d planner overrides:\n\n", len(overrides))
 	return formatOutput(overrides, nil)
-}
-
-func displayPlannerNote(note *api.PlannerNote) {
-	fmt.Printf("📌 [%d] %s\n", note.ID, note.Title)
-
-	if note.TodoDate != nil {
-		fmt.Printf("   Due: %s\n", note.TodoDate.Format("2006-01-02 15:04"))
-	}
-
-	if note.CourseID != nil {
-		fmt.Printf("   Course ID: %d\n", *note.CourseID)
-	}
-
-	fmt.Printf("   State: %s\n", note.WorkflowState)
-
-	fmt.Println()
 }

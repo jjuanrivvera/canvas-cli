@@ -7,6 +7,7 @@ import (
 	"io"
 	"reflect"
 	"strings"
+	"time"
 
 	"gopkg.in/yaml.v3"
 )
@@ -53,6 +54,17 @@ type JSONFormatter struct{}
 
 // Format formats data as JSON
 func (f *JSONFormatter) Format(data interface{}) (string, error) {
+	// Handle nil by returning null
+	if data == nil {
+		return "null", nil
+	}
+
+	// Handle empty slices - ensure we output [] instead of null
+	v := reflect.ValueOf(data)
+	if v.Kind() == reflect.Slice && v.IsNil() {
+		return "[]", nil
+	}
+
 	bytes, err := json.MarshalIndent(data, "", "  ")
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal JSON: %w", err)
@@ -65,6 +77,17 @@ type YAMLFormatter struct{}
 
 // Format formats data as YAML
 func (f *YAMLFormatter) Format(data interface{}) (string, error) {
+	// Handle nil by returning empty list
+	if data == nil {
+		return "[]\n", nil
+	}
+
+	// Handle empty slices - ensure we output [] instead of null
+	v := reflect.ValueOf(data)
+	if v.Kind() == reflect.Slice && v.IsNil() {
+		return "[]\n", nil
+	}
+
 	bytes, err := yaml.Marshal(data)
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal YAML: %w", err)
@@ -416,7 +439,41 @@ func formatValue(v interface{}) string {
 		return ""
 	}
 
+	// Handle time.Time specially - show "Not set" for zero dates
+	if t, ok := v.(time.Time); ok {
+		if t.IsZero() {
+			return "Not set"
+		}
+		return t.Format("2006-01-02 15:04")
+	}
+
+	// Handle *time.Time
+	if t, ok := v.(*time.Time); ok {
+		if t == nil || t.IsZero() {
+			return "Not set"
+		}
+		return t.Format("2006-01-02 15:04")
+	}
+
 	val := reflect.ValueOf(v)
+
+	// Handle nil pointers
+	if val.Kind() == reflect.Ptr && val.IsNil() {
+		return ""
+	}
+
+	// Handle map type - show empty string for empty maps instead of "map[]"
+	if val.Kind() == reflect.Map {
+		if val.Len() == 0 {
+			return ""
+		}
+		// For non-empty maps, format as key:value pairs
+		items := make([]string, 0, val.Len())
+		for _, key := range val.MapKeys() {
+			items = append(items, fmt.Sprintf("%v:%v", key.Interface(), val.MapIndex(key).Interface()))
+		}
+		return "{" + strings.Join(items, ", ") + "}"
+	}
 
 	switch val.Kind() {
 	case reflect.String:
@@ -434,16 +491,69 @@ func formatValue(v interface{}) string {
 		return "false"
 	case reflect.Slice, reflect.Array:
 		if val.Len() == 0 {
-			return "[]"
+			return ""
 		}
 		items := make([]string, val.Len())
 		for i := 0; i < val.Len(); i++ {
 			items[i] = formatValue(val.Index(i).Interface())
 		}
 		return "[" + strings.Join(items, ", ") + "]"
+	case reflect.Struct:
+		// For structs, try to find a name/title/id field to display
+		return formatStructCompact(val)
+	case reflect.Ptr:
+		// Handle pointers to structs
+		if !val.IsNil() && val.Elem().Kind() == reflect.Struct {
+			return formatStructCompact(val.Elem())
+		}
+		return fmt.Sprintf("%v", v)
 	default:
 		return fmt.Sprintf("%v", v)
 	}
+}
+
+// formatStructCompact formats a struct as a compact string by showing key identifying fields
+func formatStructCompact(val reflect.Value) string {
+	t := val.Type()
+
+	// Try common identifying field names in priority order
+	identifyingFields := []string{"name", "Name", "title", "Title", "id", "ID", "Id"}
+
+	for _, fieldName := range identifyingFields {
+		field := val.FieldByName(fieldName)
+		if field.IsValid() && !field.IsZero() {
+			// For ID fields, show "Type(ID)" format
+			if strings.ToLower(fieldName) == "id" {
+				return fmt.Sprintf("%s(%v)", t.Name(), field.Interface())
+			}
+			// For name/title fields, just show the value
+			return fmt.Sprintf("%v", field.Interface())
+		}
+	}
+
+	// If we found an ID and a name, show both
+	idField := val.FieldByName("ID")
+	if !idField.IsValid() {
+		idField = val.FieldByName("Id")
+	}
+	nameField := val.FieldByName("Name")
+	if !nameField.IsValid() {
+		nameField = val.FieldByName("name")
+	}
+
+	if idField.IsValid() && !idField.IsZero() && nameField.IsValid() && !nameField.IsZero() {
+		return fmt.Sprintf("%v (%v)", nameField.Interface(), idField.Interface())
+	}
+
+	// Fallback: show type name with first non-zero field
+	for i := 0; i < t.NumField(); i++ {
+		field := val.Field(i)
+		if !field.IsZero() {
+			return fmt.Sprintf("%s{%s: %v}", t.Name(), t.Field(i).Name, field.Interface())
+		}
+	}
+
+	return t.Name() + "{}"
 }
 
 // Write writes formatted data to a writer

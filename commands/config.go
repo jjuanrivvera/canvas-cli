@@ -40,7 +40,7 @@ var configAddCmd = &cobra.Command{
 Examples:
   canvas config add production --url https://canvas.example.com
   canvas config add staging --url https://canvas-staging.example.com --description "Staging environment"`,
-	Args: cobra.ExactArgs(1),
+	Args: ExactArgsWithUsage(1, "name"),
 	RunE: runConfigAdd,
 }
 
@@ -52,7 +52,7 @@ var configUseCmd = &cobra.Command{
 Examples:
   canvas config use production
   canvas config use staging`,
-	Args: cobra.ExactArgs(1),
+	Args: ExactArgsWithUsage(1, "instance-name"),
 	RunE: runConfigUse,
 }
 
@@ -64,7 +64,7 @@ only remove the instance from your local configuration.
 
 Examples:
   canvas config remove staging`,
-	Args: cobra.ExactArgs(1),
+	Args: ExactArgsWithUsage(1, "instance-name"),
 	RunE: runConfigRemove,
 }
 

@@ -4,8 +4,11 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"reflect"
 	"strings"
 	"time"
+
+	"github.com/spf13/cobra"
 
 	"github.com/jjuanrivvera/canvas-cli/internal/api"
 	"github.com/jjuanrivvera/canvas-cli/internal/auth"
@@ -203,6 +206,77 @@ func formatOutput(data interface{}, customTableDisplay func()) error {
 
 	// For structured formats, use the formatter with verbose option
 	return output.WriteWithOptions(os.Stdout, data, format, verbose)
+}
+
+// formatSuccessOutput prints a success message (only in table format) and outputs the data.
+// For JSON/YAML/CSV, the success message is omitted and only the raw data is output.
+// This enables scripting with structured output formats.
+func formatSuccessOutput(data interface{}, successMessage string) error {
+	format := output.FormatType(outputFormat)
+
+	// Only print success message for table format
+	if format == output.FormatTable && successMessage != "" {
+		fmt.Println(successMessage)
+	}
+
+	return output.WriteWithOptions(os.Stdout, data, format, verbose)
+}
+
+// formatEmptyOrOutput handles the case when a list might be empty.
+// For JSON/YAML output, it always outputs valid structured data ([] for empty).
+// For table output, it prints a user-friendly message when empty.
+func formatEmptyOrOutput(data interface{}, emptyMessage string) error {
+	format := output.FormatType(outputFormat)
+
+	// For structured formats (JSON, YAML, CSV), always output the data
+	// even if empty - the formatter will output [] for empty slices
+	if format == output.FormatJSON || format == output.FormatYAML || format == output.FormatCSV {
+		return output.WriteWithOptions(os.Stdout, data, format, verbose)
+	}
+
+	// For table format, show user-friendly message when empty
+	// Check if data is an empty slice
+	v := reflect.ValueOf(data)
+	if v.Kind() == reflect.Slice && v.Len() == 0 {
+		fmt.Println(emptyMessage)
+		return nil
+	}
+
+	return output.WriteWithOptions(os.Stdout, data, format, verbose)
+}
+
+// ExactArgsWithUsage returns a cobra.PositionalArgs that validates exact arg count
+// with a descriptive error message showing what arguments are expected
+func ExactArgsWithUsage(n int, argNames ...string) cobra.PositionalArgs {
+	return func(cmd *cobra.Command, args []string) error {
+		if len(args) != n {
+			if len(argNames) > 0 {
+				expected := strings.Join(argNames, "> <")
+				if len(args) < n {
+					return fmt.Errorf("missing required argument(s)\n\nUsage:\n  %s <%s>\n\nRun '%s --help' for more information", cmd.CommandPath(), expected, cmd.CommandPath())
+				}
+				return fmt.Errorf("too many arguments provided\n\nUsage:\n  %s <%s>\n\nRun '%s --help' for more information", cmd.CommandPath(), expected, cmd.CommandPath())
+			}
+			// Fallback to default message
+			return fmt.Errorf("accepts %d arg(s), received %d", n, len(args))
+		}
+		return nil
+	}
+}
+
+// MinArgsWithUsage returns a cobra.PositionalArgs that validates minimum arg count
+// with a descriptive error message
+func MinArgsWithUsage(n int, argNames ...string) cobra.PositionalArgs {
+	return func(cmd *cobra.Command, args []string) error {
+		if len(args) < n {
+			if len(argNames) > 0 {
+				expected := strings.Join(argNames, "> <")
+				return fmt.Errorf("missing required argument(s)\n\nUsage:\n  %s <%s>\n\nRun '%s --help' for more information", cmd.CommandPath(), expected, cmd.CommandPath())
+			}
+			return fmt.Errorf("requires at least %d arg(s), received %d", n, len(args))
+		}
+		return nil
+	}
 }
 
 // validateCourseID checks if a course ID exists and returns a user-friendly error if not.

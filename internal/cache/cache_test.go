@@ -1,6 +1,7 @@
 package cache
 
 import (
+	"fmt"
 	"testing"
 	"time"
 )
@@ -322,9 +323,9 @@ func TestIsCacheMiss(t *testing.T) {
 			expected: true,
 		},
 		{
-			name:     "regular error",
+			name:     "different cache error",
 			err:      &CacheError{message: "some other error"},
-			expected: true,
+			expected: false, // Not a cache miss, just a different cache error
 		},
 		{
 			name:     "nil error",
@@ -335,6 +336,11 @@ func TestIsCacheMiss(t *testing.T) {
 			name:     "non-cache error",
 			err:      &time.ParseError{},
 			expected: false,
+		},
+		{
+			name:     "wrapped cache miss error",
+			err:      fmt.Errorf("wrapped: %w", ErrCacheMiss),
+			expected: true, // Should detect cache miss even when wrapped
 		},
 	}
 

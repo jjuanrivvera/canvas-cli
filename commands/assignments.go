@@ -86,7 +86,7 @@ var assignmentsGetCmd = &cobra.Command{
 Examples:
   canvas assignments get --course-id 123 456
   canvas assignments get --course-id 123 456 --include submission,rubric`,
-	Args: cobra.ExactArgs(1),
+	Args: ExactArgsWithUsage(1, "assignment-id"),
 	RunE: runAssignmentsGet,
 }
 
@@ -130,7 +130,7 @@ Examples:
 
   # Using stdin
   echo '{"points_possible":200}' | canvas assignments update --course-id 123 456 --stdin`,
-	Args: cobra.ExactArgs(1),
+	Args: ExactArgsWithUsage(1, "assignment-id"),
 	RunE: runAssignmentsUpdate,
 }
 
@@ -144,7 +144,7 @@ This action cannot be undone.
 
 Examples:
   canvas assignments delete --course-id 123 456`,
-	Args: cobra.ExactArgs(1),
+	Args: ExactArgsWithUsage(1, "assignment-id"),
 	RunE: runAssignmentsDelete,
 }
 
@@ -239,13 +239,8 @@ func runAssignmentsList(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to list assignments: %w", err)
 	}
 
-	if len(assignments) == 0 {
-		fmt.Println("No assignments found")
-		return nil
-	}
-
 	// Format and display assignments
-	return formatOutput(assignments, nil)
+	return formatEmptyOrOutput(assignments, "No assignments found")
 }
 
 func runAssignmentsGet(cmd *cobra.Command, args []string) error {
