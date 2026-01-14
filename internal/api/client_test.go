@@ -514,3 +514,83 @@ func TestClient_SetQuotaTotal(t *testing.T) {
 		t.Errorf("Expected quota 1000.0, got %f", newQuota)
 	}
 }
+
+func TestClient_UserAgent_Default(t *testing.T) {
+	var receivedUserAgent string
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		receivedUserAgent = r.Header.Get("User-Agent")
+		if r.URL.Path == "/api/v1/accounts" {
+			w.Write([]byte(`[]`))
+			return
+		}
+		if r.URL.Path == "/api/v1/courses" {
+			w.Header().Set("Content-Type", "application/json")
+			w.Write([]byte(`[]`))
+			return
+		}
+		w.WriteHeader(http.StatusNotFound)
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{
+		BaseURL:        server.URL,
+		Token:          "test-token",
+		RequestsPerSec: 10,
+	})
+	if err != nil {
+		t.Fatalf("Failed to create client: %v", err)
+	}
+
+	// Make a request to trigger User-Agent header
+	_, err = client.Get(context.Background(), "/api/v1/courses")
+	if err != nil {
+		t.Fatalf("Request failed: %v", err)
+	}
+
+	// Verify default User-Agent is set
+	if receivedUserAgent != "canvas-cli" {
+		t.Errorf("Expected default User-Agent 'canvas-cli', got '%s'", receivedUserAgent)
+	}
+}
+
+func TestClient_UserAgent_Custom(t *testing.T) {
+	var receivedUserAgent string
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		receivedUserAgent = r.Header.Get("User-Agent")
+		if r.URL.Path == "/api/v1/accounts" {
+			w.Write([]byte(`[]`))
+			return
+		}
+		if r.URL.Path == "/api/v1/courses" {
+			w.Header().Set("Content-Type", "application/json")
+			w.Write([]byte(`[]`))
+			return
+		}
+		w.WriteHeader(http.StatusNotFound)
+	}))
+	defer server.Close()
+
+	customUserAgent := "canvas-cli/v1.5.0"
+	client, err := NewClient(ClientConfig{
+		BaseURL:        server.URL,
+		Token:          "test-token",
+		RequestsPerSec: 10,
+		UserAgent:      customUserAgent,
+	})
+	if err != nil {
+		t.Fatalf("Failed to create client: %v", err)
+	}
+
+	// Make a request to trigger User-Agent header
+	_, err = client.Get(context.Background(), "/api/v1/courses")
+	if err != nil {
+		t.Fatalf("Request failed: %v", err)
+	}
+
+	// Verify custom User-Agent is set
+	if receivedUserAgent != customUserAgent {
+		t.Errorf("Expected User-Agent '%s', got '%s'", customUserAgent, receivedUserAgent)
+	}
+}

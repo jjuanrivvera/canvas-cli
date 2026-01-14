@@ -651,3 +651,199 @@ func TestConfig_AddInstance_WithoutName(t *testing.T) {
 		t.Error("expected error when adding instance without name")
 	}
 }
+
+// Tests for Instance authentication helper methods
+
+func TestInstance_HasToken(t *testing.T) {
+	tests := []struct {
+		name     string
+		instance Instance
+		expected bool
+	}{
+		{
+			name:     "with token",
+			instance: Instance{Name: "test", URL: "https://test.com", Token: "7~abc123"},
+			expected: true,
+		},
+		{
+			name:     "without token",
+			instance: Instance{Name: "test", URL: "https://test.com"},
+			expected: false,
+		},
+		{
+			name:     "empty token",
+			instance: Instance{Name: "test", URL: "https://test.com", Token: ""},
+			expected: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := tt.instance.HasToken()
+			if result != tt.expected {
+				t.Errorf("HasToken() = %v, expected %v", result, tt.expected)
+			}
+		})
+	}
+}
+
+func TestInstance_HasOAuth(t *testing.T) {
+	tests := []struct {
+		name     string
+		instance Instance
+		expected bool
+	}{
+		{
+			name: "with OAuth credentials",
+			instance: Instance{
+				Name:         "test",
+				URL:          "https://test.com",
+				ClientID:     "client123",
+				ClientSecret: "secret456",
+			},
+			expected: true,
+		},
+		{
+			name: "without OAuth credentials",
+			instance: Instance{
+				Name: "test",
+				URL:  "https://test.com",
+			},
+			expected: false,
+		},
+		{
+			name: "only client ID",
+			instance: Instance{
+				Name:     "test",
+				URL:      "https://test.com",
+				ClientID: "client123",
+			},
+			expected: false,
+		},
+		{
+			name: "only client secret",
+			instance: Instance{
+				Name:         "test",
+				URL:          "https://test.com",
+				ClientSecret: "secret456",
+			},
+			expected: false,
+		},
+		{
+			name: "empty OAuth credentials",
+			instance: Instance{
+				Name:         "test",
+				URL:          "https://test.com",
+				ClientID:     "",
+				ClientSecret: "",
+			},
+			expected: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := tt.instance.HasOAuth()
+			if result != tt.expected {
+				t.Errorf("HasOAuth() = %v, expected %v", result, tt.expected)
+			}
+		})
+	}
+}
+
+func TestInstance_AuthType(t *testing.T) {
+	tests := []struct {
+		name     string
+		instance Instance
+		expected string
+	}{
+		{
+			name: "token auth",
+			instance: Instance{
+				Name:  "test",
+				URL:   "https://test.com",
+				Token: "7~abc123",
+			},
+			expected: "token",
+		},
+		{
+			name: "OAuth auth",
+			instance: Instance{
+				Name:         "test",
+				URL:          "https://test.com",
+				ClientID:     "client123",
+				ClientSecret: "secret456",
+			},
+			expected: "oauth",
+		},
+		{
+			name: "no auth",
+			instance: Instance{
+				Name: "test",
+				URL:  "https://test.com",
+			},
+			expected: "none",
+		},
+		{
+			name: "token takes precedence over OAuth",
+			instance: Instance{
+				Name:         "test",
+				URL:          "https://test.com",
+				Token:        "7~abc123",
+				ClientID:     "client123",
+				ClientSecret: "secret456",
+			},
+			expected: "token",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := tt.instance.AuthType()
+			if result != tt.expected {
+				t.Errorf("AuthType() = %v, expected %v", result, tt.expected)
+			}
+		})
+	}
+}
+
+func TestInstance_TokenSerialization(t *testing.T) {
+	// Test that Token field is properly serialized/deserialized in YAML
+	instance := &Instance{
+		Name:  "test",
+		URL:   "https://test.instructure.com",
+		Token: "7~abc123xyz",
+	}
+
+	// Marshal to YAML
+	data, err := yaml.Marshal(instance)
+	if err != nil {
+		t.Fatalf("Failed to marshal instance: %v", err)
+	}
+
+	// Verify token is in the YAML
+	yamlStr := string(data)
+	if !contains(yamlStr, "token:") {
+		t.Error("Token field not found in serialized YAML")
+	}
+
+	// Unmarshal back
+	var loaded Instance
+	err = yaml.Unmarshal(data, &loaded)
+	if err != nil {
+		t.Fatalf("Failed to unmarshal instance: %v", err)
+	}
+
+	if loaded.Token != instance.Token {
+		t.Errorf("Token mismatch after round-trip: got %q, expected %q", loaded.Token, instance.Token)
+	}
+}
+
+func contains(s, substr string) bool {
+	for i := 0; i <= len(s)-len(substr); i++ {
+		if s[i:i+len(substr)] == substr {
+			return true
+		}
+	}
+	return false
+}

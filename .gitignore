@@ -63,3 +63,5 @@ test/fixtures/*.yaml
 test/fixtures/*.json
 
 .ai
+
+site/

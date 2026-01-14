@@ -17,6 +17,14 @@ import (
 	"github.com/jjuanrivvera/canvas-cli/internal/output"
 )
 
+// getUserAgent returns the User-Agent string with version
+func getUserAgent() string {
+	if version != "" && version != "dev" {
+		return fmt.Sprintf("canvas-cli/%s", version)
+	}
+	return "canvas-cli/dev"
+}
+
 // getAPIClient creates an API client for the default or specified instance
 func getAPIClient() (*api.Client, error) {
 	// Check for environment variable authentication (CI/CD support)
@@ -44,6 +52,7 @@ func getAPIClient() (*api.Client, error) {
 			AsUserID:       asUserID,
 			Cache:          apiCache,
 			CacheEnabled:   cacheEnabled,
+			UserAgent:      getUserAgent(),
 		})
 		if err != nil {
 			return nil, fmt.Errorf("failed to create API client from environment: %w", err)
@@ -86,20 +95,6 @@ func getAPIClient() (*api.Client, error) {
 		}
 	}
 
-	// Get config directory
-	configDir, err := os.UserHomeDir()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get home directory: %w", err)
-	}
-	configDir = configDir + "/.canvas-cli"
-
-	// Load token
-	tokenStore := auth.NewFallbackTokenStore(configDir)
-	token, err := tokenStore.Load(instance.Name)
-	if err != nil {
-		return nil, fmt.Errorf("not authenticated with %s. Run 'canvas auth login' first", instance.Name)
-	}
-
 	// Create cache if not disabled
 	var apiCache cache.CacheInterface
 	cacheEnabled := !noCache
@@ -107,30 +102,63 @@ func getAPIClient() (*api.Client, error) {
 		apiCache = createCache()
 	}
 
-	// Create auto-refreshing token source if we have OAuth credentials
 	var clientConfig api.ClientConfig
-	if instance.ClientID != "" && instance.ClientSecret != "" {
-		// Create oauth2 config for token refresh
-		oauth2Config := auth.CreateOAuth2ConfigForInstance(instance.URL, instance.ClientID, instance.ClientSecret)
-		tokenSource := auth.NewAutoRefreshTokenSource(oauth2Config, tokenStore, instance.Name, token)
 
+	// Check if instance has an API token configured (token auth - no OAuth required)
+	if instance.HasToken() {
 		clientConfig = api.ClientConfig{
 			BaseURL:        instance.URL,
-			TokenSource:    tokenSource,
+			Token:          instance.Token,
 			RequestsPerSec: cfg.Settings.RequestsPerSecond,
 			AsUserID:       asUserID,
 			Cache:          apiCache,
 			CacheEnabled:   cacheEnabled,
+			UserAgent:      getUserAgent(),
+		}
+
+		if verbose {
+			fmt.Fprintf(os.Stderr, "Using API token authentication for %s\n", instance.Name)
 		}
 	} else {
-		// Fall back to static token (no auto-refresh)
-		clientConfig = api.ClientConfig{
-			BaseURL:        instance.URL,
-			Token:          token.AccessToken,
-			RequestsPerSec: cfg.Settings.RequestsPerSecond,
-			AsUserID:       asUserID,
-			Cache:          apiCache,
-			CacheEnabled:   cacheEnabled,
+		// OAuth flow - load token from store
+		configDir, err := os.UserHomeDir()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get home directory: %w", err)
+		}
+		configDir = configDir + "/.canvas-cli"
+
+		tokenStore := auth.NewFallbackTokenStore(configDir)
+		token, err := tokenStore.Load(instance.Name)
+		if err != nil {
+			return nil, fmt.Errorf("not authenticated with %s. Run 'canvas auth login' or 'canvas auth token set' first", instance.Name)
+		}
+
+		// Create auto-refreshing token source if we have OAuth credentials
+		if instance.HasOAuth() {
+			// Create oauth2 config for token refresh
+			oauth2Config := auth.CreateOAuth2ConfigForInstance(instance.URL, instance.ClientID, instance.ClientSecret)
+			tokenSource := auth.NewAutoRefreshTokenSource(oauth2Config, tokenStore, instance.Name, token)
+
+			clientConfig = api.ClientConfig{
+				BaseURL:        instance.URL,
+				TokenSource:    tokenSource,
+				RequestsPerSec: cfg.Settings.RequestsPerSecond,
+				AsUserID:       asUserID,
+				Cache:          apiCache,
+				CacheEnabled:   cacheEnabled,
+				UserAgent:      getUserAgent(),
+			}
+		} else {
+			// Fall back to static token (no auto-refresh)
+			clientConfig = api.ClientConfig{
+				BaseURL:        instance.URL,
+				Token:          token.AccessToken,
+				RequestsPerSec: cfg.Settings.RequestsPerSecond,
+				AsUserID:       asUserID,
+				Cache:          apiCache,
+				CacheEnabled:   cacheEnabled,
+				UserAgent:      getUserAgent(),
+			}
 		}
 	}
 

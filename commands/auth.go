@@ -89,17 +89,83 @@ Examples:
 	RunE: runAuthStatus,
 }
 
+// authTokenCmd represents the auth token command group
+var authTokenCmd = &cobra.Command{
+	Use:   "token",
+	Short: "Manage API token authentication",
+	Long: `Manage API token authentication for Canvas instances.
+
+API tokens provide a simpler alternative to OAuth for authentication.
+You can generate an API token in Canvas under Account > Settings > New Access Token.
+
+Use 'canvas auth token set' to configure token authentication for an instance.`,
+}
+
+// authTokenSetCmd represents the auth token set command
+var authTokenSetCmd = &cobra.Command{
+	Use:   "set <instance-name>",
+	Short: "Set API token for an instance",
+	Long: `Set an API access token for a Canvas instance.
+
+This is an alternative to OAuth authentication. Generate a token in Canvas
+under Account > Settings > New Access Token.
+
+If the instance doesn't exist, it will be created (requires --url).
+If the instance exists, the token will be updated.
+
+Examples:
+  # Set token for an existing instance
+  canvas auth token set myschool --token 7~abc123...
+
+  # Create a new instance with token auth
+  canvas auth token set sandbox --url https://sandbox.instructure.com --token 7~xyz789...
+
+  # Interactive mode (prompts for token)
+  canvas auth token set myschool`,
+	Args: ExactArgsWithUsage(1, "instance-name"),
+	RunE: runAuthTokenSet,
+}
+
+// authTokenRemoveCmd represents the auth token remove command
+var authTokenRemoveCmd = &cobra.Command{
+	Use:   "remove <instance-name>",
+	Short: "Remove API token from an instance",
+	Long: `Remove the API token from a Canvas instance configuration.
+
+This removes token-based authentication. If the instance also has OAuth
+credentials, you can still use 'canvas auth login' to authenticate.
+
+Examples:
+  canvas auth token remove myschool`,
+	Args: ExactArgsWithUsage(1, "instance-name"),
+	RunE: runAuthTokenRemove,
+}
+
+var (
+	authTokenValue string
+	authTokenURL   string
+)
+
 func init() {
 	rootCmd.AddCommand(authCmd)
 	authCmd.AddCommand(authLoginCmd)
 	authCmd.AddCommand(authLogoutCmd)
 	authCmd.AddCommand(authStatusCmd)
+	authCmd.AddCommand(authTokenCmd)
+
+	// Token subcommands
+	authTokenCmd.AddCommand(authTokenSetCmd)
+	authTokenCmd.AddCommand(authTokenRemoveCmd)
 
 	// Login flags
 	authLoginCmd.Flags().StringVar(&authInstanceName, "instance", "", "Instance name (defaults to hostname)")
 	authLoginCmd.Flags().StringVar(&authOAuthMode, "mode", "auto", "OAuth mode: auto, local, oob")
 	authLoginCmd.Flags().StringVar(&authClientID, "client-id", "", "OAuth client ID")
 	authLoginCmd.Flags().StringVar(&authClientSecret, "client-secret", "", "OAuth client secret")
+
+	// Token set flags
+	authTokenSetCmd.Flags().StringVar(&authTokenValue, "token", "", "API access token")
+	authTokenSetCmd.Flags().StringVar(&authTokenURL, "url", "", "Canvas instance URL (required for new instances)")
 }
 
 func runAuthLogin(cmd *cobra.Command, args []string) error {
@@ -346,8 +412,14 @@ func printInstanceStatus(instance *config.Instance, isDefault bool, tokenStore a
 	fmt.Printf("📌 %s%s\n", instance.Name, defaultMarker)
 	fmt.Printf("   URL: %s\n", instance.URL)
 
-	// Check authentication status
-	if tokenStore.Exists(instance.Name) {
+	// Check authentication type and status
+	if instance.HasToken() {
+		// Token-based authentication
+		fmt.Printf("   Auth: API Token\n")
+		fmt.Printf("   Status: ✓ Configured (token does not expire)\n")
+	} else if tokenStore.Exists(instance.Name) {
+		// OAuth-based authentication
+		fmt.Printf("   Auth: OAuth\n")
 		token, err := tokenStore.Load(instance.Name)
 		if err != nil {
 			fmt.Printf("   Status: ❌ Error loading token\n")
@@ -362,6 +434,7 @@ func printInstanceStatus(instance *config.Instance, isDefault bool, tokenStore a
 			fmt.Printf("   Expires: %s\n", token.Expiry.Format(time.RFC3339))
 		}
 	} else {
+		fmt.Printf("   Auth: None\n")
 		fmt.Printf("   Status: ❌ Not authenticated\n")
 	}
 }
@@ -415,4 +488,119 @@ func findIndexFrom(s, substr string, start int) int {
 		}
 	}
 	return -1
+}
+
+func runAuthTokenSet(cmd *cobra.Command, args []string) error {
+	instanceName := config.SanitizeInstanceName(args[0])
+
+	// Load config
+	cfg, err := config.Load()
+	if err != nil {
+		return fmt.Errorf("failed to load config: %w", err)
+	}
+
+	// Check if instance exists
+	existingInstance, _ := cfg.GetInstance(instanceName)
+
+	// Determine URL
+	var instanceURL string
+	if authTokenURL != "" {
+		instanceURL = authTokenURL
+	} else if existingInstance != nil {
+		instanceURL = existingInstance.URL
+	} else {
+		return fmt.Errorf("instance %q not found. Provide --url to create a new instance", instanceName)
+	}
+
+	// Normalize URL
+	normalizedURL, err := config.NormalizeURL(instanceURL)
+	if err != nil {
+		return fmt.Errorf("invalid URL: %w", err)
+	}
+
+	// Get token (from flag or prompt)
+	token := authTokenValue
+	if token == "" {
+		fmt.Print("Enter API Access Token: ")
+		fmt.Scanln(&token)
+		if token == "" {
+			return fmt.Errorf("API token is required")
+		}
+	}
+
+	// Create or update instance
+	instance := &config.Instance{
+		Name:  instanceName,
+		URL:   normalizedURL,
+		Token: token,
+	}
+
+	// Preserve OAuth credentials if updating existing instance
+	if existingInstance != nil {
+		instance.ClientID = existingInstance.ClientID
+		instance.ClientSecret = existingInstance.ClientSecret
+		instance.Description = existingInstance.Description
+
+		if err := cfg.UpdateInstance(instanceName, instance); err != nil {
+			return fmt.Errorf("failed to update instance: %w", err)
+		}
+		fmt.Printf("✓ Updated API token for %s\n", instanceName)
+	} else {
+		if err := cfg.AddInstance(instance); err != nil {
+			return fmt.Errorf("failed to add instance: %w", err)
+		}
+		fmt.Printf("✓ Created instance %s with API token authentication\n", instanceName)
+	}
+
+	fmt.Printf("URL: %s\n", normalizedURL)
+	fmt.Printf("Auth type: token\n")
+
+	return nil
+}
+
+func runAuthTokenRemove(cmd *cobra.Command, args []string) error {
+	instanceName := args[0]
+
+	// Load config
+	cfg, err := config.Load()
+	if err != nil {
+		return fmt.Errorf("failed to load config: %w", err)
+	}
+
+	// Check if instance exists
+	instance, err := cfg.GetInstance(instanceName)
+	if err != nil {
+		return err
+	}
+
+	if instance.Token == "" {
+		return fmt.Errorf("instance %q does not have an API token configured", instanceName)
+	}
+
+	// Confirm removal
+	fmt.Printf("Are you sure you want to remove the API token from %s? (y/N): ", instanceName)
+	var confirm string
+	fmt.Scanln(&confirm)
+
+	if confirm != "y" && confirm != "Y" {
+		fmt.Println("Token removal cancelled")
+		return nil
+	}
+
+	// Clear token
+	instance.Token = ""
+
+	if err := cfg.UpdateInstance(instanceName, instance); err != nil {
+		return fmt.Errorf("failed to update instance: %w", err)
+	}
+
+	fmt.Printf("✓ Removed API token from %s\n", instanceName)
+
+	// Suggest next steps if no auth remains
+	if !instance.HasOAuth() {
+		fmt.Printf("\nNote: Instance %s now has no authentication configured.\n", instanceName)
+		fmt.Println("Use 'canvas auth login' or 'canvas auth token set' to authenticate.")
+	}
+
+	return nil
 }

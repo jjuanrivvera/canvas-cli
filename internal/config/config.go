@@ -29,7 +29,29 @@ type Instance struct {
 	URL          string `yaml:"url"`
 	ClientID     string `yaml:"client_id,omitempty"`
 	ClientSecret string `yaml:"client_secret,omitempty"`
+	Token        string `yaml:"token,omitempty"` // API access token (alternative to OAuth)
 	Description  string `yaml:"description,omitempty"`
+}
+
+// HasToken returns true if the instance has an API token configured
+func (i *Instance) HasToken() bool {
+	return i.Token != ""
+}
+
+// HasOAuth returns true if the instance has OAuth credentials configured
+func (i *Instance) HasOAuth() bool {
+	return i.ClientID != "" && i.ClientSecret != ""
+}
+
+// AuthType returns a string describing the authentication type
+func (i *Instance) AuthType() string {
+	if i.HasToken() {
+		return "token"
+	}
+	if i.HasOAuth() {
+		return "oauth"
+	}
+	return "none"
 }
 
 // Settings holds global application settings
