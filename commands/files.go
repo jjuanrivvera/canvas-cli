@@ -69,7 +69,7 @@ var filesGetCmd = &cobra.Command{
 Examples:
   canvas files get 456
   canvas files get 456 --include user`,
-	Args: cobra.ExactArgs(1),
+	Args: ExactArgsWithUsage(1, "file-id"),
 	RunE: runFilesGet,
 }
 
@@ -86,7 +86,7 @@ Examples:
   canvas files upload image.png --folder-id 456
   canvas files upload data.csv --user-id 789
   canvas files upload file.pdf --course-id 123 --on-duplicate overwrite`,
-	Args: cobra.ExactArgs(1),
+	Args: ExactArgsWithUsage(1, "file-path"),
 	RunE: runFilesUpload,
 }
 
@@ -99,7 +99,7 @@ var filesDownloadCmd = &cobra.Command{
 Examples:
   canvas files download 456
   canvas files download 456 --destination ./my-file.pdf`,
-	Args: cobra.ExactArgs(1),
+	Args: ExactArgsWithUsage(1, "file-id"),
 	RunE: runFilesDownload,
 }
 
@@ -111,7 +111,7 @@ var filesDeleteCmd = &cobra.Command{
 
 Examples:
   canvas files delete 456`,
-	Args: cobra.ExactArgs(1),
+	Args: ExactArgsWithUsage(1, "file-id"),
 	RunE: runFilesDelete,
 }
 

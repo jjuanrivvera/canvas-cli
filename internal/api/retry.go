@@ -41,11 +41,30 @@ func (p *RetryPolicy) ShouldRetry(resp *http.Response, err error) bool {
 		if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
 			return false
 		}
-		// Retry on network errors
+
+		// Check if this is an API error - don't retry client errors (4xx)
+		var apiErr *APIError
+		if errors.As(err, &apiErr) {
+			// Only retry rate limiting and server errors
+			switch apiErr.StatusCode {
+			case http.StatusTooManyRequests:
+				return true
+			case http.StatusInternalServerError,
+				http.StatusBadGateway,
+				http.StatusServiceUnavailable,
+				http.StatusGatewayTimeout:
+				return true
+			default:
+				// Don't retry other API errors (400, 401, 403, 404, 422, etc.)
+				return false
+			}
+		}
+
+		// Retry on network errors (non-API errors like connection refused, DNS failure, etc.)
 		return true
 	}
 
-	// Retry on these status codes
+	// Retry on these status codes (when err is nil but response indicates retryable error)
 	switch resp.StatusCode {
 	case http.StatusTooManyRequests:
 		return true

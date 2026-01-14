@@ -11,6 +11,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
+	"reflect"
 	"strconv"
 	"sync"
 	"time"
@@ -516,20 +517,36 @@ func (c *Client) GetAllPages(ctx context.Context, path string, result interface{
 		}
 	}
 
-	// Marshal all results and unmarshal into result
-	allJSON, err := json.Marshal(allResults)
-	if err != nil {
-		return fmt.Errorf("failed to marshal results: %w", err)
+	// Use reflection to directly append results to the slice
+	// This avoids unnecessary marshal/unmarshal round-trip
+	resultValue := reflect.ValueOf(result)
+	if resultValue.Kind() != reflect.Ptr || resultValue.Elem().Kind() != reflect.Slice {
+		return fmt.Errorf("result must be a pointer to a slice")
 	}
 
-	if err := json.Unmarshal(allJSON, result); err != nil {
-		return err
+	sliceValue := resultValue.Elem()
+	elemType := sliceValue.Type().Elem()
+
+	for _, raw := range allResults {
+		// Create a new element of the slice's element type
+		elem := reflect.New(elemType)
+		if err := json.Unmarshal(raw, elem.Interface()); err != nil {
+			return fmt.Errorf("failed to unmarshal element: %w", err)
+		}
+		sliceValue = reflect.Append(sliceValue, elem.Elem())
 	}
+
+	// Set the slice back to the result pointer
+	resultValue.Elem().Set(sliceValue)
 
 	// Cache the combined result if caching is enabled
 	if c.cacheEnabled && c.cache != nil {
 		key := c.cacheKey("pages:" + path)
-		c.cache.Set(key, allJSON)
+		// Marshal once for caching only
+		allJSON, err := json.Marshal(allResults)
+		if err == nil {
+			c.cache.Set(key, allJSON)
+		}
 	}
 
 	return nil

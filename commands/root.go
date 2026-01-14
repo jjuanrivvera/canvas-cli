@@ -42,6 +42,11 @@ func Execute(v, c, bd string) error {
 	version = v
 	commit = c
 	buildDate = bd
+
+	// Set version information
+	rootCmd.Version = version
+	rootCmd.SetVersionTemplate("canvas-cli version {{.Version}}\n")
+
 	return rootCmd.Execute()
 }
 

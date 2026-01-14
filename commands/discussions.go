@@ -69,7 +69,7 @@ var discussionsGetCmd = &cobra.Command{
 
 Examples:
   canvas discussions get --course-id 123 456`,
-	Args: cobra.ExactArgs(1),
+	Args: ExactArgsWithUsage(1, "topic-id"),
 	RunE: runDiscussionsGet,
 }
 
@@ -96,7 +96,7 @@ Examples:
   canvas discussions update --course-id 123 456 --title "New Title"
   canvas discussions update --course-id 123 456 --pinned
   canvas discussions update --course-id 123 456 --locked`,
-	Args: cobra.ExactArgs(1),
+	Args: ExactArgsWithUsage(1, "topic-id"),
 	RunE: runDiscussionsUpdate,
 }
 
@@ -108,7 +108,7 @@ var discussionsDeleteCmd = &cobra.Command{
 
 Examples:
   canvas discussions delete --course-id 123 456`,
-	Args: cobra.ExactArgs(1),
+	Args: ExactArgsWithUsage(1, "topic-id"),
 	RunE: runDiscussionsDelete,
 }
 
@@ -120,7 +120,7 @@ var discussionsEntriesCmd = &cobra.Command{
 
 Examples:
   canvas discussions entries --course-id 123 456`,
-	Args: cobra.ExactArgs(1),
+	Args: ExactArgsWithUsage(1, "topic-id"),
 	RunE: runDiscussionsEntries,
 }
 
@@ -162,7 +162,7 @@ var discussionsSubscribeCmd = &cobra.Command{
 
 Examples:
   canvas discussions subscribe --course-id 123 456`,
-	Args: cobra.ExactArgs(1),
+	Args: ExactArgsWithUsage(1, "topic-id"),
 	RunE: runDiscussionsSubscribe,
 }
 
@@ -174,7 +174,7 @@ var discussionsUnsubscribeCmd = &cobra.Command{
 
 Examples:
   canvas discussions unsubscribe --course-id 123 456`,
-	Args: cobra.ExactArgs(1),
+	Args: ExactArgsWithUsage(1, "topic-id"),
 	RunE: runDiscussionsUnsubscribe,
 }
 
@@ -342,10 +342,7 @@ func runDiscussionsCreate(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to create discussion: %w", err)
 	}
 
-	fmt.Println("Discussion created successfully!")
-	displayDiscussionTopic(topic)
-
-	return nil
+	return formatSuccessOutput(topic, "Discussion created successfully!")
 }
 
 func runDiscussionsUpdate(cmd *cobra.Command, args []string) error {
@@ -400,10 +397,7 @@ func runDiscussionsUpdate(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to update discussion: %w", err)
 	}
 
-	fmt.Println("Discussion updated successfully!")
-	displayDiscussionTopic(topic)
-
-	return nil
+	return formatSuccessOutput(topic, "Discussion updated successfully!")
 }
 
 func runDiscussionsDelete(cmd *cobra.Command, args []string) error {
@@ -495,10 +489,7 @@ func runDiscussionsPost(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to post entry: %w", err)
 	}
 
-	fmt.Println("Entry posted successfully!")
-	displayDiscussionEntry(entry, 0)
-
-	return nil
+	return formatSuccessOutput(entry, "Entry posted successfully!")
 }
 
 func runDiscussionsReply(cmd *cobra.Command, args []string) error {
@@ -535,10 +526,7 @@ func runDiscussionsReply(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to post reply: %w", err)
 	}
 
-	fmt.Println("Reply posted successfully!")
-	displayDiscussionEntry(entry, 0)
-
-	return nil
+	return formatSuccessOutput(entry, "Reply posted successfully!")
 }
 
 func runDiscussionsSubscribe(cmd *cobra.Command, args []string) error {
@@ -583,73 +571,4 @@ func runDiscussionsUnsubscribe(cmd *cobra.Command, args []string) error {
 
 	fmt.Printf("Unsubscribed from discussion %d\n", topicID)
 	return nil
-}
-
-func displayDiscussionTopic(topic *api.DiscussionTopic) {
-	stateIcon := "💬"
-	if topic.Pinned {
-		stateIcon = "📌"
-	} else if topic.Locked {
-		stateIcon = "🔒"
-	}
-
-	fmt.Printf("%s [%d] %s\n", stateIcon, topic.ID, topic.Title)
-
-	if topic.Published {
-		fmt.Printf("   Published: Yes\n")
-	} else {
-		fmt.Printf("   Published: No (Draft)\n")
-	}
-
-	fmt.Printf("   Replies: %d", topic.DiscussionSubentryCount)
-	if topic.UnreadCount > 0 {
-		fmt.Printf(" (%d unread)", topic.UnreadCount)
-	}
-	fmt.Println()
-
-	if topic.DiscussionType != "" {
-		fmt.Printf("   Type: %s\n", topic.DiscussionType)
-	}
-
-	if topic.PostedAt != nil {
-		fmt.Printf("   Posted: %s\n", topic.PostedAt.Format("2006-01-02 15:04"))
-	}
-
-	fmt.Println()
-}
-
-func displayDiscussionEntry(entry *api.DiscussionEntry, indent int) {
-	prefix := ""
-	for i := 0; i < indent; i++ {
-		prefix += "  "
-	}
-
-	stateIcon := "💬"
-	if entry.ReadState == "unread" {
-		stateIcon = "🆕"
-	}
-
-	fmt.Printf("%s%s Entry %d (User %d)\n", prefix, stateIcon, entry.ID, entry.UserID)
-
-	if entry.User != nil {
-		fmt.Printf("%s   By: %s\n", prefix, entry.User.Name)
-	}
-
-	fmt.Printf("%s   Posted: %s\n", prefix, entry.CreatedAt.Format("2006-01-02 15:04"))
-
-	if entry.Message != "" {
-		message := entry.Message
-		if len(message) > 200 {
-			message = message[:200] + "..."
-		}
-		message = stripHTMLTags(message)
-		fmt.Printf("%s   %s\n", prefix, message)
-	}
-
-	fmt.Println()
-
-	// Display nested replies
-	for _, reply := range entry.Replies {
-		displayDiscussionEntry(&reply, indent+1)
-	}
 }

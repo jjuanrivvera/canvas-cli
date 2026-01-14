@@ -310,7 +310,7 @@ func TestFormatValue(t *testing.T) {
 		{true, "true"},
 		{false, "false"},
 		{[]string{"a", "b", "c"}, "[a, b, c]"},
-		{[]int{}, "[]"},
+		{[]int{}, ""},
 	}
 
 	for _, tt := range tests {

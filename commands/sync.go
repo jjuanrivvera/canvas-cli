@@ -39,7 +39,7 @@ Examples:
 
   # Sync with interactive conflict resolution
   canvas sync assignments prod 12345 staging 67890 --interactive`,
-	Args: cobra.ExactArgs(4),
+	Args: ExactArgsWithUsage(4, "source-instance", "source-course-id", "target-instance", "target-course-id"),
 	RunE: runSyncAssignments,
 }
 
@@ -56,7 +56,7 @@ Examples:
 
   # Sync with interactive conflict resolution
   canvas sync course prod 12345 staging 67890 --interactive`,
-	Args: cobra.ExactArgs(4),
+	Args: ExactArgsWithUsage(4, "source-instance", "source-course-id", "target-instance", "target-course-id"),
 	RunE: runSyncCourse,
 }
 

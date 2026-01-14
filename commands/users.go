@@ -86,7 +86,7 @@ var usersGetCmd = &cobra.Command{
 Examples:
   canvas users get 123
   canvas users get 123 --include email,enrollments,avatar_url`,
-	Args: cobra.ExactArgs(1),
+	Args: ExactArgsWithUsage(1, "user-id"),
 	RunE: runUsersGet,
 }
 
@@ -110,7 +110,7 @@ var usersSearchCmd = &cobra.Command{
 Examples:
   canvas users search "john doe"
   canvas users search "john@example.com"`,
-	Args: cobra.ExactArgs(1),
+	Args: ExactArgsWithUsage(1, "search-term"),
 	RunE: runUsersSearch,
 }
 
@@ -154,7 +154,7 @@ Examples:
 
   # Using stdin
   echo '{"name":"Updated Name"}' | canvas users update 123 --stdin`,
-	Args: cobra.ExactArgs(1),
+	Args: ExactArgsWithUsage(1, "user-id"),
 	RunE: runUsersUpdate,
 }
 

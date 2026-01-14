@@ -71,7 +71,7 @@ var calendarGetCmd = &cobra.Command{
 
 Examples:
   canvas calendar get 456`,
-	Args: cobra.ExactArgs(1),
+	Args: ExactArgsWithUsage(1, "event-id"),
 	RunE: runCalendarGet,
 }
 
@@ -98,7 +98,7 @@ Examples:
   canvas calendar update 456 --title "Updated Meeting"
   canvas calendar update 456 --start-at "2024-12-02T10:00:00Z"
   canvas calendar update 456 --which all --title "Updated Series"`,
-	Args: cobra.ExactArgs(1),
+	Args: ExactArgsWithUsage(1, "event-id"),
 	RunE: runCalendarUpdate,
 }
 
@@ -112,7 +112,7 @@ Examples:
   canvas calendar delete 456
   canvas calendar delete 456 --reason "Event cancelled"
   canvas calendar delete 456 --which all`,
-	Args: cobra.ExactArgs(1),
+	Args: ExactArgsWithUsage(1, "event-id"),
 	RunE: runCalendarDelete,
 }
 
@@ -124,7 +124,7 @@ var calendarReserveCmd = &cobra.Command{
 
 Examples:
   canvas calendar reserve 456`,
-	Args: cobra.ExactArgs(1),
+	Args: ExactArgsWithUsage(1, "event-id"),
 	RunE: runCalendarReserve,
 }
 
@@ -282,10 +282,7 @@ func runCalendarCreate(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to create calendar event: %w", err)
 	}
 
-	fmt.Println("Calendar event created successfully!")
-	displayCalendarEvent(event)
-
-	return nil
+	return formatSuccessOutput(event, "Calendar event created successfully!")
 }
 
 func runCalendarUpdate(cmd *cobra.Command, args []string) error {
@@ -333,10 +330,7 @@ func runCalendarUpdate(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to update calendar event: %w", err)
 	}
 
-	fmt.Println("Calendar event updated successfully!")
-	displayCalendarEvent(event)
-
-	return nil
+	return formatSuccessOutput(event, "Calendar event updated successfully!")
 }
 
 func runCalendarDelete(cmd *cobra.Command, args []string) error {
@@ -398,40 +392,5 @@ func runCalendarReserve(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to reserve time slot: %w", err)
 	}
 
-	fmt.Println("Time slot reserved successfully!")
-	displayCalendarEvent(event)
-
-	return nil
-}
-
-func displayCalendarEvent(event *api.CalendarEvent) {
-	stateIcon := "📅"
-	if event.AllDay {
-		stateIcon = "📆"
-	}
-	if event.WorkflowState == "locked" {
-		stateIcon = "🔒"
-	}
-
-	fmt.Printf("%s [%d] %s\n", stateIcon, event.ID, event.Title)
-
-	if event.StartAt != nil {
-		if event.AllDay {
-			fmt.Printf("   Date: %s (All Day)\n", event.StartAt.Format("2006-01-02"))
-		} else if event.EndAt != nil {
-			fmt.Printf("   Time: %s - %s\n",
-				event.StartAt.Format("2006-01-02 15:04"),
-				event.EndAt.Format("15:04"))
-		} else {
-			fmt.Printf("   Time: %s\n", event.StartAt.Format("2006-01-02 15:04"))
-		}
-	}
-
-	if event.LocationName != "" {
-		fmt.Printf("   Location: %s\n", event.LocationName)
-	}
-
-	fmt.Printf("   Context: %s\n", event.ContextCode)
-
-	fmt.Println()
+	return formatSuccessOutput(event, "Time slot reserved successfully!")
 }

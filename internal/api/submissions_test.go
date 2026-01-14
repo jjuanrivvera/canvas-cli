@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -987,5 +988,58 @@ func TestSubmissionsService_BulkGrade_WithRubric(t *testing.T) {
 	_, err = service.BulkGrade(ctx, 123, 456, params)
 	if err != nil {
 		t.Fatalf("BulkGrade failed: %v", err)
+	}
+}
+
+func TestSubmissionsService_DeleteComment(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			handleVersionDetection(w)
+			return
+		}
+
+		if r.Method != http.MethodDelete {
+			t.Errorf("expected DELETE, got %s", r.Method)
+		}
+
+		expectedPath := "/api/v1/courses/123/assignments/456/submissions/789/comments/999"
+		if r.URL.Path != expectedPath {
+			t.Errorf("expected path %s, got %s", expectedPath, r.URL.Path)
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(SubmissionComment{
+			ID:         999,
+			AuthorID:   100,
+			AuthorName: "Test User",
+			Comment:    "Deleted comment",
+		})
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{
+		BaseURL:        server.URL,
+		Token:          "test-token",
+		RequestsPerSec: 10,
+	})
+	if err != nil {
+		t.Fatalf("Failed to create client: %v", err)
+	}
+
+	service := NewSubmissionsService(client)
+	ctx := context.Background()
+
+	comment, err := service.DeleteComment(ctx, 123, 456, 789, 999)
+	if err != nil {
+		t.Fatalf("DeleteComment failed: %v", err)
+	}
+
+	if comment == nil {
+		t.Fatal("expected comment to be returned")
+	}
+
+	if comment.ID != 999 {
+		t.Errorf("expected comment ID 999, got %d", comment.ID)
 	}
 }

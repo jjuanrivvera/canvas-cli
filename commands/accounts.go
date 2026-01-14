@@ -54,7 +54,7 @@ var accountsGetCmd = &cobra.Command{
 Examples:
   canvas accounts get 1
   canvas accounts get 5`,
-	Args: cobra.ExactArgs(1),
+	Args: ExactArgsWithUsage(1, "account-id"),
 	RunE: runAccountsGet,
 }
 
@@ -69,7 +69,7 @@ Use --recursive to get the entire account tree.
 Examples:
   canvas accounts sub 1
   canvas accounts sub 1 --recursive`,
-	Args: cobra.ExactArgs(1),
+	Args: ExactArgsWithUsage(1, "account-id"),
 	RunE: runAccountsSubAccounts,
 }
 

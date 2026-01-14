@@ -40,7 +40,7 @@ PowerShell:
   # Or add to your PowerShell profile:
   PS> canvas completion powershell >> $PROFILE`,
 	ValidArgs: []string{"bash", "zsh", "fish", "powershell"},
-	Args:      cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs),
+	Args:      cobra.MatchAll(ExactArgsWithUsage(1, "shell"), cobra.OnlyValidArgs),
 	RunE:      runCompletion,
 }
 

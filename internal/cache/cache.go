@@ -2,6 +2,7 @@ package cache
 
 import (
 	"encoding/json"
+	"errors"
 	"sync"
 	"time"
 )
@@ -155,6 +156,11 @@ func (c *Cache) removeExpired() {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
+	// Don't access map if cache is closed (prevents race condition)
+	if c.closed {
+		return
+	}
+
 	now := time.Now()
 	for key, item := range c.items {
 		if now.After(item.expiration) {
@@ -204,7 +210,16 @@ func (e *CacheError) Error() string {
 }
 
 // IsCacheMiss returns true if the error is a cache miss
+// Uses errors.Is to properly handle wrapped errors
 func IsCacheMiss(err error) bool {
-	_, ok := err.(*CacheError)
-	return ok
+	return errors.Is(err, ErrCacheMiss)
+}
+
+// Is implements the errors.Is interface for CacheError
+func (e *CacheError) Is(target error) bool {
+	t, ok := target.(*CacheError)
+	if !ok {
+		return false
+	}
+	return e.message == t.message
 }

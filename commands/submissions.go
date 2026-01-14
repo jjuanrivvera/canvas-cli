@@ -27,6 +27,11 @@ var (
 	// Bulk grade flags
 	bulkGradeCSV    string
 	bulkGradeDryRun bool
+
+	// Comment flags
+	commentText       string
+	commentGroupShare bool
+	commentID         int64
 )
 
 // submissionsCmd represents the submissions command group
@@ -110,12 +115,49 @@ Examples:
 	RunE: runSubmissionsBulkGrade,
 }
 
+// submissionsCommentsCmd represents the submissions comments command
+var submissionsCommentsCmd = &cobra.Command{
+	Use:   "comments",
+	Short: "List comments for a submission",
+	Long: `List all comments for a specific submission.
+
+Examples:
+  canvas submissions comments --course-id 123 --assignment-id 456 --user-id 789`,
+	RunE: runSubmissionsComments,
+}
+
+// submissionsAddCommentCmd represents the submissions add-comment command
+var submissionsAddCommentCmd = &cobra.Command{
+	Use:   "add-comment",
+	Short: "Add a comment to a submission",
+	Long: `Add a comment to a specific submission.
+
+Examples:
+  canvas submissions add-comment --course-id 123 --assignment-id 456 --user-id 789 --text "Great work!"
+  canvas submissions add-comment --course-id 123 --assignment-id 456 --user-id 789 --text "Feedback" --group`,
+	RunE: runSubmissionsAddComment,
+}
+
+// submissionsDeleteCommentCmd represents the submissions delete-comment command
+var submissionsDeleteCommentCmd = &cobra.Command{
+	Use:   "delete-comment",
+	Short: "Delete a submission comment",
+	Long: `Delete a comment from a submission.
+
+Examples:
+  canvas submissions delete-comment --course-id 123 --assignment-id 456 --user-id 789 --comment-id 999`,
+	RunE: runSubmissionsDeleteComment,
+}
+
 func init() {
 	rootCmd.AddCommand(submissionsCmd)
 	submissionsCmd.AddCommand(submissionsListCmd)
 	submissionsCmd.AddCommand(submissionsGetCmd)
 	submissionsCmd.AddCommand(submissionsGradeCmd)
 	submissionsCmd.AddCommand(submissionsBulkGradeCmd)
+	submissionsCmd.AddCommand(submissionsCommentsCmd)
+	submissionsCmd.AddCommand(submissionsAddCommentCmd)
+	submissionsCmd.AddCommand(submissionsDeleteCommentCmd)
 
 	// List flags
 	submissionsListCmd.Flags().Int64Var(&submissionsCourseID, "course-id", 0, "Course ID (required)")
@@ -153,6 +195,35 @@ func init() {
 	submissionsBulkGradeCmd.Flags().BoolVar(&bulkGradeDryRun, "dry-run", false, "Preview changes without applying them")
 	submissionsBulkGradeCmd.MarkFlagRequired("course-id")
 	submissionsBulkGradeCmd.MarkFlagRequired("csv")
+
+	// Comments flags
+	submissionsCommentsCmd.Flags().Int64Var(&submissionsCourseID, "course-id", 0, "Course ID (required)")
+	submissionsCommentsCmd.Flags().Int64Var(&submissionsAssignmentID, "assignment-id", 0, "Assignment ID (required)")
+	submissionsCommentsCmd.Flags().Int64Var(&submissionsUserID, "user-id", 0, "User ID (required)")
+	submissionsCommentsCmd.MarkFlagRequired("course-id")
+	submissionsCommentsCmd.MarkFlagRequired("assignment-id")
+	submissionsCommentsCmd.MarkFlagRequired("user-id")
+
+	// Add comment flags
+	submissionsAddCommentCmd.Flags().Int64Var(&submissionsCourseID, "course-id", 0, "Course ID (required)")
+	submissionsAddCommentCmd.Flags().Int64Var(&submissionsAssignmentID, "assignment-id", 0, "Assignment ID (required)")
+	submissionsAddCommentCmd.Flags().Int64Var(&submissionsUserID, "user-id", 0, "User ID (required)")
+	submissionsAddCommentCmd.Flags().StringVar(&commentText, "text", "", "Comment text (required)")
+	submissionsAddCommentCmd.Flags().BoolVar(&commentGroupShare, "group", false, "Share comment with group members")
+	submissionsAddCommentCmd.MarkFlagRequired("course-id")
+	submissionsAddCommentCmd.MarkFlagRequired("assignment-id")
+	submissionsAddCommentCmd.MarkFlagRequired("user-id")
+	submissionsAddCommentCmd.MarkFlagRequired("text")
+
+	// Delete comment flags
+	submissionsDeleteCommentCmd.Flags().Int64Var(&submissionsCourseID, "course-id", 0, "Course ID (required)")
+	submissionsDeleteCommentCmd.Flags().Int64Var(&submissionsAssignmentID, "assignment-id", 0, "Assignment ID (required)")
+	submissionsDeleteCommentCmd.Flags().Int64Var(&submissionsUserID, "user-id", 0, "User ID (required)")
+	submissionsDeleteCommentCmd.Flags().Int64Var(&commentID, "comment-id", 0, "Comment ID to delete (required)")
+	submissionsDeleteCommentCmd.MarkFlagRequired("course-id")
+	submissionsDeleteCommentCmd.MarkFlagRequired("assignment-id")
+	submissionsDeleteCommentCmd.MarkFlagRequired("user-id")
+	submissionsDeleteCommentCmd.MarkFlagRequired("comment-id")
 }
 
 func runSubmissionsList(cmd *cobra.Command, args []string) error {
@@ -391,5 +462,83 @@ func runSubmissionsBulkGrade(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("bulk grading completed with %d errors", errorCount)
 	}
 
+	return nil
+}
+
+func runSubmissionsComments(cmd *cobra.Command, args []string) error {
+	client, err := getAPIClient()
+	if err != nil {
+		return err
+	}
+
+	if _, err := validateCourseID(client, submissionsCourseID); err != nil {
+		return err
+	}
+
+	submissionsService := api.NewSubmissionsService(client)
+
+	ctx := context.Background()
+	submission, err := submissionsService.Get(ctx, submissionsCourseID, submissionsAssignmentID, submissionsUserID, []string{"submission_comments"})
+	if err != nil {
+		return fmt.Errorf("failed to get submission: %w", err)
+	}
+
+	if len(submission.SubmissionComments) == 0 {
+		fmt.Println("No comments found for this submission")
+		return nil
+	}
+
+	printVerbose("Found %d comments:\n\n", len(submission.SubmissionComments))
+	return formatOutput(submission.SubmissionComments, nil)
+}
+
+func runSubmissionsAddComment(cmd *cobra.Command, args []string) error {
+	client, err := getAPIClient()
+	if err != nil {
+		return err
+	}
+
+	if _, err := validateCourseID(client, submissionsCourseID); err != nil {
+		return err
+	}
+
+	submissionsService := api.NewSubmissionsService(client)
+
+	params := &api.GradeSubmissionParams{
+		Comment: &api.SubmissionCommentParams{
+			TextComment:  commentText,
+			GroupComment: commentGroupShare,
+		},
+	}
+
+	ctx := context.Background()
+	submission, err := submissionsService.Grade(ctx, submissionsCourseID, submissionsAssignmentID, submissionsUserID, params)
+	if err != nil {
+		return fmt.Errorf("failed to add comment: %w", err)
+	}
+
+	fmt.Printf("Comment added successfully to submission for user %d\n", submission.UserID)
+	return nil
+}
+
+func runSubmissionsDeleteComment(cmd *cobra.Command, args []string) error {
+	client, err := getAPIClient()
+	if err != nil {
+		return err
+	}
+
+	if _, err := validateCourseID(client, submissionsCourseID); err != nil {
+		return err
+	}
+
+	submissionsService := api.NewSubmissionsService(client)
+
+	ctx := context.Background()
+	_, err = submissionsService.DeleteComment(ctx, submissionsCourseID, submissionsAssignmentID, submissionsUserID, commentID)
+	if err != nil {
+		return fmt.Errorf("failed to delete comment: %w", err)
+	}
+
+	fmt.Printf("Comment %d deleted successfully\n", commentID)
 	return nil
 }

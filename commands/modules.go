@@ -35,6 +35,8 @@ var (
 	modulesItemIndent         int
 	modulesItemCompletionType string
 	modulesItemMinScore       float64
+	modulesItemMoveToModule   int64
+	modulesItemPublished      bool
 )
 
 // modulesCmd represents the modules command group
@@ -77,7 +79,7 @@ var modulesGetCmd = &cobra.Command{
 Examples:
   canvas modules get --course-id 123 456
   canvas modules get --course-id 123 456 --include items,content_details`,
-	Args: cobra.ExactArgs(1),
+	Args: ExactArgsWithUsage(1, "module-id"),
 	RunE: runModulesGet,
 }
 
@@ -105,7 +107,7 @@ Examples:
   canvas modules update --course-id 123 456 --name "Updated Name"
   canvas modules update --course-id 123 456 --published
   canvas modules update --course-id 123 456 --position 3`,
-	Args: cobra.ExactArgs(1),
+	Args: ExactArgsWithUsage(1, "module-id"),
 	RunE: runModulesUpdate,
 }
 
@@ -117,7 +119,7 @@ var modulesDeleteCmd = &cobra.Command{
 
 Examples:
   canvas modules delete --course-id 123 456`,
-	Args: cobra.ExactArgs(1),
+	Args: ExactArgsWithUsage(1, "module-id"),
 	RunE: runModulesDelete,
 }
 
@@ -133,8 +135,37 @@ already unlocked unless this action is called.
 
 Examples:
   canvas modules relock --course-id 123 456`,
-	Args: cobra.ExactArgs(1),
+	Args: ExactArgsWithUsage(1, "module-id"),
 	RunE: runModulesRelock,
+}
+
+// modulesPublishCmd represents the modules publish command
+var modulesPublishCmd = &cobra.Command{
+	Use:   "publish <module-id>",
+	Short: "Publish a module",
+	Long: `Publish a module to make it visible to students.
+
+This is a convenience command equivalent to:
+  canvas modules update --course-id 123 456 --published
+
+Examples:
+  canvas modules publish --course-id 123 456`,
+	Args: ExactArgsWithUsage(1, "module-id"),
+	RunE: runModulesPublish,
+}
+
+// modulesUnpublishCmd represents the modules unpublish command
+var modulesUnpublishCmd = &cobra.Command{
+	Use:   "unpublish <module-id>",
+	Short: "Unpublish a module",
+	Long: `Unpublish a module to hide it from students.
+
+This is a convenience command that sets the module's published state to false.
+
+Examples:
+  canvas modules unpublish --course-id 123 456`,
+	Args: ExactArgsWithUsage(1, "module-id"),
+	RunE: runModulesUnpublish,
 }
 
 // modulesItemsCmd represents the module items subcommand group
@@ -174,7 +205,7 @@ var modulesItemsGetCmd = &cobra.Command{
 Examples:
   canvas modules items get --course-id 123 --module-id 456 789
   canvas modules items get --course-id 123 --module-id 456 789 --include content_details`,
-	Args: cobra.ExactArgs(1),
+	Args: ExactArgsWithUsage(1, "item-id"),
 	RunE: runModulesItemsGet,
 }
 
@@ -210,6 +241,21 @@ Examples:
 	RunE: runModulesItemsCreate,
 }
 
+// modulesItemsUpdateCmd represents the module items update command
+var modulesItemsUpdateCmd = &cobra.Command{
+	Use:   "update <item-id>",
+	Short: "Update a module item",
+	Long: `Update an existing module item.
+
+Examples:
+  canvas modules items update --course-id 123 --module-id 456 789 --title "New Title"
+  canvas modules items update --course-id 123 --module-id 456 789 --position 2
+  canvas modules items update --course-id 123 --module-id 456 789 --published
+  canvas modules items update --course-id 123 --module-id 456 789 --move-to-module 555`,
+	Args: ExactArgsWithUsage(1, "item-id"),
+	RunE: runModulesItemsUpdate,
+}
+
 // modulesItemsDeleteCmd represents the module items delete command
 var modulesItemsDeleteCmd = &cobra.Command{
 	Use:   "delete <item-id>",
@@ -218,7 +264,7 @@ var modulesItemsDeleteCmd = &cobra.Command{
 
 Examples:
   canvas modules items delete --course-id 123 --module-id 456 789`,
-	Args: cobra.ExactArgs(1),
+	Args: ExactArgsWithUsage(1, "item-id"),
 	RunE: runModulesItemsDelete,
 }
 
@@ -230,7 +276,7 @@ var modulesItemsDoneCmd = &cobra.Command{
 
 Examples:
   canvas modules items done --course-id 123 --module-id 456 789`,
-	Args: cobra.ExactArgs(1),
+	Args: ExactArgsWithUsage(1, "item-id"),
 	RunE: runModulesItemsDone,
 }
 
@@ -242,12 +288,15 @@ func init() {
 	modulesCmd.AddCommand(modulesUpdateCmd)
 	modulesCmd.AddCommand(modulesDeleteCmd)
 	modulesCmd.AddCommand(modulesRelockCmd)
+	modulesCmd.AddCommand(modulesPublishCmd)
+	modulesCmd.AddCommand(modulesUnpublishCmd)
 	modulesCmd.AddCommand(modulesItemsCmd)
 
 	// Items subcommands
 	modulesItemsCmd.AddCommand(modulesItemsListCmd)
 	modulesItemsCmd.AddCommand(modulesItemsGetCmd)
 	modulesItemsCmd.AddCommand(modulesItemsCreateCmd)
+	modulesItemsCmd.AddCommand(modulesItemsUpdateCmd)
 	modulesItemsCmd.AddCommand(modulesItemsDeleteCmd)
 	modulesItemsCmd.AddCommand(modulesItemsDoneCmd)
 
@@ -295,6 +344,14 @@ func init() {
 	modulesRelockCmd.Flags().Int64Var(&modulesCourseID, "course-id", 0, "Course ID (required)")
 	modulesRelockCmd.MarkFlagRequired("course-id")
 
+	// Publish flags
+	modulesPublishCmd.Flags().Int64Var(&modulesCourseID, "course-id", 0, "Course ID (required)")
+	modulesPublishCmd.MarkFlagRequired("course-id")
+
+	// Unpublish flags
+	modulesUnpublishCmd.Flags().Int64Var(&modulesCourseID, "course-id", 0, "Course ID (required)")
+	modulesUnpublishCmd.MarkFlagRequired("course-id")
+
 	// Items list flags
 	modulesItemsListCmd.Flags().Int64Var(&modulesCourseID, "course-id", 0, "Course ID (required)")
 	modulesItemsListCmd.Flags().Int64Var(&modulesModuleID, "module-id", 0, "Module ID (required)")
@@ -328,6 +385,21 @@ func init() {
 	modulesItemsCreateCmd.MarkFlagRequired("course-id")
 	modulesItemsCreateCmd.MarkFlagRequired("module-id")
 	modulesItemsCreateCmd.MarkFlagRequired("type")
+
+	// Items update flags
+	modulesItemsUpdateCmd.Flags().Int64Var(&modulesCourseID, "course-id", 0, "Course ID (required)")
+	modulesItemsUpdateCmd.Flags().Int64Var(&modulesModuleID, "module-id", 0, "Module ID (required)")
+	modulesItemsUpdateCmd.Flags().StringVar(&modulesItemTitle, "title", "", "New item title")
+	modulesItemsUpdateCmd.Flags().IntVar(&modulesPosition, "position", 0, "New position in the module")
+	modulesItemsUpdateCmd.Flags().IntVar(&modulesItemIndent, "indent", 0, "Indent level (0-based)")
+	modulesItemsUpdateCmd.Flags().StringVar(&modulesItemExternalURL, "external-url", "", "External URL (for ExternalUrl, ExternalTool)")
+	modulesItemsUpdateCmd.Flags().BoolVar(&modulesItemNewTab, "new-tab", false, "Open in new tab (for ExternalTool)")
+	modulesItemsUpdateCmd.Flags().StringVar(&modulesItemCompletionType, "completion-type", "", "Completion requirement: must_view, must_contribute, must_submit, must_mark_done, min_score")
+	modulesItemsUpdateCmd.Flags().Float64Var(&modulesItemMinScore, "min-score", 0, "Minimum score for min_score completion type")
+	modulesItemsUpdateCmd.Flags().BoolVar(&modulesItemPublished, "published", false, "Publish the item")
+	modulesItemsUpdateCmd.Flags().Int64Var(&modulesItemMoveToModule, "move-to-module", 0, "Move item to a different module")
+	modulesItemsUpdateCmd.MarkFlagRequired("course-id")
+	modulesItemsUpdateCmd.MarkFlagRequired("module-id")
 
 	// Items delete flags
 	modulesItemsDeleteCmd.Flags().Int64Var(&modulesCourseID, "course-id", 0, "Course ID (required)")
@@ -434,10 +506,7 @@ func runModulesCreate(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to create module: %w", err)
 	}
 
-	fmt.Println("Module created successfully!")
-	displayModule(module)
-
-	return nil
+	return formatSuccessOutput(module, "Module created successfully!")
 }
 
 func runModulesUpdate(cmd *cobra.Command, args []string) error {
@@ -489,10 +558,7 @@ func runModulesUpdate(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to update module: %w", err)
 	}
 
-	fmt.Println("Module updated successfully!")
-	displayModule(module)
-
-	return nil
+	return formatSuccessOutput(module, "Module updated successfully!")
 }
 
 func runModulesDelete(cmd *cobra.Command, args []string) error {
@@ -556,10 +622,71 @@ func runModulesRelock(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to relock module: %w", err)
 	}
 
-	fmt.Println("Module progressions re-locked successfully!")
-	displayModule(module)
+	return formatSuccessOutput(module, "Module progressions re-locked successfully!")
+}
 
-	return nil
+func runModulesPublish(cmd *cobra.Command, args []string) error {
+	moduleID, err := strconv.ParseInt(args[0], 10, 64)
+	if err != nil {
+		return fmt.Errorf("invalid module ID: %s", args[0])
+	}
+
+	client, err := getAPIClient()
+	if err != nil {
+		return err
+	}
+
+	// Validate course ID exists
+	if _, err := validateCourseID(client, modulesCourseID); err != nil {
+		return err
+	}
+
+	modulesService := api.NewModulesService(client)
+
+	published := true
+	params := &api.UpdateModuleParams{
+		Published: &published,
+	}
+
+	ctx := context.Background()
+	module, err := modulesService.Update(ctx, modulesCourseID, moduleID, params)
+	if err != nil {
+		return fmt.Errorf("failed to publish module: %w", err)
+	}
+
+	return formatSuccessOutput(module, "Module published successfully!")
+}
+
+func runModulesUnpublish(cmd *cobra.Command, args []string) error {
+	moduleID, err := strconv.ParseInt(args[0], 10, 64)
+	if err != nil {
+		return fmt.Errorf("invalid module ID: %s", args[0])
+	}
+
+	client, err := getAPIClient()
+	if err != nil {
+		return err
+	}
+
+	// Validate course ID exists
+	if _, err := validateCourseID(client, modulesCourseID); err != nil {
+		return err
+	}
+
+	modulesService := api.NewModulesService(client)
+
+	published := false
+	params := &api.UpdateModuleParams{
+		Published: &published,
+	}
+
+	ctx := context.Background()
+	module, err := modulesService.Update(ctx, modulesCourseID, moduleID, params)
+	if err != nil {
+		return fmt.Errorf("failed to unpublish module: %w", err)
+	}
+
+	return formatSuccessOutput(module, "Module unpublished successfully!")
 }
 
 func runModulesItemsList(cmd *cobra.Command, args []string) error {
@@ -662,10 +789,65 @@ func runModulesItemsCreate(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to create module item: %w", err)
 	}
 
-	fmt.Println("Module item created successfully!")
-	displayModuleItem(item, "")
+	return formatSuccessOutput(item, "Module item created successfully!")
+}
 
-	return nil
+func runModulesItemsUpdate(cmd *cobra.Command, args []string) error {
+	itemID, err := strconv.ParseInt(args[0], 10, 64)
+	if err != nil {
+		return fmt.Errorf("invalid item ID: %s", args[0])
+	}
+
+	client, err := getAPIClient()
+	if err != nil {
+		return err
+	}
+
+	// Validate course ID exists
+	if _, err := validateCourseID(client, modulesCourseID); err != nil {
+		return err
+	}
+
+	modulesService := api.NewModulesService(client)
+
+	params := &api.UpdateModuleItemParams{}
+
+	// Only set fields that were explicitly provided
+	if cmd.Flags().Changed("title") {
+		params.Title = &modulesItemTitle
+	}
+	if cmd.Flags().Changed("position") {
+		params.Position = &modulesPosition
+	}
+	if cmd.Flags().Changed("indent") {
+		params.Indent = &modulesItemIndent
+	}
+	if cmd.Flags().Changed("external-url") {
+		params.ExternalURL = &modulesItemExternalURL
+	}
+	if cmd.Flags().Changed("new-tab") {
+		params.NewTab = &modulesItemNewTab
+	}
+	if cmd.Flags().Changed("published") {
+		params.Published = &modulesItemPublished
+	}
+	if cmd.Flags().Changed("move-to-module") {
+		params.MoveToModuleID = &modulesItemMoveToModule
+	}
+	if cmd.Flags().Changed("completion-type") {
+		params.CompletionRequirement = &api.CompletionRequirementParams{
+			Type:     modulesItemCompletionType,
+			MinScore: modulesItemMinScore,
+		}
+	}
+
+	ctx := context.Background()
+	item, err := modulesService.UpdateItem(ctx, modulesCourseID, modulesModuleID, itemID, params)
+	if err != nil {
+		return fmt.Errorf("failed to update module item: %w", err)
+	}
+
+	return formatSuccessOutput(item, "Module item updated successfully!")
 }
 
 func runModulesItemsDelete(cmd *cobra.Command, args []string) error {
@@ -730,104 +912,4 @@ func runModulesItemsDone(cmd *cobra.Command, args []string) error {
 
 	fmt.Printf("Module item %d marked as done\n", itemID)
 	return nil
-}
-
-func displayModule(module *api.Module) {
-	stateIcon := "📦"
-	if module.Published {
-		stateIcon = "📗"
-	}
-
-	fmt.Printf("%s %s\n", stateIcon, module.Name)
-	fmt.Printf("   ID: %d\n", module.ID)
-	fmt.Printf("   Position: %d\n", module.Position)
-	fmt.Printf("   State: %s\n", module.WorkflowState)
-	fmt.Printf("   Items: %d\n", module.ItemsCount)
-
-	if module.Published {
-		fmt.Printf("   Published: Yes\n")
-	} else {
-		fmt.Printf("   Published: No\n")
-	}
-
-	if module.RequireSequentialProgress {
-		fmt.Printf("   Sequential Progress: Required\n")
-	}
-
-	if len(module.PrerequisiteModuleIDs) > 0 {
-		fmt.Printf("   Prerequisites: %v\n", module.PrerequisiteModuleIDs)
-	}
-
-	if module.UnlockAt != nil {
-		fmt.Printf("   Unlock At: %s\n", module.UnlockAt.Format("2006-01-02 15:04"))
-	}
-
-	if module.State != "" {
-		fmt.Printf("   Student State: %s\n", module.State)
-	}
-
-	fmt.Println()
-}
-
-func displayModuleItem(item *api.ModuleItem, indent string) {
-	typeIcon := getItemTypeIcon(item.Type)
-
-	fmt.Printf("%s%s %s\n", indent, typeIcon, item.Title)
-	fmt.Printf("%s   ID: %d\n", indent, item.ID)
-	fmt.Printf("%s   Type: %s\n", indent, item.Type)
-	fmt.Printf("%s   Position: %d\n", indent, item.Position)
-
-	if item.Indent > 0 {
-		fmt.Printf("%s   Indent: %d\n", indent, item.Indent)
-	}
-
-	if item.Published {
-		fmt.Printf("%s   Published: Yes\n", indent)
-	} else {
-		fmt.Printf("%s   Published: No\n", indent)
-	}
-
-	if item.CompletionRequirement != nil {
-		fmt.Printf("%s   Completion: %s", indent, item.CompletionRequirement.Type)
-		if item.CompletionRequirement.MinScore > 0 {
-			fmt.Printf(" (min: %.0f)", item.CompletionRequirement.MinScore)
-		}
-		if item.CompletionRequirement.Completed {
-			fmt.Printf(" [Completed]")
-		}
-		fmt.Println()
-	}
-
-	if item.ExternalURL != "" {
-		fmt.Printf("%s   URL: %s\n", indent, item.ExternalURL)
-	}
-
-	if item.PageURL != "" {
-		fmt.Printf("%s   Page: %s\n", indent, item.PageURL)
-	}
-
-	fmt.Println()
-}
-
-func getItemTypeIcon(itemType string) string {
-	switch itemType {
-	case "File":
-		return "📄"
-	case "Page":
-		return "📝"
-	case "Discussion":
-		return "💬"
-	case "Assignment":
-		return "📋"
-	case "Quiz":
-		return "❓"
-	case "SubHeader":
-		return "📑"
-	case "ExternalUrl":
-		return "🔗"
-	case "ExternalTool":
-		return "🔧"
-	default:
-		return "📌"
-	}
 }

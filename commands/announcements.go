@@ -60,7 +60,7 @@ var announcementsGetCmd = &cobra.Command{
 
 Examples:
   canvas announcements get --course-id 123 456`,
-	Args: cobra.ExactArgs(1),
+	Args: ExactArgsWithUsage(1, "announcement-id"),
 	RunE: runAnnouncementsGet,
 }
 
@@ -86,7 +86,7 @@ var announcementsUpdateCmd = &cobra.Command{
 Examples:
   canvas announcements update --course-id 123 456 --title "Updated Title"
   canvas announcements update --course-id 123 456 --message "<p>Updated content</p>"`,
-	Args: cobra.ExactArgs(1),
+	Args: ExactArgsWithUsage(1, "announcement-id"),
 	RunE: runAnnouncementsUpdate,
 }
 
@@ -98,7 +98,7 @@ var announcementsDeleteCmd = &cobra.Command{
 
 Examples:
   canvas announcements delete --course-id 123 456`,
-	Args: cobra.ExactArgs(1),
+	Args: ExactArgsWithUsage(1, "announcement-id"),
 	RunE: runAnnouncementsDelete,
 }
 
@@ -222,10 +222,7 @@ func runAnnouncementsCreate(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to create announcement: %w", err)
 	}
 
-	fmt.Println("Announcement created successfully!")
-	displayAnnouncement(announcement)
-
-	return nil
+	return formatSuccessOutput(announcement, "Announcement created successfully!")
 }
 
 func runAnnouncementsUpdate(cmd *cobra.Command, args []string) error {
@@ -259,10 +256,7 @@ func runAnnouncementsUpdate(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to update announcement: %w", err)
 	}
 
-	fmt.Println("Announcement updated successfully!")
-	displayAnnouncement(announcement)
-
-	return nil
+	return formatSuccessOutput(announcement, "Announcement updated successfully!")
 }
 
 func runAnnouncementsDelete(cmd *cobra.Command, args []string) error {
@@ -295,22 +289,4 @@ func runAnnouncementsDelete(cmd *cobra.Command, args []string) error {
 
 	fmt.Printf("Announcement %d deleted successfully\n", announcementID)
 	return nil
-}
-
-func displayAnnouncement(announcement *api.DiscussionTopic) {
-	fmt.Printf("📢 [%d] %s\n", announcement.ID, announcement.Title)
-
-	if announcement.PostedAt != nil {
-		fmt.Printf("   Posted: %s\n", announcement.PostedAt.Format("2006-01-02 15:04"))
-	}
-
-	if announcement.DelayedPostAt != nil {
-		fmt.Printf("   Scheduled for: %s\n", announcement.DelayedPostAt.Format("2006-01-02 15:04"))
-	}
-
-	if announcement.Author != nil {
-		fmt.Printf("   By: %s\n", announcement.Author.Name)
-	}
-
-	fmt.Println()
 }

@@ -43,6 +43,10 @@ func (p *Processor) Process(ctx context.Context, items []interface{}, fn Process
 		return &Summary{Total: 0}, nil
 	}
 
+	// Create a cancellable context to signal workers to stop on error
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
 	// Create channels
 	jobs := make(chan job, len(items))
 	results := make(chan Result, len(items))
@@ -83,7 +87,8 @@ func (p *Processor) Process(ctx context.Context, items []interface{}, fn Process
 		if result.Error != nil {
 			summary.Failed++
 			if p.stopOnError {
-				// Cancel remaining jobs
+				// Cancel context to signal workers to stop processing
+				cancel()
 				break
 			}
 		} else {
