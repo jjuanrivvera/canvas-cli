@@ -1,19 +1,88 @@
 # Authentication Guide
 
-Canvas CLI uses OAuth 2.0 for secure authentication with Canvas LMS. This guide covers everything you need to set up and manage authentication.
+Canvas CLI supports multiple authentication methods: **API Token** (simplest), **OAuth 2.0** (most secure), and **Environment Variables** (for CI/CD). This guide covers everything you need to set up and manage authentication.
 
 ## Quick Start
 
-The simplest way to authenticate:
+### Option 1: API Token (Simplest)
+
+```bash
+canvas auth token set myschool --url https://canvas.instructure.com --token 7~your-token-here
+```
+
+Generate a token in Canvas: **Account > Settings > New Access Token**
+
+### Option 2: OAuth 2.0 (Most Secure)
 
 ```bash
 canvas auth login --instance https://canvas.instructure.com
 ```
 
-This will:
-1. Open your browser to Canvas
-2. Ask you to authorize the application
-3. Automatically save your credentials securely
+This will open your browser to authorize the application.
+
+## API Token Authentication
+
+API tokens are the simplest way to authenticate, especially for personal use or when OAuth isn't required.
+
+### Getting an API Token
+
+1. Log into Canvas
+2. Go to **Account > Settings**
+3. Scroll to **Approved Integrations**
+4. Click **+ New Access Token**
+5. Give it a name and set an expiration (optional)
+6. Copy the token (it will only be shown once!)
+
+### Setting Up Token Auth
+
+```bash
+# For an existing instance
+canvas auth token set myschool --token 7~abc123...
+
+# For a new instance (include URL)
+canvas auth token set sandbox --url https://sandbox.instructure.com --token 7~xyz789...
+
+# Interactive mode (prompts for token)
+canvas auth token set myschool
+```
+
+### Managing Tokens
+
+```bash
+# Check authentication status (shows auth type)
+canvas auth status
+
+# Remove token from an instance
+canvas auth token remove myschool
+```
+
+### Mixing Auth Types
+
+You can use different authentication methods for different instances:
+
+```bash
+# OAuth for production
+canvas auth login --instance prod
+
+# Token for sandbox/testing
+canvas auth token set sandbox --url https://sandbox.instructure.com --token 7~test123...
+
+# Check status - shows auth type for each
+canvas auth status
+```
+
+Output:
+```
+📌 prod (default)
+   URL: https://canvas.instructure.com
+   Auth: OAuth
+   Status: ✓ Authenticated
+
+📌 sandbox
+   URL: https://sandbox.instructure.com
+   Auth: API Token
+   Status: ✓ Configured (token does not expire)
+```
 
 ## OAuth 2.0 Setup
 
@@ -109,9 +178,10 @@ canvas courses list
 **Priority Order:**
 
 Canvas CLI checks for credentials in this order:
+
 1. **Environment variables** (CANVAS_URL + CANVAS_TOKEN) - highest priority
-2. **Config file** (~/.canvas-cli/config.yaml)
-3. **OAuth tokens** (stored in system keychain)
+2. **API Token** in config (set via `canvas auth token set`)
+3. **OAuth tokens** (stored in system keychain, set via `canvas auth login`)
 
 **CI/CD Example (GitHub Actions):**
 

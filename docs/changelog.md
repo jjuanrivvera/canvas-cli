@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.2] - 2026-01-14
+
+### Added
+
+- **Per-instance API Token Authentication**: New alternative to OAuth for simpler authentication
+  - `canvas auth token set <instance>` - Configure API token for an instance
+  - `canvas auth token remove <instance>` - Remove API token from an instance
+  - Tokens stored in config file, can be mixed with OAuth per-instance
+- **User-Agent Header**: All API requests now include `User-Agent: canvas-cli/VERSION`
+  - Required by Canvas API (enforcement coming soon per Canvas changelog)
+  - Includes version for debugging and analytics
+- **Auth Status Improvements**: `canvas auth status` now shows authentication type (token/oauth/none)
+- **Instance Helper Methods**: `HasToken()`, `HasOAuth()`, `AuthType()` for config
+
+### Changed
+
+- Token authentication takes precedence over OAuth when both are configured for an instance
+- Improved error messages for authentication failures
+
 ## [1.0.0] - 2026-01-09
 
 ### Added

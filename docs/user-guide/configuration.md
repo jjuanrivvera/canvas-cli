@@ -12,13 +12,21 @@ instances:
   production:
     name: production
     url: https://canvas.example.com
+    # OAuth credentials (optional - for auto-refresh)
+    client_id: "your-client-id"
+    client_secret: "your-client-secret"
   sandbox:
     name: sandbox
     url: https://canvas-sandbox.example.com
+    # API token (alternative to OAuth)
+    token: "7~your-api-token-here"
 ```
 
-!!! note "Token Storage"
-    OAuth tokens are stored securely in your system keychain, not in the config file.
+!!! note "Authentication Methods"
+    - **API Token**: Stored directly in config file (set via `canvas auth token set`)
+    - **OAuth tokens**: Stored securely in your system keychain (set via `canvas auth login`)
+
+    You can mix both methods - use OAuth for production and API tokens for testing/sandbox environments.
 
 ## Managing Instances
 
@@ -32,9 +40,14 @@ canvas config add production --url https://canvas.example.com
 canvas config add staging --url https://canvas-staging.example.com --description "Staging environment"
 ```
 
-After adding, authenticate with:
+After adding, authenticate with OAuth:
 ```bash
 canvas auth login --instance production
+```
+
+Or set an API token:
+```bash
+canvas auth token set production --token 7~your-token-here
 ```
 
 ### List Instances
