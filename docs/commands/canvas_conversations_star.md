@@ -11,7 +11,10 @@ Star a conversation
 Star a conversation to mark it as important.
 
 Examples:
-  canvas conversations star 123
+
+```bash
+canvas conversations star 123
+```
 
 ```
 canvas conversations star <conversation-id> [flags]

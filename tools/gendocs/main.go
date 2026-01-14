@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/spf13/cobra/doc"
@@ -131,5 +132,148 @@ canvas submissions grade 789 --score 95       # Grade a submission
 		log.Fatalf("Failed to write index.md: %v", err)
 	}
 
+	// Post-process markdown files to fix example formatting
+	if err := postProcessMarkdownFiles(outputDir); err != nil {
+		log.Fatalf("Failed to post-process markdown files: %v", err)
+	}
+
 	fmt.Printf("CLI reference generated in %s\n", outputDir)
+}
+
+// postProcessMarkdownFiles walks through all generated markdown files and fixes
+// the Examples: sections by wrapping them in code blocks
+func postProcessMarkdownFiles(dir string) error {
+	return filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if info.IsDir() || !strings.HasSuffix(path, ".md") || strings.HasSuffix(path, "index.md") {
+			return nil
+		}
+
+		content, err := os.ReadFile(path)
+		if err != nil {
+			return err
+		}
+
+		fixed := fixExamplesInMarkdown(string(content))
+
+		return os.WriteFile(path, []byte(fixed), 0644)
+	})
+}
+
+// fixExamplesInMarkdown finds "Examples:" sections in the Synopsis and wraps
+// the example lines in code blocks
+func fixExamplesInMarkdown(content string) string {
+	lines := strings.Split(content, "\n")
+	var result []string
+	inSynopsis := false
+	inExamples := false
+	exampleLines := []string{}
+
+	// Pattern to detect example command lines (starts with spaces + canvas or #)
+	exampleLinePattern := regexp.MustCompile(`^\s{2,}(canvas |# )`)
+
+	for i, line := range lines {
+		// Track if we're in the Synopsis section
+		if line == "### Synopsis" {
+			inSynopsis = true
+			result = append(result, line)
+			continue
+		}
+
+		// Exit Synopsis when we hit the next section
+		if inSynopsis && strings.HasPrefix(line, "### ") && line != "### Synopsis" {
+			// Flush any pending examples
+			if inExamples && len(exampleLines) > 0 {
+				result = append(result, "```bash")
+				result = append(result, exampleLines...)
+				result = append(result, "```")
+				result = append(result, "")
+				exampleLines = []string{}
+			}
+			inSynopsis = false
+			inExamples = false
+			result = append(result, line)
+			continue
+		}
+
+		if inSynopsis {
+			// Check if this line starts an Examples section
+			if strings.TrimSpace(line) == "Examples:" {
+				inExamples = true
+				result = append(result, line)
+				result = append(result, "")
+				continue
+			}
+
+			// If we're in examples, collect example lines
+			if inExamples {
+				trimmed := strings.TrimSpace(line)
+
+				// Empty line might end examples section, or be between example groups
+				if trimmed == "" {
+					// Check if next non-empty line is still an example
+					nextIsExample := false
+					for j := i + 1; j < len(lines) && j < i+5; j++ {
+						nextTrimmed := strings.TrimSpace(lines[j])
+						if nextTrimmed == "" {
+							continue
+						}
+						if exampleLinePattern.MatchString(lines[j]) {
+							nextIsExample = true
+						}
+						break
+					}
+
+					if nextIsExample {
+						// Add blank line within examples
+						if len(exampleLines) > 0 {
+							exampleLines = append(exampleLines, "")
+						}
+					} else if len(exampleLines) > 0 {
+						// End of examples - flush
+						result = append(result, "```bash")
+						result = append(result, exampleLines...)
+						result = append(result, "```")
+						result = append(result, "")
+						exampleLines = []string{}
+						inExamples = false
+					}
+					continue
+				}
+
+				// Check if this looks like an example line
+				if exampleLinePattern.MatchString(line) {
+					// Remove leading whitespace for code block
+					exampleLines = append(exampleLines, strings.TrimPrefix(line, "  "))
+					continue
+				}
+
+				// Not an example line - flush examples and continue normally
+				if len(exampleLines) > 0 {
+					result = append(result, "```bash")
+					result = append(result, exampleLines...)
+					result = append(result, "```")
+					result = append(result, "")
+					exampleLines = []string{}
+				}
+				inExamples = false
+				result = append(result, line)
+				continue
+			}
+		}
+
+		result = append(result, line)
+	}
+
+	// Flush any remaining examples
+	if len(exampleLines) > 0 {
+		result = append(result, "```bash")
+		result = append(result, exampleLines...)
+		result = append(result, "```")
+	}
+
+	return strings.Join(result, "\n")
 }

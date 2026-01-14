@@ -13,9 +13,12 @@ Grade a specific submission for an assignment and user.
 You can provide a score, comment, or excuse the submission.
 
 Examples:
-  canvas submissions grade --course-id 123 --assignment-id 456 --user-id 789 --score 95
-  canvas submissions grade --course-id 123 --assignment-id 456 --user-id 789 --score 85 --comment "Good work"
-  canvas submissions grade --course-id 123 --assignment-id 456 --user-id 789 --excuse
+
+```bash
+canvas submissions grade --course-id 123 --assignment-id 456 --user-id 789 --score 95
+canvas submissions grade --course-id 123 --assignment-id 456 --user-id 789 --score 85 --comment "Good work"
+canvas submissions grade --course-id 123 --assignment-id 456 --user-id 789 --excuse
+```
 
 ```
 canvas submissions grade [flags]

@@ -11,7 +11,10 @@ Revert to a specific revision
 Revert a wiki page to a specific revision.
 
 Examples:
-  canvas pages revert --course-id 123 my-page-url 5
+
+```bash
+canvas pages revert --course-id 123 my-page-url 5
+```
 
 ```
 canvas pages revert <url-or-id> <revision-id> [flags]

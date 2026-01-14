@@ -11,9 +11,12 @@ Sync blueprint to associated courses
 Begin a sync of the blueprint to all associated courses.
 
 Examples:
-  canvas blueprint sync --course-id 1
-  canvas blueprint sync --course-id 1 --comment "Weekly content update"
-  canvas blueprint sync --course-id 1 --send-notification --copy-settings
+
+```bash
+canvas blueprint sync --course-id 1
+canvas blueprint sync --course-id 1 --comment "Weekly content update"
+canvas blueprint sync --course-id 1 --send-notification --copy-settings
+```
 
 ```
 canvas blueprint sync [flags]

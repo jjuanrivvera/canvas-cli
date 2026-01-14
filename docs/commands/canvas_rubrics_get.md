@@ -11,8 +11,11 @@ Get rubric details
 Get details of a specific rubric.
 
 Examples:
-  canvas rubrics get 456 --course-id 123
-  canvas rubrics get 456 --account-id 1 --include assessments
+
+```bash
+canvas rubrics get 456 --course-id 123
+canvas rubrics get 456 --account-id 1 --include assessments
+```
 
 ```
 canvas rubrics get <rubric-id> [flags]

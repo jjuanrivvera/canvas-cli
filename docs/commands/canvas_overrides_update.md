@@ -11,8 +11,11 @@ Update an override
 Update an existing assignment override.
 
 Examples:
-  canvas overrides update 789 --course-id 123 --assignment-id 456 --due-at "2024-03-18T23:59:00Z"
-  canvas overrides update 789 --course-id 123 --assignment-id 456 --title "New title"
+
+```bash
+canvas overrides update 789 --course-id 123 --assignment-id 456 --due-at "2024-03-18T23:59:00Z"
+canvas overrides update 789 --course-id 123 --assignment-id 456 --title "New title"
+```
 
 ```
 canvas overrides update <override-id> [flags]

@@ -11,9 +11,12 @@ Get gradebook history feed
 Get gradebook history feed showing grade changes.
 
 Examples:
-  canvas grades feed --course-id 123
-  canvas grades feed --course-id 123 --user-id 456
-  canvas grades feed --course-id 123 --assignment-id 789
+
+```bash
+canvas grades feed --course-id 123
+canvas grades feed --course-id 123 --user-id 456
+canvas grades feed --course-id 123 --assignment-id 789
+```
 
 ```
 canvas grades feed [flags]

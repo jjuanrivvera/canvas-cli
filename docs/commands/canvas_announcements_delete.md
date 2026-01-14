@@ -11,7 +11,10 @@ Delete an announcement
 Delete an announcement from a course.
 
 Examples:
-  canvas announcements delete --course-id 123 456
+
+```bash
+canvas announcements delete --course-id 123 456
+```
 
 ```
 canvas announcements delete <announcement-id> [flags]

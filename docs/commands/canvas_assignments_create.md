@@ -13,14 +13,18 @@ Create a new assignment in a Canvas course.
 You can provide assignment data via flags or JSON file/stdin.
 
 Examples:
-  # Using flags
-  canvas assignments create --course-id 123 --name "Quiz 1" --points 100
-  canvas assignments create --course-id 123 --name "Essay" --points 50 --due-at "2025-02-01T23:59:00Z"
 
-  # Using JSON file
-  canvas assignments create --course-id 123 --json assignment.json
+```bash
+# Using flags
+canvas assignments create --course-id 123 --name "Quiz 1" --points 100
+canvas assignments create --course-id 123 --name "Essay" --points 50 --due-at "2025-02-01T23:59:00Z"
 
-  # Using stdin
+# Using JSON file
+canvas assignments create --course-id 123 --json assignment.json
+
+# Using stdin
+```
+
   echo '{"name":"Quiz 1","points_possible":100}' | canvas assignments create --course-id 123 --stdin
 
 ```

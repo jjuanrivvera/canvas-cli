@@ -11,7 +11,10 @@ Get blueprint details
 Get details of a blueprint course template.
 
 Examples:
-  canvas blueprint get --course-id 1
+
+```bash
+canvas blueprint get --course-id 1
+```
 
 ```
 canvas blueprint get [flags]

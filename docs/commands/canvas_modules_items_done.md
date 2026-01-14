@@ -11,7 +11,10 @@ Mark a module item as done
 Mark a module item as done (for must_mark_done requirement).
 
 Examples:
-  canvas modules items done --course-id 123 --module-id 456 789
+
+```bash
+canvas modules items done --course-id 123 --module-id 456 789
+```
 
 ```
 canvas modules items done <item-id> [flags]

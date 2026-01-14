@@ -18,8 +18,11 @@ Migration types:
   - qti_importer: Import QTI quiz file
 
 Examples:
-  canvas content-migrations create --course-id 1 --type course_copy_importer --source-course-id 100
-  canvas content-migrations create --course-id 1 --type common_cartridge_importer --file export.imscc
+
+```bash
+canvas content-migrations create --course-id 1 --type course_copy_importer --source-course-id 100
+canvas content-migrations create --course-id 1 --type common_cartridge_importer --file export.imscc
+```
 
 ```
 canvas content-migrations create [flags]

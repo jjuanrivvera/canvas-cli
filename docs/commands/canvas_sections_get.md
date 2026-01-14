@@ -11,8 +11,11 @@ Get section details
 Get details of a specific section.
 
 Examples:
-  canvas sections get 456
-  canvas sections get 456 --include students,total_students
+
+```bash
+canvas sections get 456
+canvas sections get 456 --include students,total_students
+```
 
 ```
 canvas sections get <section-id> [flags]

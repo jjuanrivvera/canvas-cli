@@ -14,9 +14,12 @@ Rubrics provide standardized criteria for grading and can be attached to
 assignments to ensure consistent evaluation.
 
 Examples:
-  canvas rubrics list --course-id 123
-  canvas rubrics get 456 --course-id 123
-  canvas rubrics create --course-id 123 --title "Essay Rubric"
+
+```bash
+canvas rubrics list --course-id 123
+canvas rubrics get 456 --course-id 123
+canvas rubrics create --course-id 123 --title "Essay Rubric"
+```
 
 ### Options
 

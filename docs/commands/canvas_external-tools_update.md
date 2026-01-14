@@ -11,8 +11,11 @@ Update an external tool
 Update an existing external tool.
 
 Examples:
-  canvas external-tools update 456 --course-id 123 --name "Updated Name"
-  canvas external-tools update 456 --course-id 123 --url https://new-url.example.com
+
+```bash
+canvas external-tools update 456 --course-id 123 --name "Updated Name"
+canvas external-tools update 456 --course-id 123 --url https://new-url.example.com
+```
 
 ```
 canvas external-tools update <tool-id> [flags]

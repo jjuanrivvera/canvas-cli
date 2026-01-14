@@ -11,7 +11,10 @@ Get quiz details
 Get details of a specific quiz.
 
 Examples:
-  canvas quizzes get 456 --course-id 123
+
+```bash
+canvas quizzes get 456 --course-id 123
+```
 
 ```
 canvas quizzes get <quiz-id> [flags]

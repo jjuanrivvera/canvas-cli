@@ -11,7 +11,10 @@ Delete a module
 Delete a module from a course.
 
 Examples:
-  canvas modules delete --course-id 123 456
+
+```bash
+canvas modules delete --course-id 123 456
+```
 
 ```
 canvas modules delete <module-id> [flags]

@@ -11,8 +11,11 @@ Get details of a specific account
 Get details of a specific account by ID.
 
 Examples:
-  canvas accounts get 1
-  canvas accounts get 5
+
+```bash
+canvas accounts get 1
+canvas accounts get 5
+```
 
 ```
 canvas accounts get <account-id> [flags]

@@ -13,9 +13,12 @@ Create a new assignment override.
 You must specify one of: --student-ids, --section-id, or --group-id.
 
 Examples:
-  canvas overrides create --course-id 123 --assignment-id 456 --section-id 100 --due-at "2024-03-15T23:59:00Z"
-  canvas overrides create --course-id 123 --assignment-id 456 --student-ids "200,201" --title "Extended deadline" --due-at "2024-03-20T23:59:00Z"
-  canvas overrides create --course-id 123 --assignment-id 456 --group-id 50 --unlock-at "2024-03-01" --lock-at "2024-03-30"
+
+```bash
+canvas overrides create --course-id 123 --assignment-id 456 --section-id 100 --due-at "2024-03-15T23:59:00Z"
+canvas overrides create --course-id 123 --assignment-id 456 --student-ids "200,201" --title "Extended deadline" --due-at "2024-03-20T23:59:00Z"
+canvas overrides create --course-id 123 --assignment-id 456 --group-id 50 --unlock-at "2024-03-01" --lock-at "2024-03-30"
+```
 
 ```
 canvas overrides create [flags]

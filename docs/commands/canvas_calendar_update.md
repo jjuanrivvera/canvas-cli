@@ -11,9 +11,12 @@ Update an existing calendar event
 Update an existing calendar event.
 
 Examples:
-  canvas calendar update 456 --title "Updated Meeting"
-  canvas calendar update 456 --start-at "2024-12-02T10:00:00Z"
-  canvas calendar update 456 --which all --title "Updated Series"
+
+```bash
+canvas calendar update 456 --title "Updated Meeting"
+canvas calendar update 456 --start-at "2024-12-02T10:00:00Z"
+canvas calendar update 456 --which all --title "Updated Series"
+```
 
 ```
 canvas calendar update <event-id> [flags]

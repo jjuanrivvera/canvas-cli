@@ -11,9 +11,12 @@ Create a new quiz
 Create a new quiz in a course.
 
 Examples:
-  canvas quizzes create --course-id 123 --title "Midterm Exam" --quiz-type assignment
-  canvas quizzes create --course-id 123 --title "Practice Quiz" --quiz-type practice_quiz --time-limit 30
-  canvas quizzes create --course-id 123 --title "Survey" --quiz-type survey --anonymous
+
+```bash
+canvas quizzes create --course-id 123 --title "Midterm Exam" --quiz-type assignment
+canvas quizzes create --course-id 123 --title "Practice Quiz" --quiz-type practice_quiz --time-limit 30
+canvas quizzes create --course-id 123 --title "Survey" --quiz-type survey --anonymous
+```
 
 ```
 canvas quizzes create [flags]

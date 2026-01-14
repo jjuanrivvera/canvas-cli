@@ -11,8 +11,11 @@ List peer reviews
 List peer reviews for an assignment.
 
 Examples:
-  canvas peer-reviews list --course-id 1 --assignment-id 10
-  canvas peer-reviews list --course-id 1 --assignment-id 10 --include user,submission_comments
+
+```bash
+canvas peer-reviews list --course-id 1 --assignment-id 10
+canvas peer-reviews list --course-id 1 --assignment-id 10 --include user,submission_comments
+```
 
 ```
 canvas peer-reviews list [flags]

@@ -11,7 +11,10 @@ List questions in a quiz
 List all questions in a quiz.
 
 Examples:
-  canvas quizzes questions list --course-id 123 --quiz-id 456
+
+```bash
+canvas quizzes questions list --course-id 123 --quiz-id 456
+```
 
 ```
 canvas quizzes questions list [flags]

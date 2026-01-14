@@ -14,7 +14,10 @@ This will restore the workflow_state for all items that changed
 their workflow_state during the import.
 
 Examples:
-  canvas sis-imports restore 123 --account-id 1
+
+```bash
+canvas sis-imports restore 123 --account-id 1
+```
 
 ```
 canvas sis-imports restore <import-id> [flags]

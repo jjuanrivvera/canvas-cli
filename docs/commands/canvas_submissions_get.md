@@ -11,8 +11,11 @@ Get a specific submission
 Get details of a specific submission for an assignment and user.
 
 Examples:
-  canvas submissions get --course-id 123 --assignment-id 456 --user-id 789
-  canvas submissions get --course-id 123 --assignment-id 456 --user-id 789 --include submission_comments,rubric_assessment
+
+```bash
+canvas submissions get --course-id 123 --assignment-id 456 --user-id 789
+canvas submissions get --course-id 123 --assignment-id 456 --user-id 789 --include submission_comments,rubric_assessment
+```
 
 ```
 canvas submissions get [flags]

@@ -11,8 +11,11 @@ Get assignment group details
 Get details of a specific assignment group.
 
 Examples:
-  canvas assignment-groups get 456 --course-id 123
-  canvas assignment-groups get 456 --course-id 123 --include assignments
+
+```bash
+canvas assignment-groups get 456 --course-id 123
+canvas assignment-groups get 456 --course-id 123 --include assignments
+```
 
 ```
 canvas assignment-groups get <group-id> [flags]

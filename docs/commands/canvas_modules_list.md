@@ -11,10 +11,13 @@ List modules in a course
 List all modules in a Canvas course.
 
 Examples:
-  canvas modules list --course-id 123
-  canvas modules list --course-id 123 --include items
-  canvas modules list --course-id 123 --search "Week"
-  canvas modules list --course-id 123 --student-id 789
+
+```bash
+canvas modules list --course-id 123
+canvas modules list --course-id 123 --include items
+canvas modules list --course-id 123 --search "Week"
+canvas modules list --course-id 123 --student-id 789
+```
 
 ```
 canvas modules list [flags]

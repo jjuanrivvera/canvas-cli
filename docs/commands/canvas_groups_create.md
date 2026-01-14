@@ -11,8 +11,11 @@ Create a new group
 Create a new group in a group category.
 
 Examples:
-  canvas groups create --category-id 123 --name "Study Group"
-  canvas groups create --category-id 123 --name "Project Team" --description "Our project team"
+
+```bash
+canvas groups create --category-id 123 --name "Study Group"
+canvas groups create --category-id 123 --name "Project Team" --description "Our project team"
+```
 
 ```
 canvas groups create [flags]

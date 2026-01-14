@@ -11,7 +11,10 @@ Delete a planner note
 Delete a planner note.
 
 Examples:
-  canvas planner notes delete 123
+
+```bash
+canvas planner notes delete 123
+```
 
 ```
 canvas planner notes delete <note-id> [flags]

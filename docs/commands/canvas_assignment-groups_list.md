@@ -11,9 +11,12 @@ List assignment groups in a course
 List all assignment groups in a course.
 
 Examples:
-  canvas assignment-groups list --course-id 123
-  canvas assignment-groups list --course-id 123 --include assignments
-  canvas assignment-groups list --course-id 123 --include rules,assignments
+
+```bash
+canvas assignment-groups list --course-id 123
+canvas assignment-groups list --course-id 123 --include assignments
+canvas assignment-groups list --course-id 123 --include rules,assignments
+```
 
 ```
 canvas assignment-groups list [flags]

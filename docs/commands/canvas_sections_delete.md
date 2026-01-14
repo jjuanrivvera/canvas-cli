@@ -14,8 +14,11 @@ WARNING: This action cannot be undone. All students in the section will be
 removed from the course unless they are also enrolled in another section.
 
 Examples:
-  canvas sections delete 456
-  canvas sections delete 456 --force
+
+```bash
+canvas sections delete 456
+canvas sections delete 456 --force
+```
 
 ```
 canvas sections delete <section-id> [flags]

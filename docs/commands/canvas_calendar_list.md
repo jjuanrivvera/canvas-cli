@@ -11,11 +11,14 @@ List calendar events
 List calendar events for courses, groups, or users.
 
 Examples:
-  canvas calendar list --course-id 123
-  canvas calendar list --context course_123,course_456
-  canvas calendar list --start-date 2024-01-01 --end-date 2024-01-31
-  canvas calendar list --type assignment
-  canvas calendar list --all-events
+
+```bash
+canvas calendar list --course-id 123
+canvas calendar list --context course_123,course_456
+canvas calendar list --start-date 2024-01-01 --end-date 2024-01-31
+canvas calendar list --type assignment
+canvas calendar list --all-events
+```
 
 ```
 canvas calendar list [flags]

@@ -14,7 +14,10 @@ This is a convenience command equivalent to:
   canvas modules update --course-id 123 456 --published
 
 Examples:
-  canvas modules publish --course-id 123 456
+
+```bash
+canvas modules publish --course-id 123 456
+```
 
 ```
 canvas modules publish <module-id> [flags]

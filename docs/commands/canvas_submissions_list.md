@@ -19,10 +19,13 @@ Workflow States:
   - pending_review: Submissions pending review
 
 Examples:
-  canvas submissions list --course-id 123 --assignment-id 456
-  canvas submissions list --course-id 123 --assignment-id 456 --workflow-state graded
-  canvas submissions list --course-id 123 --assignment-id 456 --include user,submission_comments
-  canvas submissions list --course-id 123 --assignment-id 456 --graded-since 2024-01-01
+
+```bash
+canvas submissions list --course-id 123 --assignment-id 456
+canvas submissions list --course-id 123 --assignment-id 456 --workflow-state graded
+canvas submissions list --course-id 123 --assignment-id 456 --include user,submission_comments
+canvas submissions list --course-id 123 --assignment-id 456 --graded-since 2024-01-01
+```
 
 ```
 canvas submissions list [flags]

@@ -11,8 +11,11 @@ Get outcome group details
 Get details of a specific outcome group.
 
 Examples:
-  canvas outcomes groups get 456 --account-id 1
-  canvas outcomes groups get 456 --course-id 123
+
+```bash
+canvas outcomes groups get 456 --account-id 1
+canvas outcomes groups get 456 --course-id 123
+```
 
 ```
 canvas outcomes groups get <group-id> [flags]

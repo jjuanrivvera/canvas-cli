@@ -11,7 +11,10 @@ Create a peer review
 Assign a user as a peer reviewer for a submission.
 
 Examples:
-  canvas peer-reviews create --course-id 1 --assignment-id 10 --submission-id 500 --user-id 300
+
+```bash
+canvas peer-reviews create --course-id 1 --assignment-id 10 --submission-id 500 --user-id 300
+```
 
 ```
 canvas peer-reviews create [flags]

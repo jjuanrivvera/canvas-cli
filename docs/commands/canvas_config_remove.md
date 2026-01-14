@@ -12,7 +12,10 @@ Remove a configured Canvas instance. This will not delete any data from Canvas,
 only remove the instance from your local configuration.
 
 Examples:
-  canvas config remove staging
+
+```bash
+canvas config remove staging
+```
 
 ```
 canvas config remove [instance-name] [flags]

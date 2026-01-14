@@ -11,8 +11,11 @@ Search for users
 Search for users across the Canvas instance.
 
 Examples:
-  canvas users search "john doe"
-  canvas users search "john@example.com"
+
+```bash
+canvas users search "john doe"
+canvas users search "john@example.com"
+```
 
 ```
 canvas users search <search-term> [flags]

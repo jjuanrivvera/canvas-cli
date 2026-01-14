@@ -11,7 +11,10 @@ Get the front page
 Get the front page for a course.
 
 Examples:
-  canvas pages front --course-id 123
+
+```bash
+canvas pages front --course-id 123
+```
 
 ```
 canvas pages front [flags]

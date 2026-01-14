@@ -11,8 +11,11 @@ Add an administrator to an account
 Add a user as an administrator to the specified account.
 
 Examples:
-  canvas admins add --account-id 1 --user-id 123
-  canvas admins add --account-id 1 --user-id 123 --role AccountAdmin
+
+```bash
+canvas admins add --account-id 1 --user-id 123
+canvas admins add --account-id 1 --user-id 123 --role AccountAdmin
+```
 
 ```
 canvas admins add [flags]

@@ -23,11 +23,14 @@ Course context:
   canvas users list --course-id 123 --include enrollments,email
 
 Examples:
-  canvas users list --account-id 1
-  canvas users list --course-id 123
-  canvas users list --account-id 1 --search "john"
-  canvas users list --course-id 123 --enrollment-type student
-  canvas users list --account-id 1 --include email,enrollments
+
+```bash
+canvas users list --account-id 1
+canvas users list --course-id 123
+canvas users list --account-id 1 --search "john"
+canvas users list --course-id 123 --enrollment-type student
+canvas users list --account-id 1 --include email,enrollments
+```
 
 ```
 canvas users list [flags]

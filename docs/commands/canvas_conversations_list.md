@@ -11,10 +11,13 @@ List conversations
 List conversations for the current user.
 
 Examples:
-  canvas conversations list
-  canvas conversations list --scope unread
-  canvas conversations list --scope starred
-  canvas conversations list --filter course_123
+
+```bash
+canvas conversations list
+canvas conversations list --scope unread
+canvas conversations list --scope starred
+canvas conversations list --filter course_123
+```
 
 ```
 canvas conversations list [flags]

@@ -11,8 +11,11 @@ List outcomes in a group
 List all outcomes in a specific outcome group.
 
 Examples:
-  canvas outcomes list --account-id 1 --group-id 456
-  canvas outcomes list --course-id 123 --group-id 456
+
+```bash
+canvas outcomes list --account-id 1 --group-id 456
+canvas outcomes list --course-id 123 --group-id 456
+```
 
 ```
 canvas outcomes list [flags]

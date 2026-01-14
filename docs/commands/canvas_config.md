@@ -11,11 +11,14 @@ Manage Canvas CLI configuration
 Manage Canvas CLI configuration including Canvas instances and settings.
 
 Examples:
-  canvas config list                              # List all configured instances
-  canvas config add prod --url https://canvas.example.com
-  canvas config use prod                          # Switch to prod instance
-  canvas config show                              # Show current configuration
-  canvas config remove staging                    # Remove an instance
+
+```bash
+canvas config list                              # List all configured instances
+canvas config add prod --url https://canvas.example.com
+canvas config use prod                          # Switch to prod instance
+canvas config show                              # Show current configuration
+canvas config remove staging                    # Remove an instance
+```
 
 ### Options
 

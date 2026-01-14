@@ -14,10 +14,13 @@ Analytics provide insights into participation, assignment performance,
 and engagement metrics.
 
 Examples:
-  canvas analytics activity --course-id 123
-  canvas analytics assignments --course-id 123
-  canvas analytics students --course-id 123
-  canvas analytics user 456 --course-id 123
+
+```bash
+canvas analytics activity --course-id 123
+canvas analytics assignments --course-id 123
+canvas analytics students --course-id 123
+canvas analytics user 456 --course-id 123
+```
 
 ### Options
 

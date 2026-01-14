@@ -11,7 +11,10 @@ Unsubscribe from a discussion topic
 Unsubscribe from a discussion topic to stop receiving notifications.
 
 Examples:
-  canvas discussions unsubscribe --course-id 123 456
+
+```bash
+canvas discussions unsubscribe --course-id 123 456
+```
 
 ```
 canvas discussions unsubscribe <topic-id> [flags]

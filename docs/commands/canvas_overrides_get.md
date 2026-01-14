@@ -11,7 +11,10 @@ Get override details
 Get details of a specific assignment override.
 
 Examples:
-  canvas overrides get 789 --course-id 123 --assignment-id 456
+
+```bash
+canvas overrides get 789 --course-id 123 --assignment-id 456
+```
 
 ```
 canvas overrides get <override-id> [flags]

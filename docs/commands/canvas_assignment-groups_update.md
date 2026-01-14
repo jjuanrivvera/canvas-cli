@@ -11,9 +11,12 @@ Update an assignment group
 Update an existing assignment group.
 
 Examples:
-  canvas assignment-groups update 456 --course-id 123 --name "Updated Name"
-  canvas assignment-groups update 456 --course-id 123 --weight 30
-  canvas assignment-groups update 456 --course-id 123 --drop-lowest 2
+
+```bash
+canvas assignment-groups update 456 --course-id 123 --name "Updated Name"
+canvas assignment-groups update 456 --course-id 123 --weight 30
+canvas assignment-groups update 456 --course-id 123 --drop-lowest 2
+```
 
 ```
 canvas assignment-groups update <group-id> [flags]

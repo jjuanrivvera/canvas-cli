@@ -11,7 +11,10 @@ Accept a pending enrollment invitation
 Accept a pending enrollment invitation.
 
 Examples:
-  canvas enrollments accept 789 --course-id 123
+
+```bash
+canvas enrollments accept 789 --course-id 123
+```
 
 ```
 canvas enrollments accept <enrollment-id> [flags]

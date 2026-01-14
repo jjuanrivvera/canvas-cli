@@ -14,10 +14,13 @@ Conversations are Canvas's internal messaging system for communication
 between users within courses and the institution.
 
 Examples:
-  canvas conversations list
-  canvas conversations list --scope unread
-  canvas conversations get 123
-  canvas conversations create --recipients 456,789 --subject "Hello" --body "Message content"
+
+```bash
+canvas conversations list
+canvas conversations list --scope unread
+canvas conversations get 123
+canvas conversations create --recipients 456,789 --subject "Hello" --body "Message content"
+```
 
 ### Options
 

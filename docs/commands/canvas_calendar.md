@@ -14,10 +14,13 @@ Calendar events can be associated with courses, groups, users, or accounts.
 Use context codes to specify which calendars to query.
 
 Examples:
-  canvas calendar list --course-id 123
-  canvas calendar list --start-date 2024-01-01 --end-date 2024-12-31
-  canvas calendar get 456
-  canvas calendar create --course-id 123 --title "Team Meeting"
+
+```bash
+canvas calendar list --course-id 123
+canvas calendar list --start-date 2024-01-01 --end-date 2024-12-31
+canvas calendar get 456
+canvas calendar create --course-id 123 --title "Team Meeting"
+```
 
 ### Options
 

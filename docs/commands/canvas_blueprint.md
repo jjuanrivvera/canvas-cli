@@ -14,9 +14,12 @@ Blueprint courses allow you to create a master course that can be
 synced to associated courses, maintaining consistent content.
 
 Examples:
-  canvas blueprint get --course-id 1
-  canvas blueprint associations list --course-id 1
-  canvas blueprint sync --course-id 1 --comment "Weekly update"
+
+```bash
+canvas blueprint get --course-id 1
+canvas blueprint associations list --course-id 1
+canvas blueprint sync --course-id 1 --comment "Weekly update"
+```
 
 ### Options
 

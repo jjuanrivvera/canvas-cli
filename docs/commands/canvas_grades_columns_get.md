@@ -11,7 +11,10 @@ Get custom column details
 Get details of a specific custom gradebook column.
 
 Examples:
-  canvas grades columns get 456 --course-id 123
+
+```bash
+canvas grades columns get 456 --course-id 123
+```
 
 ```
 canvas grades columns get <column-id> [flags]

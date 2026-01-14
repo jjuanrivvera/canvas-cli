@@ -11,8 +11,11 @@ Reply to a conversation
 Add a reply message to an existing conversation.
 
 Examples:
-  canvas conversations reply 123 --body "Thank you for your message"
-  canvas conversations reply 123 --body "Here's the attachment" --attachment-ids 456
+
+```bash
+canvas conversations reply 123 --body "Thank you for your message"
+canvas conversations reply 123 --body "Here's the attachment" --attachment-ids 456
+```
 
 ```
 canvas conversations reply <conversation-id> [flags]

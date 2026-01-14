@@ -11,7 +11,10 @@ Delete a page
 Delete a wiki page from a course.
 
 Examples:
-  canvas pages delete --course-id 123 my-page-url
+
+```bash
+canvas pages delete --course-id 123 my-page-url
+```
 
 ```
 canvas pages delete <url-or-id> [flags]

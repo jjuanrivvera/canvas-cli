@@ -11,10 +11,13 @@ List pages in a course
 List all wiki pages in a Canvas course.
 
 Examples:
-  canvas pages list --course-id 123
-  canvas pages list --course-id 123 --sort title --order asc
-  canvas pages list --course-id 123 --search "intro"
-  canvas pages list --course-id 123 --published true
+
+```bash
+canvas pages list --course-id 123
+canvas pages list --course-id 123 --sort title --order asc
+canvas pages list --course-id 123 --search "intro"
+canvas pages list --course-id 123 --published true
+```
 
 ```
 canvas pages list [flags]

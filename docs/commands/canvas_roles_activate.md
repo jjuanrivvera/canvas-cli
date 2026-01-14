@@ -11,7 +11,10 @@ Activate a role
 Reactivate a previously deactivated role.
 
 Examples:
-  canvas roles activate 123 --account-id 1
+
+```bash
+canvas roles activate 123 --account-id 1
+```
 
 ```
 canvas roles activate <role-id> [flags]

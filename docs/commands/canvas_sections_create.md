@@ -11,9 +11,12 @@ Create a new section
 Create a new section in a course.
 
 Examples:
-  canvas sections create --course-id 123 --name "Section A"
-  canvas sections create --course-id 123 --name "Section B" --sis-section-id "SIS123"
-  canvas sections create --course-id 123 --name "Section C" --start-at "2024-01-15" --end-at "2024-05-15" --restrict-dates
+
+```bash
+canvas sections create --course-id 123 --name "Section A"
+canvas sections create --course-id 123 --name "Section B" --sis-section-id "SIS123"
+canvas sections create --course-id 123 --name "Section C" --start-at "2024-01-15" --end-at "2024-05-15" --restrict-dates
+```
 
 ```
 canvas sections create [flags]

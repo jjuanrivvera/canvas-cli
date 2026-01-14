@@ -14,14 +14,18 @@ You can provide user data via flags or JSON file/stdin.
 Only specified fields will be updated.
 
 Examples:
-  # Using flags
-  canvas users update 123 --name "John Smith"
-  canvas users update 123 --email "newemail@example.com" --timezone "America/New_York"
 
-  # Using JSON file
-  canvas users update 123 --json updates.json
+```bash
+# Using flags
+canvas users update 123 --name "John Smith"
+canvas users update 123 --email "newemail@example.com" --timezone "America/New_York"
 
-  # Using stdin
+# Using JSON file
+canvas users update 123 --json updates.json
+
+# Using stdin
+```
+
   echo '{"name":"Updated Name"}' | canvas users update 123 --stdin
 
 ```

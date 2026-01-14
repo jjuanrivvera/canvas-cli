@@ -13,9 +13,12 @@ Manage Canvas gradebook history and custom columns.
 View gradebook history, manage custom gradebook columns, and update grades.
 
 Examples:
-  canvas grades history --course-id 123
-  canvas grades feed --course-id 123 --user-id 456
-  canvas grades columns list --course-id 123
+
+```bash
+canvas grades history --course-id 123
+canvas grades feed --course-id 123 --user-id 456
+canvas grades columns list --course-id 123
+```
 
 ### Options
 

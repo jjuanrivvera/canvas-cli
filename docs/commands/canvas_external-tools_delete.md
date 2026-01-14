@@ -11,8 +11,11 @@ Delete an external tool
 Delete an external tool from a course or account.
 
 Examples:
-  canvas external-tools delete 456 --course-id 123
-  canvas external-tools delete 456 --account-id 1
+
+```bash
+canvas external-tools delete 456 --course-id 123
+canvas external-tools delete 456 --account-id 1
+```
 
 ```
 canvas external-tools delete <tool-id> [flags]

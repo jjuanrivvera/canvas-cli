@@ -24,10 +24,14 @@ Special shell commands:
   exit/quit         - Exit the shell
 
 Examples:
-  # Start the interactive shell
-  canvas shell
 
-  # In the shell:
+```bash
+# Start the interactive shell
+canvas shell
+
+# In the shell:
+```
+
   canvas> courses list
   canvas> session set course_id 12345
   canvas> assignments list --course-id 12345

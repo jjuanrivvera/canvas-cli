@@ -11,7 +11,10 @@ Remove a member from a group
 Remove a user from a group by membership ID.
 
 Examples:
-  canvas groups members remove 456 --membership-id 123
+
+```bash
+canvas groups members remove 456 --membership-id 123
+```
 
 ```
 canvas groups members remove <group-id> [flags]

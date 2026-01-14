@@ -11,9 +11,12 @@ Create a new discussion topic
 Create a new discussion topic in a course.
 
 Examples:
-  canvas discussions create --course-id 123 --title "Week 1 Discussion"
-  canvas discussions create --course-id 123 --title "Q&A" --message "<p>Ask questions here</p>" --type threaded
-  canvas discussions create --course-id 123 --title "Pinned" --pinned --published
+
+```bash
+canvas discussions create --course-id 123 --title "Week 1 Discussion"
+canvas discussions create --course-id 123 --title "Q&A" --message "<p>Ask questions here</p>" --type threaded
+canvas discussions create --course-id 123 --title "Pinned" --pinned --published
+```
 
 ```
 canvas discussions create [flags]

@@ -11,8 +11,11 @@ Create a custom column
 Create a new custom gradebook column.
 
 Examples:
-  canvas grades columns create --course-id 123 --title "Notes"
-  canvas grades columns create --course-id 123 --title "Attendance" --teacher-notes
+
+```bash
+canvas grades columns create --course-id 123 --title "Notes"
+canvas grades columns create --course-id 123 --title "Attendance" --teacher-notes
+```
 
 ```
 canvas grades columns create [flags]

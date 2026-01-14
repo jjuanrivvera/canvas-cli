@@ -11,9 +11,12 @@ Create a new announcement
 Create a new announcement in a course.
 
 Examples:
-  canvas announcements create --course-id 123 --title "Welcome to the Course!"
-  canvas announcements create --course-id 123 --title "Important Update" --message "<p>Please read...</p>"
-  canvas announcements create --course-id 123 --title "Scheduled" --delayed-at "2024-12-01T09:00:00Z"
+
+```bash
+canvas announcements create --course-id 123 --title "Welcome to the Course!"
+canvas announcements create --course-id 123 --title "Important Update" --message "<p>Please read...</p>"
+canvas announcements create --course-id 123 --title "Scheduled" --delayed-at "2024-12-01T09:00:00Z"
+```
 
 ```
 canvas announcements create [flags]

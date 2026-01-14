@@ -11,7 +11,10 @@ Archive a conversation
 Archive a conversation to remove it from the inbox.
 
 Examples:
-  canvas conversations archive 123
+
+```bash
+canvas conversations archive 123
+```
 
 ```
 canvas conversations archive <conversation-id> [flags]

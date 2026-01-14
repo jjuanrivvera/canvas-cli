@@ -23,20 +23,23 @@ The listener provides:
   - Request logging
 
 Examples:
-  # Start with Canvas Data Services JWT verification (recommended)
-  canvas webhook listen --canvas-data-services
 
-  # Start with HMAC signature verification
-  canvas webhook listen --secret your-secret-key
+```bash
+# Start with Canvas Data Services JWT verification (recommended)
+canvas webhook listen --canvas-data-services
 
-  # Start with custom JWK URL
-  canvas webhook listen --jwks-url https://your-jwks-endpoint.com/jwks
+# Start with HMAC signature verification
+canvas webhook listen --secret your-secret-key
 
-  # Listen for specific event types
-  canvas webhook listen --events submission_created,grade_change
+# Start with custom JWK URL
+canvas webhook listen --jwks-url https://your-jwks-endpoint.com/jwks
 
-  # List available event types
-  canvas webhook events
+# Listen for specific event types
+canvas webhook listen --events submission_created,grade_change
+
+# List available event types
+canvas webhook events
+```
 
 ### Options
 

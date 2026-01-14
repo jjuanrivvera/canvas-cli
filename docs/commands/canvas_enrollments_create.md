@@ -23,10 +23,13 @@ Enrollment States:
   inactive            - Inactive enrollment
 
 Examples:
-  canvas enrollments create --course-id 123 --user-id 456
-  canvas enrollments create --course-id 123 --user-id 456 --type TeacherEnrollment
-  canvas enrollments create --course-id 123 --user-id 456 --state active --notify
-  canvas enrollments create --course-id 123 --user-id 456 --section-id 789
+
+```bash
+canvas enrollments create --course-id 123 --user-id 456
+canvas enrollments create --course-id 123 --user-id 456 --type TeacherEnrollment
+canvas enrollments create --course-id 123 --user-id 456 --state active --notify
+canvas enrollments create --course-id 123 --user-id 456 --section-id 789
+```
 
 ```
 canvas enrollments create [flags]

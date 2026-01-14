@@ -11,8 +11,11 @@ Create a group category
 Create a new group category in a course or account.
 
 Examples:
-  canvas groups categories create --course-id 123 --name "Project Teams"
-  canvas groups categories create --account-id 1 --name "Clubs" --self-signup enabled
+
+```bash
+canvas groups categories create --course-id 123 --name "Project Teams"
+canvas groups categories create --account-id 1 --name "Clubs" --self-signup enabled
+```
 
 ```
 canvas groups categories create [flags]

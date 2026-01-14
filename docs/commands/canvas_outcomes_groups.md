@@ -13,8 +13,11 @@ Manage outcome groups.
 Outcome groups organize learning outcomes into hierarchical structures.
 
 Examples:
-  canvas outcomes groups list --account-id 1
-  canvas outcomes groups get 456 --account-id 1
+
+```bash
+canvas outcomes groups list --account-id 1
+canvas outcomes groups get 456 --account-id 1
+```
 
 ### Options
 

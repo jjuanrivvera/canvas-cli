@@ -11,7 +11,10 @@ Get group category details
 Get details of a specific group category.
 
 Examples:
-  canvas groups categories get 456
+
+```bash
+canvas groups categories get 456
+```
 
 ```
 canvas groups categories get <category-id> [flags]

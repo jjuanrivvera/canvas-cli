@@ -11,7 +11,10 @@ List import errors
 List errors from a SIS import.
 
 Examples:
-  canvas sis-imports errors 123 --account-id 1
+
+```bash
+canvas sis-imports errors 123 --account-id 1
+```
 
 ```
 canvas sis-imports errors <import-id> [flags]

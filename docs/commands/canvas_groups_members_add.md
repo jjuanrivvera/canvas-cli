@@ -11,7 +11,10 @@ Add a member to a group
 Add a user to a group.
 
 Examples:
-  canvas groups members add 456 --user-id 789
+
+```bash
+canvas groups members add 456 --user-id 789
+```
 
 ```
 canvas groups members add <group-id> [flags]

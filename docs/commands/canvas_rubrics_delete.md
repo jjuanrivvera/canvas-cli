@@ -11,8 +11,11 @@ Delete a rubric
 Delete a rubric.
 
 Examples:
-  canvas rubrics delete 456 --course-id 123
-  canvas rubrics delete 456 --course-id 123 --force
+
+```bash
+canvas rubrics delete 456 --course-id 123
+canvas rubrics delete 456 --course-id 123 --force
+```
 
 ```
 canvas rubrics delete <rubric-id> [flags]

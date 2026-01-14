@@ -13,8 +13,11 @@ Clear cached responses to free up disk space or force fresh data.
 By default, only expired entries are cleared. Use --all to clear everything.
 
 Examples:
-  canvas cache clear          # Clear expired entries only
-  canvas cache clear --all    # Clear all entries
+
+```bash
+canvas cache clear          # Clear expired entries only
+canvas cache clear --all    # Clear all entries
+```
 
 ```
 canvas cache clear [flags]

@@ -11,9 +11,12 @@ List rubrics
 List all rubrics in a course or account.
 
 Examples:
-  canvas rubrics list --course-id 123
-  canvas rubrics list --account-id 1
-  canvas rubrics list --course-id 123 --include assessments,associations
+
+```bash
+canvas rubrics list --course-id 123
+canvas rubrics list --account-id 1
+canvas rubrics list --course-id 123 --include assessments,associations
+```
 
 ```
 canvas rubrics list [flags]

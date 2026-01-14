@@ -11,9 +11,12 @@ Update an existing page
 Update an existing wiki page.
 
 Examples:
-  canvas pages update --course-id 123 my-page --title "New Title"
-  canvas pages update --course-id 123 my-page --body "<p>Updated content</p>"
-  canvas pages update --course-id 123 my-page --published
+
+```bash
+canvas pages update --course-id 123 my-page --title "New Title"
+canvas pages update --course-id 123 my-page --body "<p>Updated content</p>"
+canvas pages update --course-id 123 my-page --published
+```
 
 ```
 canvas pages update <url-or-id> [flags]

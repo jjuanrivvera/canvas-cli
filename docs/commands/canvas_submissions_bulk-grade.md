@@ -19,8 +19,11 @@ Example CSV:
   125,456,92,"Great effort"
 
 Examples:
-  canvas submissions bulk-grade --course-id 123 --csv grades.csv
-  canvas submissions bulk-grade --course-id 123 --csv grades.csv --dry-run
+
+```bash
+canvas submissions bulk-grade --course-id 123 --csv grades.csv
+canvas submissions bulk-grade --course-id 123 --csv grades.csv --dry-run
+```
 
 ```
 canvas submissions bulk-grade [flags]

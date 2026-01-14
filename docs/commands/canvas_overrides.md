@@ -14,9 +14,12 @@ Assignment overrides allow you to give specific students, sections, or groups
 different due dates, availability dates, or other assignment settings.
 
 Examples:
-  canvas overrides list --course-id 123 --assignment-id 456
-  canvas overrides get 789 --course-id 123 --assignment-id 456
-  canvas overrides create --course-id 123 --assignment-id 456 --section-id 100 --due-at "2024-03-15T23:59:00Z"
+
+```bash
+canvas overrides list --course-id 123 --assignment-id 456
+canvas overrides get 789 --course-id 123 --assignment-id 456
+canvas overrides create --course-id 123 --assignment-id 456 --section-id 100 --due-at "2024-03-15T23:59:00Z"
+```
 
 ### Options
 

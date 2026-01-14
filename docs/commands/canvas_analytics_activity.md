@@ -11,7 +11,10 @@ View course activity over time
 View course participation and page view activity over time.
 
 Examples:
-  canvas analytics activity --course-id 123
+
+```bash
+canvas analytics activity --course-id 123
+```
 
 ```
 canvas analytics activity [flags]

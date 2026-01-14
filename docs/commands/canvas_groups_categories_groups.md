@@ -11,7 +11,10 @@ List groups in a category
 List all groups within a specific group category.
 
 Examples:
-  canvas groups categories groups 456
+
+```bash
+canvas groups categories groups 456
+```
 
 ```
 canvas groups categories groups <category-id> [flags]

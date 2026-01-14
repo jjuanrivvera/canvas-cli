@@ -24,10 +24,14 @@ Special REPL commands:
   exit/quit         - Exit the REPL
 
 Examples:
-  # Start the REPL
-  canvas repl
 
-  # In the REPL:
+```bash
+# Start the REPL
+canvas repl
+
+# In the REPL:
+```
+
   canvas> courses list
   canvas> session set course_id 12345
   canvas> assignments list --course-id 12345

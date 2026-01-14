@@ -11,9 +11,12 @@ Create a new planner note
 Create a new planner note.
 
 Examples:
-  canvas planner notes create --title "Study Session"
-  canvas planner notes create --title "Project Work" --details "Work on final project" --todo-date 2024-12-15
-  canvas planner notes create --title "Review" --course-id 123
+
+```bash
+canvas planner notes create --title "Study Session"
+canvas planner notes create --title "Project Work" --details "Work on final project" --todo-date 2024-12-15
+canvas planner notes create --title "Review" --course-id 123
+```
 
 ```
 canvas planner notes create [flags]

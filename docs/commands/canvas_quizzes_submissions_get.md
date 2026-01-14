@@ -11,7 +11,10 @@ Get submission details
 Get details of a specific quiz submission.
 
 Examples:
-  canvas quizzes submissions get 789 --course-id 123 --quiz-id 456
+
+```bash
+canvas quizzes submissions get 789 --course-id 123 --quiz-id 456
+```
 
 ```
 canvas quizzes submissions get <submission-id> [flags]

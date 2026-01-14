@@ -11,10 +11,13 @@ Manage Canvas users
 Manage Canvas users including listing, viewing, searching, and managing user information.
 
 Examples:
-  canvas users list --account-id 1
-  canvas users get 123
-  canvas users search "john"
-  canvas users me
+
+```bash
+canvas users list --account-id 1
+canvas users get 123
+canvas users search "john"
+canvas users me
+```
 
 ### Options
 

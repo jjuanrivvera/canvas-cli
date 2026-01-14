@@ -11,9 +11,12 @@ Create a new page
 Create a new wiki page in a course.
 
 Examples:
-  canvas pages create --course-id 123 --title "Welcome"
-  canvas pages create --course-id 123 --title "Syllabus" --body "<p>Course syllabus</p>"
-  canvas pages create --course-id 123 --title "Home" --front-page --published
+
+```bash
+canvas pages create --course-id 123 --title "Welcome"
+canvas pages create --course-id 123 --title "Syllabus" --body "<p>Course syllabus</p>"
+canvas pages create --course-id 123 --title "Home" --front-page --published
+```
 
 ```
 canvas pages create [flags]

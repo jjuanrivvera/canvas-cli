@@ -11,7 +11,10 @@ Abort a SIS import
 Abort a pending or running SIS import.
 
 Examples:
-  canvas sis-imports abort 123 --account-id 1
+
+```bash
+canvas sis-imports abort 123 --account-id 1
+```
 
 ```
 canvas sis-imports abort <import-id> [flags]

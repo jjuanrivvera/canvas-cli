@@ -11,8 +11,11 @@ List planner overrides
 List all planner overrides (completed/dismissed items).
 
 Examples:
-  canvas planner overrides
-  canvas planner overrides --type Assignment
+
+```bash
+canvas planner overrides
+canvas planner overrides --type Assignment
+```
 
 ```
 canvas planner overrides [flags]

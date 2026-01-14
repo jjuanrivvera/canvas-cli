@@ -11,8 +11,11 @@ Delete a custom column
 Delete a custom gradebook column.
 
 Examples:
-  canvas grades columns delete 456 --course-id 123
-  canvas grades columns delete 456 --course-id 123 --force
+
+```bash
+canvas grades columns delete 456 --course-id 123
+canvas grades columns delete 456 --course-id 123 --force
+```
 
 ```
 canvas grades columns delete <column-id> [flags]

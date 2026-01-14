@@ -11,7 +11,10 @@ Deactivate a role
 Deactivate an existing role. Deactivated roles cannot be assigned to new users.
 
 Examples:
-  canvas roles deactivate 123 --account-id 1
+
+```bash
+canvas roles deactivate 123 --account-id 1
+```
 
 ```
 canvas roles deactivate <role-id> [flags]

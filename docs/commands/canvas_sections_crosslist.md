@@ -14,8 +14,11 @@ When you crosslist a section, it is moved from its original course to a new cour
 Students in the section will be enrolled in both courses.
 
 Examples:
-  canvas sections crosslist 456 --new-course-id 789
-  canvas sections crosslist 456 --new-course-id 789 --override-sis-stickiness
+
+```bash
+canvas sections crosslist 456 --new-course-id 789
+canvas sections crosslist 456 --new-course-id 789 --override-sis-stickiness
+```
 
 ```
 canvas sections crosslist <section-id> [flags]

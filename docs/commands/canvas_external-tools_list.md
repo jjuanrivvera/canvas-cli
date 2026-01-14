@@ -11,10 +11,13 @@ List external tools
 List external tools for a course or account.
 
 Examples:
-  canvas external-tools list --course-id 123
-  canvas external-tools list --account-id 1
-  canvas external-tools list --course-id 123 --search "quiz"
-  canvas external-tools list --course-id 123 --selectable --include-parents
+
+```bash
+canvas external-tools list --course-id 123
+canvas external-tools list --account-id 1
+canvas external-tools list --course-id 123 --search "quiz"
+canvas external-tools list --course-id 123 --selectable --include-parents
+```
 
 ```
 canvas external-tools list [flags]

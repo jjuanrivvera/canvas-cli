@@ -11,8 +11,11 @@ Get conversation details
 Get details of a specific conversation including messages.
 
 Examples:
-  canvas conversations get 123
-  canvas conversations get 123 --auto-mark-read=false
+
+```bash
+canvas conversations get 123
+canvas conversations get 123 --auto-mark-read=false
+```
 
 ```
 canvas conversations get <conversation-id> [flags]

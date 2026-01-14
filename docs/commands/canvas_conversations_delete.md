@@ -11,8 +11,11 @@ Delete a conversation
 Delete a conversation permanently.
 
 Examples:
-  canvas conversations delete 123
-  canvas conversations delete 123 --force
+
+```bash
+canvas conversations delete 123
+canvas conversations delete 123 --force
+```
 
 ```
 canvas conversations delete <conversation-id> [flags]

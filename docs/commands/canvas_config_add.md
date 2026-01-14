@@ -11,8 +11,11 @@ Add a new Canvas instance
 Add a new Canvas instance to the configuration.
 
 Examples:
-  canvas config add production --url https://canvas.example.com
-  canvas config add staging --url https://canvas-staging.example.com --description "Staging environment"
+
+```bash
+canvas config add production --url https://canvas.example.com
+canvas config add staging --url https://canvas-staging.example.com --description "Staging environment"
+```
 
 ```
 canvas config add [name] [flags]

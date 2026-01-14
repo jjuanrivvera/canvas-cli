@@ -11,10 +11,13 @@ Create a new course
 Create a new course in an account.
 
 Examples:
-  canvas courses create --account-id 1 --name "Introduction to Programming"
-  canvas courses create --account-id 1 --name "Biology 101" --code "BIO101" --term 5
-  canvas courses create --account-id 1 --name "Math 201" --start-at "2024-09-01" --end-at "2024-12-15"
-  canvas courses create --account-id 1 --name "Public Course" --public --offer
+
+```bash
+canvas courses create --account-id 1 --name "Introduction to Programming"
+canvas courses create --account-id 1 --name "Biology 101" --code "BIO101" --term 5
+canvas courses create --account-id 1 --name "Math 201" --start-at "2024-09-01" --end-at "2024-12-15"
+canvas courses create --account-id 1 --name "Public Course" --public --offer
+```
 
 ```
 canvas courses create [flags]

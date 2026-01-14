@@ -22,9 +22,12 @@ Base role types:
   - DesignerEnrollment
 
 Examples:
-  canvas roles list --account-id 1
-  canvas roles get 123 --account-id 1
-  canvas roles create --account-id 1 --label "Custom Teacher" --base-type TeacherEnrollment
+
+```bash
+canvas roles list --account-id 1
+canvas roles get 123 --account-id 1
+canvas roles create --account-id 1 --label "Custom Teacher" --base-type TeacherEnrollment
+```
 
 ### Options
 

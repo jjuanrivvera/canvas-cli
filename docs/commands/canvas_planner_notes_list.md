@@ -11,9 +11,12 @@ List planner notes
 List all planner notes.
 
 Examples:
-  canvas planner notes list
-  canvas planner notes list --course-id 123
-  canvas planner notes list --start-date 2024-01-01
+
+```bash
+canvas planner notes list
+canvas planner notes list --course-id 123
+canvas planner notes list --start-date 2024-01-01
+```
 
 ```
 canvas planner notes list [flags]

@@ -11,7 +11,10 @@ Reserve a time slot
 Reserve a time slot in an appointment group.
 
 Examples:
-  canvas calendar reserve 456
+
+```bash
+canvas calendar reserve 456
+```
 
 ```
 canvas calendar reserve <event-id> [flags]

@@ -20,9 +20,12 @@ Calculation methods:
   - highest: Use the highest score achieved
 
 Examples:
-  canvas outcomes create --course-id 123 --group-id 456 --title "Problem Solving"
-  canvas outcomes create --account-id 1 --group-id 789 --title "Critical Thinking" --mastery-points 4
-  canvas outcomes create --course-id 123 --group-id 456 --title "Writing" --calculation-method decaying_average --calculation-int 65
+
+```bash
+canvas outcomes create --course-id 123 --group-id 456 --title "Problem Solving"
+canvas outcomes create --account-id 1 --group-id 789 --title "Critical Thinking" --mastery-points 4
+canvas outcomes create --course-id 123 --group-id 456 --title "Writing" --calculation-method decaying_average --calculation-int 65
+```
 
 ```
 canvas outcomes create [flags]

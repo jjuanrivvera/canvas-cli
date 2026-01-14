@@ -11,9 +11,12 @@ Manage Canvas submissions
 Manage Canvas submissions including listing, viewing, and grading submissions.
 
 Examples:
-  canvas submissions list --course-id 123 --assignment-id 456
-  canvas submissions get --course-id 123 --assignment-id 456 --user-id 789
-  canvas submissions list --course-id 123 --assignment-id 456 --workflow-state graded
+
+```bash
+canvas submissions list --course-id 123 --assignment-id 456
+canvas submissions get --course-id 123 --assignment-id 456 --user-id 789
+canvas submissions list --course-id 123 --assignment-id 456 --workflow-state graded
+```
 
 ### Options
 

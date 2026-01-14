@@ -11,10 +11,13 @@ Get outcome results
 Get student outcome results for a course.
 
 Examples:
-  canvas outcomes results --course-id 123
-  canvas outcomes results --course-id 123 --user-ids 100,101
-  canvas outcomes results --course-id 123 --outcome-ids 200,201
-  canvas outcomes results --course-id 123 --include outcomes,alignments
+
+```bash
+canvas outcomes results --course-id 123
+canvas outcomes results --course-id 123 --user-ids 100,101
+canvas outcomes results --course-id 123 --outcome-ids 200,201
+canvas outcomes results --course-id 123 --include outcomes,alignments
+```
 
 ```
 canvas outcomes results [flags]

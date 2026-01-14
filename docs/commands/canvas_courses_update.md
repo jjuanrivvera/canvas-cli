@@ -11,10 +11,13 @@ Update a course
 Update an existing course.
 
 Examples:
-  canvas courses update 123 --name "Updated Course Name"
-  canvas courses update 123 --code "NEW101" --start-at "2024-10-01"
-  canvas courses update 123 --public
-  canvas courses update 123 --offer
+
+```bash
+canvas courses update 123 --name "Updated Course Name"
+canvas courses update 123 --code "NEW101" --start-at "2024-10-01"
+canvas courses update 123 --public
+canvas courses update 123 --offer
+```
 
 ```
 canvas courses update <course-id> [flags]

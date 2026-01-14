@@ -11,9 +11,12 @@ List announcements
 List announcements for a course or multiple courses.
 
 Examples:
-  canvas announcements list --course-id 123
-  canvas announcements list --course-id 123 --active-only
-  canvas announcements list --course-id 123 --start-date 2024-01-01 --end-date 2024-12-31
+
+```bash
+canvas announcements list --course-id 123
+canvas announcements list --course-id 123 --active-only
+canvas announcements list --course-id 123 --start-date 2024-01-01 --end-date 2024-12-31
+```
 
 ```
 canvas announcements list [flags]

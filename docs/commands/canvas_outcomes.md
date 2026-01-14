@@ -14,9 +14,12 @@ Learning outcomes define what students should know or be able to do.
 They can be organized into groups and linked to assignments, quizzes, and rubrics.
 
 Examples:
-  canvas outcomes get 123
-  canvas outcomes groups list --account-id 1
-  canvas outcomes results --course-id 123
+
+```bash
+canvas outcomes get 123
+canvas outcomes groups list --account-id 1
+canvas outcomes results --course-id 123
+```
 
 ### Options
 

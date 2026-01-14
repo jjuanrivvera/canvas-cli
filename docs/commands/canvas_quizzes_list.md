@@ -11,8 +11,11 @@ List quizzes in a course
 List all quizzes in a course.
 
 Examples:
-  canvas quizzes list --course-id 123
-  canvas quizzes list --course-id 123 --search "midterm"
+
+```bash
+canvas quizzes list --course-id 123
+canvas quizzes list --course-id 123 --search "midterm"
+```
 
 ```
 canvas quizzes list [flags]

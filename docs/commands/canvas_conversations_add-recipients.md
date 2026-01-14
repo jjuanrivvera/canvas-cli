@@ -11,7 +11,10 @@ Add recipients to a conversation
 Add additional recipients to an existing conversation.
 
 Examples:
-  canvas conversations add-recipients 123 --recipients 456,789
+
+```bash
+canvas conversations add-recipients 123 --recipients 456,789
+```
 
 ```
 canvas conversations add-recipients <conversation-id> [flags]

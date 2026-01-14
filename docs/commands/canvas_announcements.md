@@ -14,9 +14,12 @@ Announcements are a special type of discussion topic that appear in the
 announcements section of a course. They are used for important course updates.
 
 Examples:
-  canvas announcements list --course-id 123
-  canvas announcements get --course-id 123 456
-  canvas announcements create --course-id 123 --title "Welcome!"
+
+```bash
+canvas announcements list --course-id 123
+canvas announcements get --course-id 123 456
+canvas announcements create --course-id 123 --title "Welcome!"
+```
 
 ### Options
 

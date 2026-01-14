@@ -11,8 +11,11 @@ List custom gradebook columns
 List all custom gradebook columns in a course.
 
 Examples:
-  canvas grades columns list --course-id 123
-  canvas grades columns list --course-id 123 --include-hidden
+
+```bash
+canvas grades columns list --course-id 123
+canvas grades columns list --course-id 123 --include-hidden
+```
 
 ```
 canvas grades columns list [flags]

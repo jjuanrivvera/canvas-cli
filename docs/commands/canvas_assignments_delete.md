@@ -13,7 +13,10 @@ Delete an assignment from a Canvas course.
 This action cannot be undone.
 
 Examples:
-  canvas assignments delete --course-id 123 456
+
+```bash
+canvas assignments delete --course-id 123 456
+```
 
 ```
 canvas assignments delete <assignment-id> [flags]

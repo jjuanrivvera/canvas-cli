@@ -11,7 +11,10 @@ Duplicate a page
 Duplicate a wiki page.
 
 Examples:
-  canvas pages duplicate --course-id 123 my-page-url
+
+```bash
+canvas pages duplicate --course-id 123 my-page-url
+```
 
 ```
 canvas pages duplicate <url-or-id> [flags]

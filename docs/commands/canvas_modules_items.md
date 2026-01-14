@@ -14,9 +14,12 @@ Module items can be of various types: File, Page, Discussion, Assignment,
 Quiz, SubHeader, ExternalUrl, or ExternalTool.
 
 Examples:
-  canvas modules items list --course-id 123 --module-id 456
-  canvas modules items get --course-id 123 --module-id 456 789
-  canvas modules items create --course-id 123 --module-id 456 --type Assignment --content-id 999
+
+```bash
+canvas modules items list --course-id 123 --module-id 456
+canvas modules items get --course-id 123 --module-id 456 789
+canvas modules items create --course-id 123 --module-id 456 --type Assignment --content-id 999
+```
 
 ### Options
 

@@ -11,7 +11,10 @@ Get outcome details
 Get details of a specific learning outcome.
 
 Examples:
-  canvas outcomes get 123
+
+```bash
+canvas outcomes get 123
+```
 
 ```
 canvas outcomes get <outcome-id> [flags]

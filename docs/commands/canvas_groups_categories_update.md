@@ -11,8 +11,11 @@ Update a group category
 Update an existing group category.
 
 Examples:
-  canvas groups categories update 456 --name "New Name"
-  canvas groups categories update 456 --self-signup restricted
+
+```bash
+canvas groups categories update 456 --name "New Name"
+canvas groups categories update 456 --self-signup restricted
+```
 
 ```
 canvas groups categories update <category-id> [flags]

@@ -11,7 +11,10 @@ Unstar a conversation
 Remove the star from a conversation.
 
 Examples:
-  canvas conversations unstar 123
+
+```bash
+canvas conversations unstar 123
+```
 
 ```
 canvas conversations unstar <conversation-id> [flags]

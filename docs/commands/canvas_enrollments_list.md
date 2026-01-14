@@ -22,11 +22,14 @@ User context:
   canvas enrollments list --user-id 456 --state active
 
 Examples:
-  canvas enrollments list --course-id 123
-  canvas enrollments list --user-id 456
-  canvas enrollments list --course-id 123 --type TeacherEnrollment
-  canvas enrollments list --course-id 123 --state active,invited
-  canvas enrollments list --user-id 456 --include current_points
+
+```bash
+canvas enrollments list --course-id 123
+canvas enrollments list --user-id 456
+canvas enrollments list --course-id 123 --type TeacherEnrollment
+canvas enrollments list --course-id 123 --state active,invited
+canvas enrollments list --user-id 456 --include current_points
+```
 
 ```
 canvas enrollments list [flags]

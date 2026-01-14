@@ -13,8 +13,11 @@ Manage custom gradebook columns.
 Custom columns allow instructors to add additional data columns to the gradebook.
 
 Examples:
-  canvas grades columns list --course-id 123
-  canvas grades columns create --course-id 123 --title "Notes"
+
+```bash
+canvas grades columns list --course-id 123
+canvas grades columns create --course-id 123 --title "Notes"
+```
 
 ### Options
 

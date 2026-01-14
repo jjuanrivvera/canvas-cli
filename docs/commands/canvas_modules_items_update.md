@@ -11,10 +11,13 @@ Update a module item
 Update an existing module item.
 
 Examples:
-  canvas modules items update --course-id 123 --module-id 456 789 --title "New Title"
-  canvas modules items update --course-id 123 --module-id 456 789 --position 2
-  canvas modules items update --course-id 123 --module-id 456 789 --published
-  canvas modules items update --course-id 123 --module-id 456 789 --move-to-module 555
+
+```bash
+canvas modules items update --course-id 123 --module-id 456 789 --title "New Title"
+canvas modules items update --course-id 123 --module-id 456 789 --position 2
+canvas modules items update --course-id 123 --module-id 456 789 --published
+canvas modules items update --course-id 123 --module-id 456 789 --move-to-module 555
+```
 
 ```
 canvas modules items update <item-id> [flags]

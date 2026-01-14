@@ -14,9 +14,12 @@ Groups allow students and instructors to collaborate on projects and activities.
 Groups can be organized into categories with different self-signup options.
 
 Examples:
-  canvas groups list --course-id 123
-  canvas groups get 456
-  canvas groups categories list --course-id 123
+
+```bash
+canvas groups list --course-id 123
+canvas groups get 456
+canvas groups categories list --course-id 123
+```
 
 ### Options
 

@@ -11,7 +11,10 @@ Delete a discussion topic
 Delete a discussion topic from a course.
 
 Examples:
-  canvas discussions delete --course-id 123 456
+
+```bash
+canvas discussions delete --course-id 123 456
+```
 
 ```
 canvas discussions delete <topic-id> [flags]

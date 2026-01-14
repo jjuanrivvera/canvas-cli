@@ -13,7 +13,10 @@ List available migrator types for a course.
 This shows what types of content migrations can be performed.
 
 Examples:
-  canvas content-migrations migrators --course-id 1
+
+```bash
+canvas content-migrations migrators --course-id 1
+```
 
 ```
 canvas content-migrations migrators [flags]

@@ -11,7 +11,10 @@ Create a new question
 Create a new question in a quiz.
 
 Examples:
-  canvas quizzes questions create --course-id 123 --quiz-id 456 --text "What is 2+2?" --type multiple_choice_question --points 10
+
+```bash
+canvas quizzes questions create --course-id 123 --quiz-id 456 --text "What is 2+2?" --type multiple_choice_question --points 10
+```
 
 ```
 canvas quizzes questions create [flags]

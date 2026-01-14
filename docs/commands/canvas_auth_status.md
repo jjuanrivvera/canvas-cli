@@ -13,8 +13,11 @@ Check authentication status for Canvas instances.
 Shows which instances are configured and authenticated.
 
 Examples:
-  canvas auth status
-  canvas auth status myschool
+
+```bash
+canvas auth status
+canvas auth status myschool
+```
 
 ```
 canvas auth status [instance-name] [flags]

@@ -11,8 +11,11 @@ List outcome groups
 List all outcome groups in a course or account.
 
 Examples:
-  canvas outcomes groups list --account-id 1
-  canvas outcomes groups list --course-id 123
+
+```bash
+canvas outcomes groups list --account-id 1
+canvas outcomes groups list --course-id 123
+```
 
 ```
 canvas outcomes groups list [flags]

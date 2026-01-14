@@ -14,10 +14,13 @@ Discussion topics are threaded conversations associated with Courses in Canvas.
 They can be used for class discussions, Q&A, and collaborative learning.
 
 Examples:
-  canvas discussions list --course-id 123
-  canvas discussions get --course-id 123 456
-  canvas discussions create --course-id 123 --title "Week 1 Discussion"
-  canvas discussions entries --course-id 123 456
+
+```bash
+canvas discussions list --course-id 123
+canvas discussions get --course-id 123 456
+canvas discussions create --course-id 123 --title "Week 1 Discussion"
+canvas discussions entries --course-id 123 456
+```
 
 ### Options
 

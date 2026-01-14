@@ -14,9 +14,12 @@ Content migrations allow you to copy content between courses,
 import content from external sources, and export course content.
 
 Examples:
-  canvas content-migrations list --course-id 1
-  canvas content-migrations get 123 --course-id 1
-  canvas content-migrations create --course-id 1 --type course_copy_importer --source-course-id 100
+
+```bash
+canvas content-migrations list --course-id 1
+canvas content-migrations get 123 --course-id 1
+canvas content-migrations create --course-id 1 --type course_copy_importer --source-course-id 100
+```
 
 ### Options
 

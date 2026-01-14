@@ -11,8 +11,11 @@ Delete a quiz
 Delete a quiz.
 
 Examples:
-  canvas quizzes delete 456 --course-id 123
-  canvas quizzes delete 456 --course-id 123 --force
+
+```bash
+canvas quizzes delete 456 --course-id 123
+canvas quizzes delete 456 --course-id 123 --force
+```
 
 ```
 canvas quizzes delete <quiz-id> [flags]

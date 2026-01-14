@@ -14,9 +14,12 @@ Administrators have elevated privileges within an account and can manage
 users, courses, and other account settings.
 
 Examples:
-  canvas admins list --account-id 1
-  canvas admins add --account-id 1 --user-id 123
-  canvas admins remove --account-id 1 --user-id 123
+
+```bash
+canvas admins list --account-id 1
+canvas admins add --account-id 1 --user-id 123
+canvas admins remove --account-id 1 --user-id 123
+```
 
 ### Options
 

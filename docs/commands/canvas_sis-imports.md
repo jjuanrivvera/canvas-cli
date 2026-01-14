@@ -14,9 +14,12 @@ SIS imports allow you to bulk import data like users, courses,
 sections, and enrollments from CSV files.
 
 Examples:
-  canvas sis-imports list --account-id 1
-  canvas sis-imports get 123 --account-id 1
-  canvas sis-imports create --account-id 1 --file data.zip
+
+```bash
+canvas sis-imports list --account-id 1
+canvas sis-imports get 123 --account-id 1
+canvas sis-imports create --account-id 1 --file data.zip
+```
 
 ### Options
 

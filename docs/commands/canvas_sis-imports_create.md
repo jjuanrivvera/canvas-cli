@@ -15,8 +15,11 @@ The file should follow the Canvas SIS import format:
 - ZIP file containing multiple CSVs
 
 Examples:
-  canvas sis-imports create --account-id 1 --file users.csv
-  canvas sis-imports create --account-id 1 --file data.zip --batch-mode --batch-mode-term-id 123
+
+```bash
+canvas sis-imports create --account-id 1 --file users.csv
+canvas sis-imports create --account-id 1 --file data.zip --batch-mode --batch-mode-term-id 123
+```
 
 ```
 canvas sis-imports create [flags]

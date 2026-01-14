@@ -11,7 +11,10 @@ Get question details
 Get details of a specific question.
 
 Examples:
-  canvas quizzes questions get 789 --course-id 123 --quiz-id 456
+
+```bash
+canvas quizzes questions get 789 --course-id 123 --quiz-id 456
+```
 
 ```
 canvas quizzes questions get <question-id> [flags]

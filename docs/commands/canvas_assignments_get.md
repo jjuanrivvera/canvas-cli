@@ -11,8 +11,11 @@ Get details of a specific assignment
 Get details of a specific assignment by ID.
 
 Examples:
-  canvas assignments get --course-id 123 456
-  canvas assignments get --course-id 123 456 --include submission,rubric
+
+```bash
+canvas assignments get --course-id 123 456
+canvas assignments get --course-id 123 456 --include submission,rubric
+```
 
 ```
 canvas assignments get <assignment-id> [flags]

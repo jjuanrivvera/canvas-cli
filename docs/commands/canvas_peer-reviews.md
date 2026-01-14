@@ -14,8 +14,11 @@ Peer reviews allow students to review and provide feedback
 on each other's work.
 
 Examples:
-  canvas peer-reviews list --course-id 1 --assignment-id 10
-  canvas peer-reviews create --course-id 1 --assignment-id 10 --submission-id 500 --user-id 300
+
+```bash
+canvas peer-reviews list --course-id 1 --assignment-id 10
+canvas peer-reviews create --course-id 1 --assignment-id 10 --submission-id 500 --user-id 300
+```
 
 ### Options
 

@@ -11,8 +11,11 @@ Update a planner note
 Update an existing planner note.
 
 Examples:
-  canvas planner notes update 123 --title "Updated Title"
-  canvas planner notes update 123 --todo-date 2024-12-20
+
+```bash
+canvas planner notes update 123 --title "Updated Title"
+canvas planner notes update 123 --todo-date 2024-12-20
+```
 
 ```
 canvas planner notes update <note-id> [flags]

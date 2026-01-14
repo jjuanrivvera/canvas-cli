@@ -13,11 +13,14 @@ Synchronize all assignments from a source course to a target course.
 The source and target can be on different Canvas instances.
 
 Examples:
-  # Sync assignments from production to staging
-  canvas sync assignments prod 12345 staging 67890
 
-  # Sync with interactive conflict resolution
-  canvas sync assignments prod 12345 staging 67890 --interactive
+```bash
+# Sync assignments from production to staging
+canvas sync assignments prod 12345 staging 67890
+
+# Sync with interactive conflict resolution
+canvas sync assignments prod 12345 staging 67890 --interactive
+```
 
 ```
 canvas sync assignments <source-instance> <source-course-id> <target-instance> <target-course-id> [flags]

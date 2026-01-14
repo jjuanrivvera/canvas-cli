@@ -22,11 +22,14 @@ Buckets:
   - future: Assignments with a due date in the future
 
 Examples:
-  canvas assignments list --course-id 123
-  canvas assignments list --course-id 123 --bucket upcoming
-  canvas assignments list --course-id 123 --search "quiz"
-  canvas assignments list --course-id 123 --order-by due_at
-  canvas assignments list --course-id 123 --include submission,rubric
+
+```bash
+canvas assignments list --course-id 123
+canvas assignments list --course-id 123 --bucket upcoming
+canvas assignments list --course-id 123 --search "quiz"
+canvas assignments list --course-id 123 --order-by due_at
+canvas assignments list --course-id 123 --include submission,rubric
+```
 
 ```
 canvas assignments list [flags]

@@ -11,7 +11,10 @@ List entries in a discussion
 List all entries (posts) in a discussion topic.
 
 Examples:
-  canvas discussions entries --course-id 123 456
+
+```bash
+canvas discussions entries --course-id 123 456
+```
 
 ```
 canvas discussions entries <topic-id> [flags]

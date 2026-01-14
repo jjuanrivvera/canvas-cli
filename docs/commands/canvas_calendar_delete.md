@@ -11,9 +11,12 @@ Delete a calendar event
 Delete a calendar event.
 
 Examples:
-  canvas calendar delete 456
-  canvas calendar delete 456 --reason "Event cancelled"
-  canvas calendar delete 456 --which all
+
+```bash
+canvas calendar delete 456
+canvas calendar delete 456 --reason "Event cancelled"
+canvas calendar delete 456 --which all
+```
 
 ```
 canvas calendar delete <event-id> [flags]

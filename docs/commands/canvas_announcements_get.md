@@ -11,7 +11,10 @@ Get a specific announcement
 Get details of a specific announcement.
 
 Examples:
-  canvas announcements get --course-id 123 456
+
+```bash
+canvas announcements get --course-id 123 456
+```
 
 ```
 canvas announcements get <announcement-id> [flags]

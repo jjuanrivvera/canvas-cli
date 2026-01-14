@@ -11,8 +11,11 @@ Get details of a specific course
 Get details of a specific course by ID.
 
 Examples:
-  canvas courses get 123
-  canvas courses get 123 --include syllabus_body,term
+
+```bash
+canvas courses get 123
+canvas courses get 123 --include syllabus_body,term
+```
 
 ```
 canvas courses get <course-id> [flags]

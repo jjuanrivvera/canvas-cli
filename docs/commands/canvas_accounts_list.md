@@ -13,8 +13,11 @@ List all accounts the current user has access to.
 This typically returns accounts where you have admin or sub-admin permissions.
 
 Examples:
-  canvas accounts list
-  canvas accounts list --include lti_guid
+
+```bash
+canvas accounts list
+canvas accounts list --include lti_guid
+```
 
 ```
 canvas accounts list [flags]

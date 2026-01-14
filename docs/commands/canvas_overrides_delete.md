@@ -11,8 +11,11 @@ Delete an override
 Delete an assignment override.
 
 Examples:
-  canvas overrides delete 789 --course-id 123 --assignment-id 456
-  canvas overrides delete 789 --course-id 123 --assignment-id 456 --force
+
+```bash
+canvas overrides delete 789 --course-id 123 --assignment-id 456
+canvas overrides delete 789 --course-id 123 --assignment-id 456 --force
+```
 
 ```
 canvas overrides delete <override-id> [flags]

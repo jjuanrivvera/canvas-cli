@@ -11,7 +11,10 @@ List quiz submissions
 List all submissions for a quiz.
 
 Examples:
-  canvas quizzes submissions list --course-id 123 --quiz-id 456
+
+```bash
+canvas quizzes submissions list --course-id 123 --quiz-id 456
+```
 
 ```
 canvas quizzes submissions list [flags]

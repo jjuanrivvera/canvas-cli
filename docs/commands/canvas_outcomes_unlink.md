@@ -11,8 +11,11 @@ Unlink outcome from a group
 Remove an outcome link from an outcome group.
 
 Examples:
-  canvas outcomes unlink 789 --account-id 1 --group-id 456
-  canvas outcomes unlink 789 --course-id 123 --group-id 456
+
+```bash
+canvas outcomes unlink 789 --account-id 1 --group-id 456
+canvas outcomes unlink 789 --course-id 123 --group-id 456
+```
 
 ```
 canvas outcomes unlink <outcome-id> [flags]

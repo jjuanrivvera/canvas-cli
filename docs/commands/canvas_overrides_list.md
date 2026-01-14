@@ -11,7 +11,10 @@ List overrides for an assignment
 List all overrides for an assignment.
 
 Examples:
-  canvas overrides list --course-id 123 --assignment-id 456
+
+```bash
+canvas overrides list --course-id 123 --assignment-id 456
+```
 
 ```
 canvas overrides list [flags]

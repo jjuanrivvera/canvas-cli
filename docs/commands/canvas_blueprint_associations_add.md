@@ -11,7 +11,10 @@ Add courses to blueprint
 Add courses to a blueprint's associations.
 
 Examples:
-  canvas blueprint associations add --course-id 1 --course-ids-to-add 100,101,102
+
+```bash
+canvas blueprint associations add --course-id 1 --course-ids-to-add 100,101,102
+```
 
 ```
 canvas blueprint associations add [flags]

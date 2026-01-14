@@ -13,9 +13,12 @@ Delete an assignment group.
 You can optionally move assignments to another group before deleting.
 
 Examples:
-  canvas assignment-groups delete 456 --course-id 123
-  canvas assignment-groups delete 456 --course-id 123 --force
-  canvas assignment-groups delete 456 --course-id 123 --move-to 789
+
+```bash
+canvas assignment-groups delete 456 --course-id 123
+canvas assignment-groups delete 456 --course-id 123 --force
+canvas assignment-groups delete 456 --course-id 123 --move-to 789
+```
 
 ```
 canvas assignment-groups delete <group-id> [flags]

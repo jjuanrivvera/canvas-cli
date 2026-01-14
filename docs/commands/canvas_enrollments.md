@@ -11,9 +11,12 @@ Manage Canvas enrollments
 Manage Canvas enrollments including listing, creating, and managing course enrollments.
 
 Examples:
-  canvas enrollments list --course-id 123
-  canvas enrollments list --user-id 456
-  canvas enrollments get 789
+
+```bash
+canvas enrollments list --course-id 123
+canvas enrollments list --user-id 456
+canvas enrollments get 789
+```
 
 ### Options
 

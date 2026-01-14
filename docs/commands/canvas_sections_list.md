@@ -11,9 +11,12 @@ List sections in a course
 List all sections in a course.
 
 Examples:
-  canvas sections list --course-id 123
-  canvas sections list --course-id 123 --include students,total_students
-  canvas sections list --course-id 123 --include passback_status
+
+```bash
+canvas sections list --course-id 123
+canvas sections list --course-id 123 --include students,total_students
+canvas sections list --course-id 123 --include passback_status
+```
 
 ```
 canvas sections list [flags]

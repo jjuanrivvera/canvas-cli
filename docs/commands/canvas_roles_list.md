@@ -11,9 +11,12 @@ List roles for an account
 Retrieve a list of all roles for the specified account.
 
 Examples:
-  canvas roles list --account-id 1
-  canvas roles list --account-id 1 --state active
-  canvas roles list --account-id 1 --show-inherited
+
+```bash
+canvas roles list --account-id 1
+canvas roles list --account-id 1 --state active
+canvas roles list --account-id 1 --show-inherited
+```
 
 ```
 canvas roles list [flags]

@@ -14,9 +14,12 @@ Accounts represent institutions, sub-accounts, or organizational units within Ca
 Most admin operations require account-level permissions.
 
 Examples:
-  canvas accounts list
-  canvas accounts get 1
-  canvas accounts sub 1 --recursive
+
+```bash
+canvas accounts list
+canvas accounts get 1
+canvas accounts sub 1 --recursive
+```
 
 ### Options
 

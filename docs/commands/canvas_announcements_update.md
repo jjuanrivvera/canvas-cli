@@ -11,8 +11,11 @@ Update an existing announcement
 Update an existing announcement.
 
 Examples:
-  canvas announcements update --course-id 123 456 --title "Updated Title"
-  canvas announcements update --course-id 123 456 --message "<p>Updated content</p>"
+
+```bash
+canvas announcements update --course-id 123 456 --title "Updated Title"
+canvas announcements update --course-id 123 456 --message "<p>Updated content</p>"
+```
 
 ```
 canvas announcements update <announcement-id> [flags]

@@ -14,10 +14,13 @@ The planner provides a unified view of assignments, quizzes, calendar events,
 and personal notes. Use this command to view upcoming items or manage notes.
 
 Examples:
-  canvas planner items
-  canvas planner notes list
-  canvas planner notes create --title "Study Session"
-  canvas planner complete Assignment 123
+
+```bash
+canvas planner items
+canvas planner notes list
+canvas planner notes create --title "Study Session"
+canvas planner complete Assignment 123
+```
 
 ### Options
 

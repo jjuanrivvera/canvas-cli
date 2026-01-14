@@ -11,9 +11,12 @@ List items in a module
 List all items in a module.
 
 Examples:
-  canvas modules items list --course-id 123 --module-id 456
-  canvas modules items list --course-id 123 --module-id 456 --include content_details
-  canvas modules items list --course-id 123 --module-id 456 --search "Quiz"
+
+```bash
+canvas modules items list --course-id 123 --module-id 456
+canvas modules items list --course-id 123 --module-id 456 --include content_details
+canvas modules items list --course-id 123 --module-id 456 --search "Quiz"
+```
 
 ```
 canvas modules items list [flags]

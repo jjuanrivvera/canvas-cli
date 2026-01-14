@@ -11,9 +11,12 @@ Update an existing discussion topic
 Update an existing discussion topic.
 
 Examples:
-  canvas discussions update --course-id 123 456 --title "New Title"
-  canvas discussions update --course-id 123 456 --pinned
-  canvas discussions update --course-id 123 456 --locked
+
+```bash
+canvas discussions update --course-id 123 456 --title "New Title"
+canvas discussions update --course-id 123 456 --pinned
+canvas discussions update --course-id 123 456 --locked
+```
 
 ```
 canvas discussions update <topic-id> [flags]

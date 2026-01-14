@@ -13,10 +13,13 @@ Upload a file to a course, folder, or user's files.
 You must specify one of --course-id, --folder-id, or --user-id.
 
 Examples:
-  canvas files upload document.pdf --course-id 123
-  canvas files upload image.png --folder-id 456
-  canvas files upload data.csv --user-id 789
-  canvas files upload file.pdf --course-id 123 --on-duplicate overwrite
+
+```bash
+canvas files upload document.pdf --course-id 123
+canvas files upload image.png --folder-id 456
+canvas files upload data.csv --user-id 789
+canvas files upload file.pdf --course-id 123 --on-duplicate overwrite
+```
 
 ```
 canvas files upload <file-path> [flags]

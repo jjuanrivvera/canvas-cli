@@ -16,8 +16,11 @@ Analytics types:
   - communication: Messaging statistics
 
 Examples:
-  canvas analytics user 456 --course-id 123
-  canvas analytics user 456 --course-id 123 --type assignments
+
+```bash
+canvas analytics user 456 --course-id 123
+canvas analytics user 456 --course-id 123 --type assignments
+```
 
 ```
 canvas analytics user <user-id> [flags]

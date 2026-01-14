@@ -13,9 +13,12 @@ Manage Canvas external tools (LTI integrations).
 External tools allow you to integrate third-party tools and services with Canvas.
 
 Examples:
-  canvas external-tools list --course-id 123
-  canvas external-tools get 456 --course-id 123
-  canvas external-tools create --course-id 123 --name "My Tool" --url https://tool.example.com
+
+```bash
+canvas external-tools list --course-id 123
+canvas external-tools get 456 --course-id 123
+canvas external-tools create --course-id 123 --name "My Tool" --url https://tool.example.com
+```
 
 ### Options
 

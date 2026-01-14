@@ -11,7 +11,10 @@ Get details for a specific role
 Retrieve detailed information about a specific role.
 
 Examples:
-  canvas roles get 123 --account-id 1
+
+```bash
+canvas roles get 123 --account-id 1
+```
 
 ```
 canvas roles get <role-id> [flags]

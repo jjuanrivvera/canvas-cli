@@ -11,7 +11,10 @@ Create a new role
 Create a new custom role in the specified account.
 
 Examples:
-  canvas roles create --account-id 1 --label "Custom Teacher" --base-type TeacherEnrollment
+
+```bash
+canvas roles create --account-id 1 --label "Custom Teacher" --base-type TeacherEnrollment
+```
 
 ```
 canvas roles create [flags]

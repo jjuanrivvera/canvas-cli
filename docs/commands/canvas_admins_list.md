@@ -11,7 +11,10 @@ List administrators for an account
 Retrieve a list of all administrators for the specified account.
 
 Examples:
-  canvas admins list --account-id 1
+
+```bash
+canvas admins list --account-id 1
+```
 
 ```
 canvas admins list [flags]

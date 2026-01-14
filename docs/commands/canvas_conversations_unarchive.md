@@ -11,7 +11,10 @@ Unarchive a conversation
 Move an archived conversation back to the inbox.
 
 Examples:
-  canvas conversations unarchive 123
+
+```bash
+canvas conversations unarchive 123
+```
 
 ```
 canvas conversations unarchive <conversation-id> [flags]

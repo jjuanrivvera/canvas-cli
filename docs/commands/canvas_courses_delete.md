@@ -17,10 +17,13 @@ Events:
   delete   - Permanently deletes the course and all its data
 
 Examples:
-  canvas courses delete 123                   # Concludes the course
-  canvas courses delete 123 --event conclude  # Same as above
-  canvas courses delete 123 --event delete    # Permanently deletes
-  canvas courses delete 123 --event delete --force  # Skip confirmation
+
+```bash
+canvas courses delete 123                   # Concludes the course
+canvas courses delete 123 --event conclude  # Same as above
+canvas courses delete 123 --event delete    # Permanently deletes
+canvas courses delete 123 --event delete --force  # Skip confirmation
+```
 
 ```
 canvas courses delete <course-id> [flags]

@@ -11,7 +11,10 @@ List associated courses
 List courses associated with a blueprint.
 
 Examples:
-  canvas blueprint associations list --course-id 1
+
+```bash
+canvas blueprint associations list --course-id 1
+```
 
 ```
 canvas blueprint associations list [flags]

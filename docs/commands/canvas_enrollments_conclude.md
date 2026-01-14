@@ -16,9 +16,12 @@ Tasks:
   delete    - Permanently delete the enrollment
 
 Examples:
-  canvas enrollments conclude 789 --course-id 123
-  canvas enrollments conclude 789 --course-id 123 --task deactivate
-  canvas enrollments conclude 789 --course-id 123 --task delete --force
+
+```bash
+canvas enrollments conclude 789 --course-id 123
+canvas enrollments conclude 789 --course-id 123 --task deactivate
+canvas enrollments conclude 789 --course-id 123 --task delete --force
+```
 
 ```
 canvas enrollments conclude <enrollment-id> [flags]

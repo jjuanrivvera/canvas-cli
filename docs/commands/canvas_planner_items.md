@@ -11,10 +11,13 @@ List planner items
 List planner items including assignments, quizzes, and calendar events.
 
 Examples:
-  canvas planner items
-  canvas planner items --course-id 123
-  canvas planner items --start-date 2024-01-01 --end-date 2024-01-31
-  canvas planner items --filter all_assignments
+
+```bash
+canvas planner items
+canvas planner items --course-id 123
+canvas planner items --start-date 2024-01-01 --end-date 2024-01-31
+canvas planner items --filter all_assignments
+```
 
 ```
 canvas planner items [flags]

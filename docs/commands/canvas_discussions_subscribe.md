@@ -11,7 +11,10 @@ Subscribe to a discussion topic
 Subscribe to receive notifications for a discussion topic.
 
 Examples:
-  canvas discussions subscribe --course-id 123 456
+
+```bash
+canvas discussions subscribe --course-id 123 456
+```
 
 ```
 canvas discussions subscribe <topic-id> [flags]

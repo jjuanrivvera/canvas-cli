@@ -13,8 +13,11 @@ Reply to a specific entry in a discussion topic.
 The message can be provided as a positional argument or using the --message flag.
 
 Examples:
-  canvas discussions reply --course-id 123 456 789 "My reply to this entry"
-  canvas discussions reply --course-id 123 456 789 --message "My reply to this entry"
+
+```bash
+canvas discussions reply --course-id 123 456 789 "My reply to this entry"
+canvas discussions reply --course-id 123 456 789 --message "My reply to this entry"
+```
 
 ```
 canvas discussions reply <topic-id> <entry-id> [message] [flags]

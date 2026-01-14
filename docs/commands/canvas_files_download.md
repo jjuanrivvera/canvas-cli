@@ -11,8 +11,11 @@ Download a file
 Download a file from Canvas to your local system.
 
 Examples:
-  canvas files download 456
-  canvas files download 456 --destination ./my-file.pdf
+
+```bash
+canvas files download 456
+canvas files download 456 --destination ./my-file.pdf
+```
 
 ```
 canvas files download <file-id> [flags]

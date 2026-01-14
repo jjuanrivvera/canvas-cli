@@ -11,7 +11,10 @@ Get a content migration
 Get details of a specific content migration.
 
 Examples:
-  canvas content-migrations get 123 --course-id 1
+
+```bash
+canvas content-migrations get 123 --course-id 1
+```
 
 ```
 canvas content-migrations get <migration-id> [flags]

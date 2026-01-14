@@ -13,8 +13,11 @@ List available content for selective import.
 This shows what content is available to import from a migration.
 
 Examples:
-  canvas content-migrations content 123 --course-id 1
-  canvas content-migrations content 123 --course-id 1 --type assignments
+
+```bash
+canvas content-migrations content 123 --course-id 1
+canvas content-migrations content 123 --course-id 1 --type assignments
+```
 
 ```
 canvas content-migrations content <migration-id> [flags]

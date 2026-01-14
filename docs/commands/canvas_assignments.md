@@ -11,10 +11,13 @@ Manage Canvas assignments
 Manage Canvas assignments including listing, viewing, creating, and updating assignments.
 
 Examples:
-  canvas assignments list --course-id 123
-  canvas assignments get --course-id 123 456
-  canvas assignments list --course-id 123 --bucket upcoming
-  canvas assignments list --course-id 123 --search "quiz"
+
+```bash
+canvas assignments list --course-id 123
+canvas assignments get --course-id 123 456
+canvas assignments list --course-id 123 --bucket upcoming
+canvas assignments list --course-id 123 --search "quiz"
+```
 
 ### Options
 

@@ -11,9 +11,12 @@ Update an outcome
 Update an existing learning outcome.
 
 Examples:
-  canvas outcomes update 123 --title "Updated Outcome"
-  canvas outcomes update 123 --mastery-points 4
-  canvas outcomes update 123 --calculation-method decaying_average --calculation-int 65
+
+```bash
+canvas outcomes update 123 --title "Updated Outcome"
+canvas outcomes update 123 --mastery-points 4
+canvas outcomes update 123 --calculation-method decaying_average --calculation-int 65
+```
 
 ```
 canvas outcomes update <outcome-id> [flags]

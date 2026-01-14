@@ -11,8 +11,11 @@ Update a rubric
 Update an existing rubric.
 
 Examples:
-  canvas rubrics update 456 --course-id 123 --title "Updated Title"
-  canvas rubrics update 456 --course-id 123 --points 150
+
+```bash
+canvas rubrics update 456 --course-id 123 --title "Updated Title"
+canvas rubrics update 456 --course-id 123 --points 150
+```
 
 ```
 canvas rubrics update <rubric-id> [flags]

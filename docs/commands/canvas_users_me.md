@@ -11,7 +11,10 @@ Get details of the current authenticated user
 Get details of the current authenticated user.
 
 Examples:
-  canvas users me
+
+```bash
+canvas users me
+```
 
 ```
 canvas users me [flags]

@@ -23,12 +23,15 @@ Account context (admin):
   canvas courses list --account-id 1 --sort course_name --order asc
 
 Examples:
-  canvas courses list
-  canvas courses list --enrollment-type student
-  canvas courses list --enrollment-state active
-  canvas courses list --state available
-  canvas courses list --include syllabus_body,term
-  canvas courses list --account-id 1 --search "2024"
+
+```bash
+canvas courses list
+canvas courses list --enrollment-type student
+canvas courses list --enrollment-state active
+canvas courses list --state available
+canvas courses list --include syllabus_body,term
+canvas courses list --account-id 1 --search "2024"
+```
 
 ```
 canvas courses list [flags]

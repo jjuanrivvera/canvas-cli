@@ -11,8 +11,11 @@ Get details of a specific user
 Get details of a specific user by ID.
 
 Examples:
-  canvas users get 123
-  canvas users get 123 --include email,enrollments,avatar_url
+
+```bash
+canvas users get 123
+canvas users get 123 --include email,enrollments,avatar_url
+```
 
 ```
 canvas users get <user-id> [flags]

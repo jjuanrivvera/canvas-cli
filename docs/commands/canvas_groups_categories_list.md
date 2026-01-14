@@ -11,8 +11,11 @@ List group categories
 List group categories for a course or account.
 
 Examples:
-  canvas groups categories list --course-id 123
-  canvas groups categories list --account-id 1
+
+```bash
+canvas groups categories list --course-id 123
+canvas groups categories list --account-id 1
+```
 
 ```
 canvas groups categories list [flags]

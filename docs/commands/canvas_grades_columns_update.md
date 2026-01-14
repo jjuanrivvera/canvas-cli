@@ -11,8 +11,11 @@ Update a custom column
 Update an existing custom gradebook column.
 
 Examples:
-  canvas grades columns update 456 --course-id 123 --title "Updated Title"
-  canvas grades columns update 456 --course-id 123 --hidden
+
+```bash
+canvas grades columns update 456 --course-id 123 --title "Updated Title"
+canvas grades columns update 456 --course-id 123 --hidden
+```
 
 ```
 canvas grades columns update <column-id> [flags]

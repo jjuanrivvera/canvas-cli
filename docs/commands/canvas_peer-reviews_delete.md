@@ -11,7 +11,10 @@ Delete a peer review
 Remove a peer review assignment.
 
 Examples:
-  canvas peer-reviews delete --course-id 1 --assignment-id 10 --submission-id 500 --user-id 300
+
+```bash
+canvas peer-reviews delete --course-id 1 --assignment-id 10 --submission-id 500 --user-id 300
+```
 
 ```
 canvas peer-reviews delete [flags]

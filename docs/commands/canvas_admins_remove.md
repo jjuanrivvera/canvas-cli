@@ -11,8 +11,11 @@ Remove an administrator from an account
 Remove a user's administrator privileges from the specified account.
 
 Examples:
-  canvas admins remove --account-id 1 --user-id 123
-  canvas admins remove --account-id 1 --user-id 123 --role-id 456
+
+```bash
+canvas admins remove --account-id 1 --user-id 123
+canvas admins remove --account-id 1 --user-id 123 --role-id 456
+```
 
 ```
 canvas admins remove [flags]

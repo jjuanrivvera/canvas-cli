@@ -11,7 +11,10 @@ List custom column data
 List all data entries for a custom gradebook column.
 
 Examples:
-  canvas grades columns data list 456 --course-id 123
+
+```bash
+canvas grades columns data list 456 --course-id 123
+```
 
 ```
 canvas grades columns data list <column-id> [flags]

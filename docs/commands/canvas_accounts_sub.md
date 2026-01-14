@@ -13,8 +13,11 @@ List sub-accounts for a given parent account.
 Use --recursive to get the entire account tree.
 
 Examples:
-  canvas accounts sub 1
-  canvas accounts sub 1 --recursive
+
+```bash
+canvas accounts sub 1
+canvas accounts sub 1 --recursive
+```
 
 ```
 canvas accounts sub <account-id> [flags]

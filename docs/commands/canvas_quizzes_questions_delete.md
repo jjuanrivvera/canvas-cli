@@ -11,7 +11,10 @@ Delete a question
 Delete a question from a quiz.
 
 Examples:
-  canvas quizzes questions delete 789 --course-id 123 --quiz-id 456 --force
+
+```bash
+canvas quizzes questions delete 789 --course-id 123 --quiz-id 456 --force
+```
 
 ```
 canvas quizzes questions delete <question-id> [flags]

@@ -15,8 +15,11 @@ Workflow states: initializing, created, importing, cleanup_batch,
                  failed, failed_with_messages, restoring, partially_restored
 
 Examples:
-  canvas sis-imports list --account-id 1
-  canvas sis-imports list --account-id 1 --workflow-state imported
+
+```bash
+canvas sis-imports list --account-id 1
+canvas sis-imports list --account-id 1 --workflow-state imported
+```
 
 ```
 canvas sis-imports list [flags]

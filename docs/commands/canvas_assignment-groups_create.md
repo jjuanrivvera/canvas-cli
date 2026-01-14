@@ -11,9 +11,12 @@ Create a new assignment group
 Create a new assignment group in a course.
 
 Examples:
-  canvas assignment-groups create --course-id 123 --name "Homework"
-  canvas assignment-groups create --course-id 123 --name "Exams" --weight 40 --position 2
-  canvas assignment-groups create --course-id 123 --name "Quizzes" --weight 20 --drop-lowest 1
+
+```bash
+canvas assignment-groups create --course-id 123 --name "Homework"
+canvas assignment-groups create --course-id 123 --name "Exams" --weight 40 --position 2
+canvas assignment-groups create --course-id 123 --name "Quizzes" --weight 20 --drop-lowest 1
+```
 
 ```
 canvas assignment-groups create [flags]

@@ -15,7 +15,10 @@ requirements to an active course will not lock students out of modules they have
 already unlocked unless this action is called.
 
 Examples:
-  canvas modules relock --course-id 123 456
+
+```bash
+canvas modules relock --course-id 123 456
+```
 
 ```
 canvas modules relock <module-id> [flags]

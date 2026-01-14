@@ -11,7 +11,10 @@ List comments for a submission
 List all comments for a specific submission.
 
 Examples:
-  canvas submissions comments --course-id 123 --assignment-id 456 --user-id 789
+
+```bash
+canvas submissions comments --course-id 123 --assignment-id 456 --user-id 789
+```
 
 ```
 canvas submissions comments [flags]

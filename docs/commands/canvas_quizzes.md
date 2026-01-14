@@ -14,9 +14,12 @@ Quizzes allow you to create assessments with various question types including
 multiple choice, true/false, short answer, and more.
 
 Examples:
-  canvas quizzes list --course-id 123
-  canvas quizzes get 456 --course-id 123
-  canvas quizzes create --course-id 123 --title "Midterm Exam" --quiz-type assignment
+
+```bash
+canvas quizzes list --course-id 123
+canvas quizzes get 456 --course-id 123
+canvas quizzes create --course-id 123 --title "Midterm Exam" --quiz-type assignment
+```
 
 ### Options
 

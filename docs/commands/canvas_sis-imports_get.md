@@ -11,7 +11,10 @@ Get a SIS import
 Get details of a specific SIS import.
 
 Examples:
-  canvas sis-imports get 123 --account-id 1
+
+```bash
+canvas sis-imports get 123 --account-id 1
+```
 
 ```
 canvas sis-imports get <import-id> [flags]

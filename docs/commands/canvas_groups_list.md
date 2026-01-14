@@ -11,10 +11,13 @@ List groups
 List groups for a course, account, or user.
 
 Examples:
-  canvas groups list --course-id 123
-  canvas groups list --account-id 1
-  canvas groups list --user-id 456
-  canvas groups list  # Lists current user's groups
+
+```bash
+canvas groups list --course-id 123
+canvas groups list --account-id 1
+canvas groups list --user-id 456
+canvas groups list  # Lists current user's groups
+```
 
 ```
 canvas groups list [flags]

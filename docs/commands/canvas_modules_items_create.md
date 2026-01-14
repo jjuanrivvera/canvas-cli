@@ -28,11 +28,14 @@ Completion requirement types:
   - min_score: Assignment, Quiz (requires --min-score)
 
 Examples:
-  canvas modules items create --course-id 123 --module-id 456 --type Assignment --content-id 999
-  canvas modules items create --course-id 123 --module-id 456 --type Page --page-url "intro-page"
-  canvas modules items create --course-id 123 --module-id 456 --type SubHeader --title "Unit 1"
-  canvas modules items create --course-id 123 --module-id 456 --type ExternalUrl --external-url "https://example.com" --title "Resource"
-  canvas modules items create --course-id 123 --module-id 456 --type Assignment --content-id 999 --completion-type min_score --min-score 80
+
+```bash
+canvas modules items create --course-id 123 --module-id 456 --type Assignment --content-id 999
+canvas modules items create --course-id 123 --module-id 456 --type Page --page-url "intro-page"
+canvas modules items create --course-id 123 --module-id 456 --type SubHeader --title "Unit 1"
+canvas modules items create --course-id 123 --module-id 456 --type ExternalUrl --external-url "https://example.com" --title "Resource"
+canvas modules items create --course-id 123 --module-id 456 --type Assignment --content-id 999 --completion-type min_score --min-score 80
+```
 
 ```
 canvas modules items create [flags]

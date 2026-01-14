@@ -11,7 +11,10 @@ List migration issues
 List issues encountered during a content migration.
 
 Examples:
-  canvas content-migrations issues 123 --course-id 1
+
+```bash
+canvas content-migrations issues 123 --course-id 1
+```
 
 ```
 canvas content-migrations issues <migration-id> [flags]

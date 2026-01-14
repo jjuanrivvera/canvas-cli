@@ -11,9 +11,12 @@ Create an external tool
 Create a new external tool in a course or account.
 
 Examples:
-  canvas external-tools create --course-id 123 --name "My Tool" --url https://tool.example.com
-  canvas external-tools create --course-id 123 --name "LTI Tool" --consumer-key key123 --shared-secret secret123
-  canvas external-tools create --course-id 123 --json tool-config.json
+
+```bash
+canvas external-tools create --course-id 123 --name "My Tool" --url https://tool.example.com
+canvas external-tools create --course-id 123 --name "LTI Tool" --consumer-key key123 --shared-secret secret123
+canvas external-tools create --course-id 123 --json tool-config.json
+```
 
 ```
 canvas external-tools create [flags]

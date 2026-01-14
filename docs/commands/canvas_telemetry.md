@@ -30,20 +30,23 @@ Data NOT collected:
 All telemetry data is stored locally and never automatically transmitted.
 
 Examples:
-  # Enable telemetry
-  canvas telemetry enable
 
-  # Disable telemetry
-  canvas telemetry disable
+```bash
+# Enable telemetry
+canvas telemetry enable
 
-  # Check telemetry status
-  canvas telemetry status
+# Disable telemetry
+canvas telemetry disable
 
-  # View collected data
-  canvas telemetry show
+# Check telemetry status
+canvas telemetry status
 
-  # Clear telemetry data
-  canvas telemetry clear
+# View collected data
+canvas telemetry show
+
+# Clear telemetry data
+canvas telemetry clear
+```
 
 ### Options
 

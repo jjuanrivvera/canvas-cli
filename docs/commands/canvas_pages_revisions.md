@@ -11,7 +11,10 @@ List page revisions
 List all revisions for a wiki page.
 
 Examples:
-  canvas pages revisions --course-id 123 my-page-url
+
+```bash
+canvas pages revisions --course-id 123 my-page-url
+```
 
 ```
 canvas pages revisions <url-or-id> [flags]

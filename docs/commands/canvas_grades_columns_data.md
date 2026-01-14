@@ -11,8 +11,11 @@ Manage custom column data
 Manage data in custom gradebook columns.
 
 Examples:
-  canvas grades columns data list 456 --course-id 123
-  canvas grades columns data set 456 --course-id 123 --user-id 789 --content "Note"
+
+```bash
+canvas grades columns data list 456 --course-id 123
+canvas grades columns data set 456 --course-id 123 --user-id 789 --content "Note"
+```
 
 ### Options
 

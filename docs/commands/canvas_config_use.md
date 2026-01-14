@@ -11,8 +11,11 @@ Switch to a different Canvas instance
 Set the default Canvas instance to use for all commands.
 
 Examples:
-  canvas config use production
-  canvas config use staging
+
+```bash
+canvas config use production
+canvas config use staging
+```
 
 ```
 canvas config use [instance-name] [flags]

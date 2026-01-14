@@ -11,7 +11,10 @@ Delete a module item
 Delete an item from a module.
 
 Examples:
-  canvas modules items delete --course-id 123 --module-id 456 789
+
+```bash
+canvas modules items delete --course-id 123 --module-id 456 789
+```
 
 ```
 canvas modules items delete <item-id> [flags]

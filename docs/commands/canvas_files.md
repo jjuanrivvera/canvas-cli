@@ -11,11 +11,14 @@ Manage Canvas files
 Manage Canvas files including listing, uploading, downloading, and deleting files.
 
 Examples:
-  canvas files list --course-id 123
-  canvas files get 456
-  canvas files upload --course-id 123 document.pdf
-  canvas files download 456 --destination ./downloaded.pdf
-  canvas files delete 456
+
+```bash
+canvas files list --course-id 123
+canvas files get 456
+canvas files upload --course-id 123 document.pdf
+canvas files download 456 --destination ./downloaded.pdf
+canvas files delete 456
+```
 
 ### Options
 

@@ -14,9 +14,12 @@ Assignment groups allow you to organize assignments into categories (like Homewo
 Quizzes, Exams) and optionally weight them for grade calculation.
 
 Examples:
-  canvas assignment-groups list --course-id 123
-  canvas assignment-groups get 456 --course-id 123
-  canvas assignment-groups create --course-id 123 --name "Homework" --weight 25
+
+```bash
+canvas assignment-groups list --course-id 123
+canvas assignment-groups get 456 --course-id 123
+canvas assignment-groups create --course-id 123 --name "Homework" --weight 25
+```
 
 ### Options
 

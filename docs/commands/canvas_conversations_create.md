@@ -11,9 +11,12 @@ Create a new conversation
 Create a new conversation with one or more recipients.
 
 Examples:
-  canvas conversations create --recipients 123,456 --subject "Hello" --body "Message text"
-  canvas conversations create --recipients 123 --body "Quick message"
-  canvas conversations create --recipients course_123 --subject "Announcement" --body "Message" --group
+
+```bash
+canvas conversations create --recipients 123,456 --subject "Hello" --body "Message text"
+canvas conversations create --recipients 123 --body "Quick message"
+canvas conversations create --recipients course_123 --subject "Announcement" --body "Message" --group
+```
 
 ```
 canvas conversations create [flags]

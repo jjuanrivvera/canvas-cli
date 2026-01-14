@@ -13,7 +13,10 @@ Unpublish a module to hide it from students.
 This is a convenience command that sets the module's published state to false.
 
 Examples:
-  canvas modules unpublish --course-id 123 456
+
+```bash
+canvas modules unpublish --course-id 123 456
+```
 
 ```
 canvas modules unpublish <module-id> [flags]

@@ -15,8 +15,11 @@ Sort columns: name, name_descending, score, score_descending,
               page_views, page_views_descending
 
 Examples:
-  canvas analytics students --course-id 123
-  canvas analytics students --course-id 123 --sort score_descending
+
+```bash
+canvas analytics students --course-id 123
+canvas analytics students --course-id 123 --sort score_descending
+```
 
 ```
 canvas analytics students [flags]

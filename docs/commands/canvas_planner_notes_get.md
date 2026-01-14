@@ -11,7 +11,10 @@ Get a specific planner note
 Get details of a specific planner note.
 
 Examples:
-  canvas planner notes get 123
+
+```bash
+canvas planner notes get 123
+```
 
 ```
 canvas planner notes get <note-id> [flags]

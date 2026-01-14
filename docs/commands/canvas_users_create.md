@@ -13,14 +13,18 @@ Create a new user in a Canvas account. Requires admin privileges.
 You can provide user data via flags or JSON file/stdin.
 
 Examples:
-  # Using flags
-  canvas users create --account-id 1 --name "John Doe" --email "john@example.com"
-  canvas users create --account-id 1 --name "Jane" --login-id "jane123" --password "secret"
 
-  # Using JSON file
-  canvas users create --account-id 1 --json user.json
+```bash
+# Using flags
+canvas users create --account-id 1 --name "John Doe" --email "john@example.com"
+canvas users create --account-id 1 --name "Jane" --login-id "jane123" --password "secret"
 
-  # Using stdin
+# Using JSON file
+canvas users create --account-id 1 --json user.json
+
+# Using stdin
+```
+
   echo '{"name":"John Doe","email":"john@example.com"}' | canvas users create --account-id 1 --stdin
 
 ```

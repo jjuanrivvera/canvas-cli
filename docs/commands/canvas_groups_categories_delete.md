@@ -11,8 +11,11 @@ Delete a group category
 Delete an existing group category.
 
 Examples:
-  canvas groups categories delete 456
-  canvas groups categories delete 456 --force
+
+```bash
+canvas groups categories delete 456
+canvas groups categories delete 456 --force
+```
 
 ```
 canvas groups categories delete <category-id> [flags]

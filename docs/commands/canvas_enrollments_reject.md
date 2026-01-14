@@ -11,7 +11,10 @@ Reject a pending enrollment invitation
 Reject a pending enrollment invitation.
 
 Examples:
-  canvas enrollments reject 789 --course-id 123
+
+```bash
+canvas enrollments reject 789 --course-id 123
+```
 
 ```
 canvas enrollments reject <enrollment-id> [flags]

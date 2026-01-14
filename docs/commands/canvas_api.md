@@ -16,26 +16,29 @@ or endpoints not yet supported by dedicated commands.
 Methods: GET, POST, PUT, DELETE, PATCH, HEAD
 
 Examples:
-  # List all courses
-  canvas api GET /api/v1/courses
 
-  # Create a course (with JSON body)
-  canvas api POST /api/v1/accounts/1/courses -d '{"course":{"name":"Test Course"}}'
+```bash
+# List all courses
+canvas api GET /api/v1/courses
 
-  # Search users with query parameters
-  canvas api GET /api/v1/users -q "search_term=john" -q "per_page=50"
+# Create a course (with JSON body)
+canvas api POST /api/v1/accounts/1/courses -d '{"course":{"name":"Test Course"}}'
 
-  # Update an assignment
-  canvas api PUT /api/v1/courses/123/assignments/456 -d '{"assignment":{"name":"Updated"}}'
+# Search users with query parameters
+canvas api GET /api/v1/users -q "search_term=john" -q "per_page=50"
 
-  # Delete an assignment
-  canvas api DELETE /api/v1/courses/123/assignments/456
+# Update an assignment
+canvas api PUT /api/v1/courses/123/assignments/456 -d '{"assignment":{"name":"Updated"}}'
 
-  # Get all pages of a paginated endpoint
-  canvas api GET /api/v1/courses --paginate
+# Delete an assignment
+canvas api DELETE /api/v1/courses/123/assignments/456
 
-  # Read body from file
-  canvas api POST /api/v1/accounts/1/courses --data-file course.json
+# Get all pages of a paginated endpoint
+canvas api GET /api/v1/courses --paginate
+
+# Read body from file
+canvas api POST /api/v1/accounts/1/courses --data-file course.json
+```
 
 ```
 canvas api <METHOD> <PATH> [flags]

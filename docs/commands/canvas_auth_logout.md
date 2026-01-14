@@ -13,8 +13,11 @@ Logout from a Canvas instance by removing stored credentials.
 If no instance name is provided, logs out from the default instance.
 
 Examples:
-  canvas auth logout
-  canvas auth logout myschool
+
+```bash
+canvas auth logout
+canvas auth logout myschool
+```
 
 ```
 canvas auth logout [instance-name] [flags]

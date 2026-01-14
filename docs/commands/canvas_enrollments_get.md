@@ -13,7 +13,10 @@ Get details of a specific enrollment.
 Note: You must specify --course-id to indicate which course the enrollment belongs to.
 
 Examples:
-  canvas enrollments get 789 --course-id 123
+
+```bash
+canvas enrollments get 789 --course-id 123
+```
 
 ```
 canvas enrollments get <enrollment-id> [flags]

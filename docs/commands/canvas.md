@@ -13,10 +13,13 @@ It provides comprehensive access to Canvas API features including courses,
 assignments, users, submissions, and more.
 
 Examples:
-  canvas auth login                                              # Authenticate with Canvas
-  canvas courses list                                            # List all courses
-  canvas assignments list --course-id 123                        # List assignments for a course
-  canvas submissions bulk-grade --course-id 123 --csv grades.csv # Bulk grade from CSV
+
+```bash
+canvas auth login                                              # Authenticate with Canvas
+canvas courses list                                            # List all courses
+canvas assignments list --course-id 123                        # List assignments for a course
+canvas submissions bulk-grade --course-id 123 --csv grades.csv # Bulk grade from CSV
+```
 
 ### Options
 

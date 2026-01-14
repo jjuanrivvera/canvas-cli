@@ -13,11 +13,14 @@ List files in a course, folder, or user's files.
 You must specify one of --course-id, --folder-id, or --user-id.
 
 Examples:
-  canvas files list --course-id 123
-  canvas files list --folder-id 456
-  canvas files list --user-id 789
-  canvas files list --course-id 123 --search "assignment"
-  canvas files list --course-id 123 --sort name --order asc
+
+```bash
+canvas files list --course-id 123
+canvas files list --folder-id 456
+canvas files list --user-id 789
+canvas files list --course-id 123 --search "assignment"
+canvas files list --course-id 123 --sort name --order asc
+```
 
 ```
 canvas files list [flags]

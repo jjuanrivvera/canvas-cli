@@ -11,7 +11,10 @@ Mark all conversations as read
 Mark all conversations as read.
 
 Examples:
-  canvas conversations mark-all-read
+
+```bash
+canvas conversations mark-all-read
+```
 
 ```
 canvas conversations mark-all-read [flags]

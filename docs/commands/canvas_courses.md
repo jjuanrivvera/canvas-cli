@@ -11,10 +11,13 @@ Manage Canvas courses
 Manage Canvas courses including listing, viewing, creating, and updating courses.
 
 Examples:
-  canvas courses list
-  canvas courses get 123
-  canvas courses list --enrollment-type teacher
-  canvas courses list --state available
+
+```bash
+canvas courses list
+canvas courses get 123
+canvas courses list --enrollment-type teacher
+canvas courses list --state available
+```
 
 ### Options
 

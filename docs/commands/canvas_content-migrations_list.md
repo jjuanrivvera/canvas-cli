@@ -11,7 +11,10 @@ List content migrations
 List content migrations for a course.
 
 Examples:
-  canvas content-migrations list --course-id 1
+
+```bash
+canvas content-migrations list --course-id 1
+```
 
 ```
 canvas content-migrations list [flags]

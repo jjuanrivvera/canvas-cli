@@ -11,10 +11,13 @@ List discussion topics in a course
 List all discussion topics in a Canvas course.
 
 Examples:
-  canvas discussions list --course-id 123
-  canvas discussions list --course-id 123 --order-by recent_activity
-  canvas discussions list --course-id 123 --scope pinned
-  canvas discussions list --course-id 123 --filter unread
+
+```bash
+canvas discussions list --course-id 123
+canvas discussions list --course-id 123 --order-by recent_activity
+canvas discussions list --course-id 123 --scope pinned
+canvas discussions list --course-id 123 --filter unread
+```
 
 ```
 canvas discussions list [flags]

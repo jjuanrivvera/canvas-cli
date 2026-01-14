@@ -11,7 +11,10 @@ Set custom column data for a user
 Set data for a user in a custom gradebook column.
 
 Examples:
-  canvas grades columns data set 456 --course-id 123 --user-id 789 --content "Student note"
+
+```bash
+canvas grades columns data set 456 --course-id 123 --user-id 789 --content "Student note"
+```
 
 ```
 canvas grades columns data set <column-id> [flags]

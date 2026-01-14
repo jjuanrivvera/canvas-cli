@@ -11,8 +11,11 @@ Get migration details
 Get details of a specific blueprint migration.
 
 Examples:
-  canvas blueprint migrations get 123 --course-id 1
-  canvas blueprint migrations get 123 --course-id 1 --include user
+
+```bash
+canvas blueprint migrations get 123 --course-id 1
+canvas blueprint migrations get 123 --course-id 1 --include user
+```
 
 ```
 canvas blueprint migrations get <migration-id> [flags]

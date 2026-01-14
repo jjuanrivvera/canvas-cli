@@ -13,7 +13,10 @@ Get outcome alignments for a course.
 Shows which assignments, quizzes, etc. are aligned to outcomes.
 
 Examples:
-  canvas outcomes alignments --course-id 123
+
+```bash
+canvas outcomes alignments --course-id 123
+```
 
 ```
 canvas outcomes alignments [flags]

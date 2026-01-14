@@ -13,8 +13,11 @@ Mark a planner item as complete by creating an override.
 Type can be: Assignment, Quiz, DiscussionTopic, WikiPage, CalendarEvent
 
 Examples:
-  canvas planner complete Assignment 123
-  canvas planner complete Quiz 456
+
+```bash
+canvas planner complete Assignment 123
+canvas planner complete Quiz 456
+```
 
 ```
 canvas planner complete <type> <id> [flags]

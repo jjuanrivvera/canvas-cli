@@ -13,8 +13,11 @@ Get storage quota information for a course or user.
 You must specify either --course-id or --user-id.
 
 Examples:
-  canvas files quota --course-id 123
-  canvas files quota --user-id 789
+
+```bash
+canvas files quota --course-id 123
+canvas files quota --user-id 789
+```
 
 ```
 canvas files quota [flags]

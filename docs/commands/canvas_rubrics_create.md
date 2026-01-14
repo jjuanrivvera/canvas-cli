@@ -11,8 +11,11 @@ Create a new rubric
 Create a new rubric in a course.
 
 Examples:
-  canvas rubrics create --course-id 123 --title "Essay Rubric" --points 100
-  canvas rubrics create --course-id 123 --title "Discussion Rubric" --free-form
+
+```bash
+canvas rubrics create --course-id 123 --title "Essay Rubric" --points 100
+canvas rubrics create --course-id 123 --title "Discussion Rubric" --free-form
+```
 
 ```
 canvas rubrics create [flags]

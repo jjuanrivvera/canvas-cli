@@ -19,17 +19,20 @@ and OAuth credentials will be loaded automatically. You can override them
 with flags.
 
 Examples:
-  # Login using a configured instance (recommended)
-  canvas auth login --instance prod
 
-  # Login with URL (creates new instance)
-  canvas auth login https://canvas.instructure.com
+```bash
+# Login using a configured instance (recommended)
+canvas auth login --instance prod
 
-  # Login with custom OAuth credentials
-  canvas auth login --instance prod --client-id YOUR_ID --client-secret YOUR_SECRET
+# Login with URL (creates new instance)
+canvas auth login https://canvas.instructure.com
 
-  # Force out-of-band mode (for headless systems)
-  canvas auth login --instance prod --mode oob
+# Login with custom OAuth credentials
+canvas auth login --instance prod --client-id YOUR_ID --client-secret YOUR_SECRET
+
+# Force out-of-band mode (for headless systems)
+canvas auth login --instance prod --mode oob
+```
 
 ```
 canvas auth login [instance-url] [flags]

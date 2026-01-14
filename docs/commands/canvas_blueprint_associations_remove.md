@@ -11,7 +11,10 @@ Remove courses from blueprint
 Remove courses from a blueprint's associations.
 
 Examples:
-  canvas blueprint associations remove --course-id 1 --course-ids-to-remove 100,101
+
+```bash
+canvas blueprint associations remove --course-id 1 --course-ids-to-remove 100,101
+```
 
 ```
 canvas blueprint associations remove [flags]

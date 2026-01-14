@@ -11,8 +11,11 @@ Update a group
 Update an existing group.
 
 Examples:
-  canvas groups update 456 --name "New Name"
-  canvas groups update 456 --description "Updated description"
+
+```bash
+canvas groups update 456 --name "New Name"
+canvas groups update 456 --description "Updated description"
+```
 
 ```
 canvas groups update <group-id> [flags]

@@ -14,10 +14,13 @@ Pages are rich content associated with Courses in Canvas. They can be used
 for course information, resources, or any other content.
 
 Examples:
-  canvas pages list --course-id 123
-  canvas pages get --course-id 123 my-page-url
-  canvas pages create --course-id 123 --title "Welcome" --body "<p>Hello!</p>"
-  canvas pages front --course-id 123
+
+```bash
+canvas pages list --course-id 123
+canvas pages get --course-id 123 my-page-url
+canvas pages create --course-id 123 --title "Welcome" --body "<p>Hello!</p>"
+canvas pages front --course-id 123
+```
 
 ### Options
 

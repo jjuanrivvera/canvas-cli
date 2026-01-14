@@ -11,10 +11,13 @@ Create a new module
 Create a new module in a course.
 
 Examples:
-  canvas modules create --course-id 123 --name "Week 1"
-  canvas modules create --course-id 123 --name "Week 2" --position 2
-  canvas modules create --course-id 123 --name "Unit 2" --prerequisite-modules 1,2
-  canvas modules create --course-id 123 --name "Final" --require-sequential-progress
+
+```bash
+canvas modules create --course-id 123 --name "Week 1"
+canvas modules create --course-id 123 --name "Week 2" --position 2
+canvas modules create --course-id 123 --name "Unit 2" --prerequisite-modules 1,2
+canvas modules create --course-id 123 --name "Final" --require-sequential-progress
+```
 
 ```
 canvas modules create [flags]

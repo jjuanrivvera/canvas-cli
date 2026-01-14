@@ -11,7 +11,10 @@ Delete a submission comment
 Delete a comment from a submission.
 
 Examples:
-  canvas submissions delete-comment --course-id 123 --assignment-id 456 --user-id 789 --comment-id 999
+
+```bash
+canvas submissions delete-comment --course-id 123 --assignment-id 456 --user-id 789 --comment-id 999
+```
 
 ```
 canvas submissions delete-comment [flags]

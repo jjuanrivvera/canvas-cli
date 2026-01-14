@@ -25,20 +25,23 @@ Endpoints:
   GET  /health  - Health check endpoint
 
 Examples:
-  # Canvas Data Services mode (recommended for production)
-  canvas webhook listen --canvas-data-services --log
 
-  # Custom JWK endpoint
-  canvas webhook listen --jwks-url https://your-jwks.com/jwks
+```bash
+# Canvas Data Services mode (recommended for production)
+canvas webhook listen --canvas-data-services --log
 
-  # HMAC signature verification
-  canvas webhook listen --secret my-secret --log
+# Custom JWK endpoint
+canvas webhook listen --jwks-url https://your-jwks.com/jwks
 
-  # Both modes (fallback)
-  canvas webhook listen --canvas-data-services --secret backup-secret
+# HMAC signature verification
+canvas webhook listen --secret my-secret --log
 
-  # Listen for specific events
-  canvas webhook listen --events grade_change,submission_created
+# Both modes (fallback)
+canvas webhook listen --canvas-data-services --secret backup-secret
+
+# Listen for specific events
+canvas webhook listen --events grade_change,submission_created
+```
 
 ```
 canvas webhook listen [flags]

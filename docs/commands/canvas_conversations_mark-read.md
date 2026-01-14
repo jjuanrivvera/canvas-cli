@@ -11,7 +11,10 @@ Mark a conversation as read
 Mark a conversation as read.
 
 Examples:
-  canvas conversations mark-read 123
+
+```bash
+canvas conversations mark-read 123
+```
 
 ```
 canvas conversations mark-read <conversation-id> [flags]

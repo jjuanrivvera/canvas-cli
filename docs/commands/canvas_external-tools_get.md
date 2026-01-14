@@ -11,8 +11,11 @@ Get an external tool
 Get details of a specific external tool.
 
 Examples:
-  canvas external-tools get 456 --course-id 123
-  canvas external-tools get 456 --account-id 1
+
+```bash
+canvas external-tools get 456 --course-id 123
+canvas external-tools get 456 --account-id 1
+```
 
 ```
 canvas external-tools get <tool-id> [flags]

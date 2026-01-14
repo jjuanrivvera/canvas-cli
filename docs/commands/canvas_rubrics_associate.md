@@ -11,8 +11,11 @@ Associate rubric with assignment
 Associate a rubric with an assignment.
 
 Examples:
-  canvas rubrics associate 456 --course-id 123 --assignment-id 789
-  canvas rubrics associate 456 --course-id 123 --assignment-id 789 --use-for-grading
+
+```bash
+canvas rubrics associate 456 --course-id 123 --assignment-id 789
+canvas rubrics associate 456 --course-id 123 --assignment-id 789 --use-for-grading
+```
 
 ```
 canvas rubrics associate <rubric-id> [flags]

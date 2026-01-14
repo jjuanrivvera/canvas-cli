@@ -17,8 +17,11 @@ Launch Types:
   - module_item: Launch for a module item (requires --module-item-id)
 
 Examples:
-  canvas external-tools launch 456 --course-id 123
-  canvas external-tools launch 456 --course-id 123 --launch-type assessment --assignment-id 789
+
+```bash
+canvas external-tools launch 456 --course-id 123
+canvas external-tools launch 456 --course-id 123 --launch-type assessment --assignment-id 789
+```
 
 ```
 canvas external-tools launch <tool-id> [flags]

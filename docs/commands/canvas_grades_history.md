@@ -11,8 +11,11 @@ Get gradebook history
 Get gradebook history days showing grading activity.
 
 Examples:
-  canvas grades history --course-id 123
-  canvas grades history --course-id 123 --start-date 2024-01-01 --end-date 2024-01-31
+
+```bash
+canvas grades history --course-id 123
+canvas grades history --course-id 123 --start-date 2024-01-01 --end-date 2024-01-31
+```
 
 ```
 canvas grades history [flags]

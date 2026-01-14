@@ -11,7 +11,10 @@ Reactivate a concluded enrollment
 Reactivate a previously concluded or deactivated enrollment.
 
 Examples:
-  canvas enrollments reactivate 789 --course-id 123
+
+```bash
+canvas enrollments reactivate 789 --course-id 123
+```
 
 ```
 canvas enrollments reactivate <enrollment-id> [flags]

@@ -11,7 +11,10 @@ Show unsynced changes
 Show changes that have not been synced to associated courses.
 
 Examples:
-  canvas blueprint changes --course-id 1
+
+```bash
+canvas blueprint changes --course-id 1
+```
 
 ```
 canvas blueprint changes [flags]

@@ -14,14 +14,18 @@ You can provide assignment data via flags or JSON file/stdin.
 Only specified fields will be updated.
 
 Examples:
-  # Using flags
-  canvas assignments update --course-id 123 456 --name "Updated Quiz"
-  canvas assignments update --course-id 123 456 --points 150 --due-at "2025-02-15T23:59:00Z"
 
-  # Using JSON file
-  canvas assignments update --course-id 123 456 --json updates.json
+```bash
+# Using flags
+canvas assignments update --course-id 123 456 --name "Updated Quiz"
+canvas assignments update --course-id 123 456 --points 150 --due-at "2025-02-15T23:59:00Z"
 
-  # Using stdin
+# Using JSON file
+canvas assignments update --course-id 123 456 --json updates.json
+
+# Using stdin
+```
+
   echo '{"points_possible":200}' | canvas assignments update --course-id 123 456 --stdin
 
 ```

@@ -11,8 +11,11 @@ Add a comment to a submission
 Add a comment to a specific submission.
 
 Examples:
-  canvas submissions add-comment --course-id 123 --assignment-id 456 --user-id 789 --text "Great work!"
-  canvas submissions add-comment --course-id 123 --assignment-id 456 --user-id 789 --text "Feedback" --group
+
+```bash
+canvas submissions add-comment --course-id 123 --assignment-id 456 --user-id 789 --text "Great work!"
+canvas submissions add-comment --course-id 123 --assignment-id 456 --user-id 789 --text "Feedback" --group
+```
 
 ```
 canvas submissions add-comment [flags]

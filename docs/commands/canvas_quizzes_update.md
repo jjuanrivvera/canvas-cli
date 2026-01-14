@@ -11,9 +11,12 @@ Update a quiz
 Update an existing quiz.
 
 Examples:
-  canvas quizzes update 456 --course-id 123 --title "Updated Title"
-  canvas quizzes update 456 --course-id 123 --time-limit 60
-  canvas quizzes update 456 --course-id 123 --published
+
+```bash
+canvas quizzes update 456 --course-id 123 --title "Updated Title"
+canvas quizzes update 456 --course-id 123 --time-limit 60
+canvas quizzes update 456 --course-id 123 --published
+```
 
 ```
 canvas quizzes update <quiz-id> [flags]

@@ -11,8 +11,11 @@ Delete a group
 Delete an existing group.
 
 Examples:
-  canvas groups delete 456
-  canvas groups delete 456 --force
+
+```bash
+canvas groups delete 456
+canvas groups delete 456 --force
+```
 
 ```
 canvas groups delete <group-id> [flags]

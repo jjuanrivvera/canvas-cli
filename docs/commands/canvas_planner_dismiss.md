@@ -13,7 +13,10 @@ Dismiss a planner item so it no longer appears.
 Type can be: Assignment, Quiz, DiscussionTopic, WikiPage, CalendarEvent
 
 Examples:
-  canvas planner dismiss CalendarEvent 789
+
+```bash
+canvas planner dismiss CalendarEvent 789
+```
 
 ```
 canvas planner dismiss <type> <id> [flags]

@@ -15,10 +15,13 @@ providing a linear flow through them. Module items can be accessed linearly or s
 depending on module configuration.
 
 Examples:
-  canvas modules list --course-id 123
-  canvas modules get --course-id 123 456
-  canvas modules create --course-id 123 --name "Week 1"
-  canvas modules items list --course-id 123 --module-id 456
+
+```bash
+canvas modules list --course-id 123
+canvas modules get --course-id 123 456
+canvas modules create --course-id 123 --name "Week 1"
+canvas modules items list --course-id 123 --module-id 456
+```
 
 ### Options
 

@@ -11,9 +11,12 @@ Update a section
 Update an existing section.
 
 Examples:
-  canvas sections update 456 --name "Updated Section Name"
-  canvas sections update 456 --start-at "2024-02-01"
-  canvas sections update 456 --restrict-dates
+
+```bash
+canvas sections update 456 --name "Updated Section Name"
+canvas sections update 456 --start-at "2024-02-01"
+canvas sections update 456 --restrict-dates
+```
 
 ```
 canvas sections update <section-id> [flags]

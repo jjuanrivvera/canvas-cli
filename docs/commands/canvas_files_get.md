@@ -11,8 +11,11 @@ Get file details
 Get details of a specific file by ID.
 
 Examples:
-  canvas files get 456
-  canvas files get 456 --include user
+
+```bash
+canvas files get 456
+canvas files get 456 --include user
+```
 
 ```
 canvas files get <file-id> [flags]

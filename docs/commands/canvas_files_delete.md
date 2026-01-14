@@ -11,7 +11,10 @@ Delete a file
 Delete a file from Canvas.
 
 Examples:
-  canvas files delete 456
+
+```bash
+canvas files delete 456
+```
 
 ```
 canvas files delete <file-id> [flags]

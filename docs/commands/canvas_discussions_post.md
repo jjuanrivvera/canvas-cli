@@ -13,8 +13,11 @@ Post a new entry to a discussion topic.
 The message can be provided as a positional argument or using the --message flag.
 
 Examples:
-  canvas discussions post --course-id 123 456 "My response to the discussion"
-  canvas discussions post --course-id 123 456 --message "My response to the discussion"
+
+```bash
+canvas discussions post --course-id 123 456 "My response to the discussion"
+canvas discussions post --course-id 123 456 --message "My response to the discussion"
+```
 
 ```
 canvas discussions post <topic-id> [message] [flags]

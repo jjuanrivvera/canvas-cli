@@ -11,7 +11,10 @@ Get a specific calendar event
 Get details of a specific calendar event.
 
 Examples:
-  canvas calendar get 456
+
+```bash
+canvas calendar get 456
+```
 
 ```
 canvas calendar get <event-id> [flags]

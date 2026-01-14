@@ -11,8 +11,11 @@ Link outcome to a group
 Link an existing outcome to an outcome group.
 
 Examples:
-  canvas outcomes link 789 --account-id 1 --group-id 456
-  canvas outcomes link 789 --course-id 123 --group-id 456
+
+```bash
+canvas outcomes link 789 --account-id 1 --group-id 456
+canvas outcomes link 789 --course-id 123 --group-id 456
+```
 
 ```
 canvas outcomes link <outcome-id> [flags]

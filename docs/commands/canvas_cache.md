@@ -14,9 +14,12 @@ The cache stores API responses to reduce load on the Canvas server and improve
 response times for repeated requests.
 
 Examples:
-  canvas cache stats                    # Show cache statistics
-  canvas cache clear                    # Clear expired cache entries
-  canvas cache clear --all              # Clear all cache entries
+
+```bash
+canvas cache stats                    # Show cache statistics
+canvas cache clear                    # Clear expired cache entries
+canvas cache clear --all              # Clear all cache entries
+```
 
 ### Options
 

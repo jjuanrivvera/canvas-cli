@@ -11,7 +11,10 @@ List group members
 List all members of a group.
 
 Examples:
-  canvas groups members list 456
+
+```bash
+canvas groups members list 456
+```
 
 ```
 canvas groups members list <group-id> [flags]

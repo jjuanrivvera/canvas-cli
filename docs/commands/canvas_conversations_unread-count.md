@@ -11,7 +11,10 @@ Get unread conversation count
 Get the number of unread conversations.
 
 Examples:
-  canvas conversations unread-count
+
+```bash
+canvas conversations unread-count
+```
 
 ```
 canvas conversations unread-count [flags]

@@ -11,8 +11,11 @@ Get a specific page
 Get details of a specific wiki page by URL or ID.
 
 Examples:
-  canvas pages get --course-id 123 my-page-title
-  canvas pages get --course-id 123 page_id:456
+
+```bash
+canvas pages get --course-id 123 my-page-title
+canvas pages get --course-id 123 page_id:456
+```
 
 ```
 canvas pages get <url-or-id> [flags]

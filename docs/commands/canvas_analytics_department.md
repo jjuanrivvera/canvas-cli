@@ -16,9 +16,12 @@ Analytics types:
   - grades: Grade distribution
 
 Examples:
-  canvas analytics department --account-id 1
-  canvas analytics department --account-id 1 --type statistics
-  canvas analytics department --account-id 1 --type grades --term-id 123
+
+```bash
+canvas analytics department --account-id 1
+canvas analytics department --account-id 1 --type statistics
+canvas analytics department --account-id 1 --type grades --term-id 123
+```
 
 ```
 canvas analytics department [flags]

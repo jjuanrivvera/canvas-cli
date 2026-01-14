@@ -11,8 +11,11 @@ Return a crosslisted section to its original course
 Return a crosslisted section to its original course.
 
 Examples:
-  canvas sections uncrosslist 456
-  canvas sections uncrosslist 456 --override-sis-stickiness
+
+```bash
+canvas sections uncrosslist 456
+canvas sections uncrosslist 456 --override-sis-stickiness
+```
 
 ```
 canvas sections uncrosslist <section-id> [flags]

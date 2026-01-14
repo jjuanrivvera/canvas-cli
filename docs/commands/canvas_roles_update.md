@@ -11,7 +11,10 @@ Update an existing role
 Update the properties of an existing role.
 
 Examples:
-  canvas roles update 123 --account-id 1 --label "New Label"
+
+```bash
+canvas roles update 123 --account-id 1 --label "New Label"
+```
 
 ```
 canvas roles update <role-id> [flags]

@@ -11,9 +11,12 @@ Create a new calendar event
 Create a new calendar event.
 
 Examples:
-  canvas calendar create --course-id 123 --title "Team Meeting"
-  canvas calendar create --course-id 123 --title "Deadline" --start-at "2024-12-01T09:00:00Z" --all-day
-  canvas calendar create --course-id 123 --title "Workshop" --start-at "2024-12-01T14:00:00Z" --end-at "2024-12-01T16:00:00Z" --location "Room 101"
+
+```bash
+canvas calendar create --course-id 123 --title "Team Meeting"
+canvas calendar create --course-id 123 --title "Deadline" --start-at "2024-12-01T09:00:00Z" --all-day
+canvas calendar create --course-id 123 --title "Workshop" --start-at "2024-12-01T14:00:00Z" --end-at "2024-12-01T16:00:00Z" --location "Room 101"
+```
 
 ```
 canvas calendar create [flags]

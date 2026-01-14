@@ -11,8 +11,11 @@ Get group details
 Get details of a specific group.
 
 Examples:
-  canvas groups get 456
-  canvas groups get 456 --include-users
+
+```bash
+canvas groups get 456
+canvas groups get 456 --include-users
+```
 
 ```
 canvas groups get <group-id> [flags]

@@ -11,7 +11,10 @@ View assignment analytics
 View assignment statistics including score distribution and submission tardiness.
 
 Examples:
-  canvas analytics assignments --course-id 123
+
+```bash
+canvas analytics assignments --course-id 123
+```
 
 ```
 canvas analytics assignments [flags]

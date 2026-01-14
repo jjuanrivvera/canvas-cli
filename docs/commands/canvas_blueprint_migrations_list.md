@@ -11,7 +11,10 @@ List migrations
 List blueprint sync migrations.
 
 Examples:
-  canvas blueprint migrations list --course-id 1
+
+```bash
+canvas blueprint migrations list --course-id 1
+```
 
 ```
 canvas blueprint migrations list [flags]

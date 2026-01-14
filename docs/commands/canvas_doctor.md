@@ -20,14 +20,17 @@ The doctor command performs the following checks:
   - Permissions (file and directory permissions)
 
 Examples:
-  # Run all diagnostic checks
-  canvas doctor
 
-  # Run with verbose output
-  canvas doctor --verbose
+```bash
+# Run all diagnostic checks
+canvas doctor
 
-  # Output results as JSON
-  canvas doctor --json
+# Run with verbose output
+canvas doctor --verbose
+
+# Output results as JSON
+canvas doctor --json
+```
 
 ```
 canvas doctor [flags]

@@ -11,7 +11,10 @@ Get a specific discussion topic
 Get details of a specific discussion topic.
 
 Examples:
-  canvas discussions get --course-id 123 456
+
+```bash
+canvas discussions get --course-id 123 456
+```
 
 ```
 canvas discussions get <topic-id> [flags]

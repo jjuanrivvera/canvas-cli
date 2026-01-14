@@ -14,9 +14,12 @@ Sections allow you to organize students within a course into groups that can hav
 different due dates, grade visibility settings, or be crosslisted to other courses.
 
 Examples:
-  canvas sections list --course-id 123
-  canvas sections get 456
-  canvas sections create --course-id 123 --name "Section A"
+
+```bash
+canvas sections list --course-id 123
+canvas sections get 456
+canvas sections create --course-id 123 --name "Section A"
+```
 
 ### Options
 

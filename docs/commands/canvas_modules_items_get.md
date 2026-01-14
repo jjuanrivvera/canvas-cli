@@ -11,8 +11,11 @@ Get details of a module item
 Get details of a specific module item.
 
 Examples:
-  canvas modules items get --course-id 123 --module-id 456 789
-  canvas modules items get --course-id 123 --module-id 456 789 --include content_details
+
+```bash
+canvas modules items get --course-id 123 --module-id 456 789
+canvas modules items get --course-id 123 --module-id 456 789 --include content_details
+```
 
 ```
 canvas modules items get <item-id> [flags]
