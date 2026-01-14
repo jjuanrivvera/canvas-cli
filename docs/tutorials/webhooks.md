@@ -223,16 +223,15 @@ canvas webhook listen --events grade_change --log 2>&1 | \
   while read line; do echo "$line" | ~/scripts/on-grade-change.sh; done
 ```
 
-### Option 2: Custom Go Application (Recommended)
+### Option 2: Custom HTTP Server (Recommended)
 
-For production use, build a custom application using the webhook package.
+For production use, build a custom HTTP server that handles Canvas webhooks. Since the `internal/webhook` package is not importable by external projects, you can implement your own webhook handler.
 
 #### Step 1: Create Project
 
 ```bash
 mkdir grade-notifier && cd grade-notifier
 go mod init grade-notifier
-go get github.com/jjuanrivvera/canvas-cli/internal/webhook
 ```
 
 #### Step 2: Write Handler
@@ -242,34 +241,43 @@ go get github.com/jjuanrivvera/canvas-cli/internal/webhook
 package main
 
 import (
+    "bytes"
     "context"
+    "crypto/hmac"
+    "crypto/sha256"
+    "encoding/hex"
+    "encoding/json"
     "fmt"
+    "io"
     "log"
     "net/http"
     "os"
     "os/signal"
     "syscall"
-    "bytes"
-    "encoding/json"
-
-    "github.com/jjuanrivvera/canvas-cli/internal/webhook"
 )
+
+// Event represents a Canvas webhook event
+type Event struct {
+    ID        string                 `json:"id"`
+    EventType string                 `json:"event_type"`
+    Body      map[string]interface{} `json:"body"`
+}
 
 func main() {
     secret := os.Getenv("WEBHOOK_SECRET")
     slackURL := os.Getenv("SLACK_WEBHOOK_URL")
 
-    // Create listener
-    listener := webhook.NewListener(webhook.Config{
-        Addr:   ":8080",
-        Secret: secret,
-        Logger: log.Default(),
+    // Setup HTTP server
+    mux := http.NewServeMux()
+    mux.HandleFunc("/webhook", func(w http.ResponseWriter, r *http.Request) {
+        handleWebhook(w, r, secret, slackURL)
+    })
+    mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+        w.Header().Set("Content-Type", "application/json")
+        json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
     })
 
-    // Register grade change handler
-    listener.On(webhook.EventGradeChange, func(ctx context.Context, event *webhook.Event) error {
-        return handleGradeChange(event, slackURL)
-    })
+    server := &http.Server{Addr: ":8080", Handler: mux}
 
     // Graceful shutdown
     ctx, cancel := context.WithCancel(context.Background())
@@ -279,17 +287,65 @@ func main() {
         <-sigCh
         fmt.Println("\nShutting down...")
         cancel()
+        server.Shutdown(context.Background())
     }()
 
-    fmt.Printf("Listening for grade changes on :8080...\n")
-    if err := listener.Start(ctx); err != nil && err != context.Canceled {
+    fmt.Printf("Listening for webhooks on :8080...\n")
+    if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
         log.Fatal(err)
     }
 }
 
-func handleGradeChange(event *webhook.Event, slackURL string) error {
-    body := event.Body
+func handleWebhook(w http.ResponseWriter, r *http.Request, secret, slackURL string) {
+    if r.Method != http.MethodPost {
+        http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+        return
+    }
 
+    body, err := io.ReadAll(r.Body)
+    if err != nil {
+        http.Error(w, "Bad request", http.StatusBadRequest)
+        return
+    }
+    defer r.Body.Close()
+
+    // Verify HMAC signature if secret is configured
+    if secret != "" {
+        signature := r.Header.Get("X-Canvas-Signature")
+        if !verifySignature(body, signature, secret) {
+            http.Error(w, "Unauthorized", http.StatusUnauthorized)
+            return
+        }
+    }
+
+    var event Event
+    if err := json.Unmarshal(body, &event); err != nil {
+        http.Error(w, "Bad request", http.StatusBadRequest)
+        return
+    }
+
+    log.Printf("Received event: %s (ID: %s)\n", event.EventType, event.ID)
+
+    // Handle grade changes
+    if event.EventType == "grade_change" {
+        handleGradeChange(&event, slackURL)
+    }
+
+    w.WriteHeader(http.StatusOK)
+}
+
+func verifySignature(body []byte, signature, secret string) bool {
+    if signature == "" {
+        return false
+    }
+    mac := hmac.New(sha256.New, []byte(secret))
+    mac.Write(body)
+    expected := hex.EncodeToString(mac.Sum(nil))
+    return hmac.Equal([]byte(signature), []byte(expected))
+}
+
+func handleGradeChange(event *Event, slackURL string) {
+    body := event.Body
     userID := body["user_id"]
     score := body["score"]
     assignmentID := body["assignment_id"]
@@ -305,10 +361,8 @@ func handleGradeChange(event *webhook.Event, slackURL string) error {
                 userID, score, assignmentID),
         }
         jsonData, _ := json.Marshal(msg)
-        http.Post(slackURL, "application/json", bytes.NewBuffer(jsonData))
+        _, _ = http.Post(slackURL, "application/json", bytes.NewBuffer(jsonData))
     }
-
-    return nil
 }
 ```
 

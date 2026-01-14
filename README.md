@@ -16,7 +16,7 @@ A powerful command-line interface for [Canvas LMS](https://www.instructure.com/c
 - **Smart Rate Limiting** - Adaptive throttling based on API quotas
 - **Multiple Outputs** - Table, JSON, YAML, and CSV formats
 - **Interactive Mode** - REPL shell with command history and completion
-- **89+ Commands** - Full coverage of Canvas LMS resources
+- **280+ Commands** - Full coverage of Canvas LMS resources
 
 ## Installation
 
@@ -58,18 +58,26 @@ canvas shell
 | Category | Commands |
 |----------|----------|
 | **Auth** | `login`, `logout`, `status` |
-| **Courses** | `list`, `get`, `users` |
-| **Assignments** | `list`, `get`, `create`, `update`, `bulk-update` |
-| **Submissions** | `list`, `get`, `grade`, `bulk-grade` |
+| **Courses** | `list`, `get`, `create`, `update`, `delete` |
+| **Assignments** | `list`, `get`, `create`, `update`, `delete`, `bulk-update` |
+| **Submissions** | `list`, `get`, `grade`, `bulk-grade`, `comments` |
 | **Users** | `me`, `list`, `get`, `create`, `update` |
-| **Modules** | `list`, `get`, `create`, `update`, `delete`, `items` |
-| **Pages** | `list`, `get`, `create`, `update`, `delete`, `front` |
-| **Discussions** | `list`, `get`, `create`, `entries`, `post`, `reply` |
+| **Enrollments** | `list`, `get`, `create`, `update`, `delete`, `accept` |
+| **Modules** | `list`, `get`, `create`, `update`, `delete`, `publish`, `items` |
+| **Pages** | `list`, `get`, `create`, `update`, `delete`, `front`, `revisions` |
+| **Discussions** | `list`, `get`, `create`, `entries`, `post`, `reply`, `subscribe` |
 | **Announcements** | `list`, `get`, `create`, `update`, `delete` |
-| **Calendar** | `list`, `get`, `create`, `update`, `delete` |
-| **Planner** | `items`, `notes`, `complete`, `dismiss` |
-| **Files** | `upload`, `download` |
-| **Utilities** | `shell`, `doctor`, `webhook`, `version` |
+| **Quizzes** | `list`, `get`, `create`, `update`, `delete`, `questions`, `submissions` |
+| **Grades** | `summary`, `history`, `bulk-update`, `final`, `current` |
+| **Groups** | `list`, `get`, `create`, `update`, `delete`, `users`, `categories` |
+| **Outcomes** | `list`, `get`, `create`, `update`, `delete`, `groups`, `results` |
+| **Rubrics** | `list`, `get`, `create`, `update`, `delete`, `associate` |
+| **Conversations** | `list`, `get`, `create`, `reply`, `archive`, `star`, `batch-update` |
+| **Calendar** | `list`, `get`, `create`, `update`, `delete`, `reserve` |
+| **Files** | `list`, `get`, `upload`, `download`, `delete` |
+| **Sections** | `list`, `get`, `create`, `update`, `delete`, `crosslist` |
+| **Admin** | `admins`, `roles`, `analytics`, `blueprint`, `sis-imports` |
+| **Utilities** | `shell`, `doctor`, `webhook`, `api`, `version` |
 
 See [full command reference](https://jjuanrivvera.github.io/canvas-cli/commands/) for all options and flags.
 

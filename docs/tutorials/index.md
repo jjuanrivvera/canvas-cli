@@ -51,7 +51,7 @@ Step-by-step guides for common Canvas CLI workflows.
 !!! tip "Batch Operations"
     Canvas CLI supports concurrent batch operations for better performance:
     ```bash
-    canvas submissions grade-batch --file grades.csv --course-id 123
+    canvas submissions bulk-grade --csv grades.csv --course-id 123
     ```
 
 !!! tip "Caching"
