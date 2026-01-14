@@ -651,6 +651,95 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Quick Start">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#option-1-api-token-simplest" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Option 1: API Token (Simplest)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#option-2-oauth-20-most-secure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Option 2: OAuth 2.0 (Most Secure)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#api-token-authentication" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        API Token Authentication
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="API Token Authentication">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#getting-an-api-token" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Getting an API Token
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#setting-up-token-auth" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Setting Up Token Auth
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#managing-tokens" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Managing Tokens
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mixing-auth-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mixing Auth Types
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1855,6 +1944,95 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Quick Start">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#option-1-api-token-simplest" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Option 1: API Token (Simplest)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#option-2-oauth-20-most-secure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Option 2: OAuth 2.0 (Most Secure)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#api-token-authentication" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        API Token Authentication
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="API Token Authentication">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#getting-an-api-token" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Getting an API Token
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#setting-up-token-auth" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Setting Up Token Auth
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#managing-tokens" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Managing Tokens
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mixing-auth-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mixing Auth Types
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -2311,15 +2489,66 @@
 
 
 <h1 id="authentication-guide">Authentication Guide<a class="headerlink" href="#authentication-guide" title="Permanent link">&para;</a></h1>
-<p>Canvas CLI uses OAuth 2.0 for secure authentication with Canvas LMS. This guide covers everything you need to set up and manage authentication.</p>
+<p>Canvas CLI supports multiple authentication methods: <strong>API Token</strong> (simplest), <strong>OAuth 2.0</strong> (most secure), and <strong>Environment Variables</strong> (for CI/CD). This guide covers everything you need to set up and manage authentication.</p>
 <h2 id="quick-start">Quick Start<a class="headerlink" href="#quick-start" title="Permanent link">&para;</a></h2>
-<p>The simplest way to authenticate:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>canvas<span class="w"> </span>auth<span class="w"> </span>login<span class="w"> </span>--instance<span class="w"> </span>https://canvas.instructure.com
+<h3 id="option-1-api-token-simplest">Option 1: API Token (Simplest)<a class="headerlink" href="#option-1-api-token-simplest" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>canvas<span class="w"> </span>auth<span class="w"> </span>token<span class="w"> </span><span class="nb">set</span><span class="w"> </span>myschool<span class="w"> </span>--url<span class="w"> </span>https://canvas.instructure.com<span class="w"> </span>--token<span class="w"> </span><span class="m">7</span>~your-token-here
 </span></code></pre></div>
-<p>This will:
-1. Open your browser to Canvas
-2. Ask you to authorize the application
-3. Automatically save your credentials securely</p>
+<p>Generate a token in Canvas: <strong>Account &gt; Settings &gt; New Access Token</strong></p>
+<h3 id="option-2-oauth-20-most-secure">Option 2: OAuth 2.0 (Most Secure)<a class="headerlink" href="#option-2-oauth-20-most-secure" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>canvas<span class="w"> </span>auth<span class="w"> </span>login<span class="w"> </span>--instance<span class="w"> </span>https://canvas.instructure.com
+</span></code></pre></div>
+<p>This will open your browser to authorize the application.</p>
+<h2 id="api-token-authentication">API Token Authentication<a class="headerlink" href="#api-token-authentication" title="Permanent link">&para;</a></h2>
+<p>API tokens are the simplest way to authenticate, especially for personal use or when OAuth isn't required.</p>
+<h3 id="getting-an-api-token">Getting an API Token<a class="headerlink" href="#getting-an-api-token" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Log into Canvas</li>
+<li>Go to <strong>Account &gt; Settings</strong></li>
+<li>Scroll to <strong>Approved Integrations</strong></li>
+<li>Click <strong>+ New Access Token</strong></li>
+<li>Give it a name and set an expiration (optional)</li>
+<li>Copy the token (it will only be shown once!)</li>
+</ol>
+<h3 id="setting-up-token-auth">Setting Up Token Auth<a class="headerlink" href="#setting-up-token-auth" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># For an existing instance</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>canvas<span class="w"> </span>auth<span class="w"> </span>token<span class="w"> </span><span class="nb">set</span><span class="w"> </span>myschool<span class="w"> </span>--token<span class="w"> </span><span class="m">7</span>~abc123...
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="c1"># For a new instance (include URL)</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>canvas<span class="w"> </span>auth<span class="w"> </span>token<span class="w"> </span><span class="nb">set</span><span class="w"> </span>sandbox<span class="w"> </span>--url<span class="w"> </span>https://sandbox.instructure.com<span class="w"> </span>--token<span class="w"> </span><span class="m">7</span>~xyz789...
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="c1"># Interactive mode (prompts for token)</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>canvas<span class="w"> </span>auth<span class="w"> </span>token<span class="w"> </span><span class="nb">set</span><span class="w"> </span>myschool
+</span></code></pre></div>
+<h3 id="managing-tokens">Managing Tokens<a class="headerlink" href="#managing-tokens" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Check authentication status (shows auth type)</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>canvas<span class="w"> </span>auth<span class="w"> </span>status
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="c1"># Remove token from an instance</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>canvas<span class="w"> </span>auth<span class="w"> </span>token<span class="w"> </span>remove<span class="w"> </span>myschool
+</span></code></pre></div>
+<h3 id="mixing-auth-types">Mixing Auth Types<a class="headerlink" href="#mixing-auth-types" title="Permanent link">&para;</a></h3>
+<p>You can use different authentication methods for different instances:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># OAuth for production</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>canvas<span class="w"> </span>auth<span class="w"> </span>login<span class="w"> </span>--instance<span class="w"> </span>prod
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="c1"># Token for sandbox/testing</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>canvas<span class="w"> </span>auth<span class="w"> </span>token<span class="w"> </span><span class="nb">set</span><span class="w"> </span>sandbox<span class="w"> </span>--url<span class="w"> </span>https://sandbox.instructure.com<span class="w"> </span>--token<span class="w"> </span><span class="m">7</span>~test123...
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="c1"># Check status - shows auth type for each</span>
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>canvas<span class="w"> </span>auth<span class="w"> </span>status
+</span></code></pre></div>
+<p>Output:
+<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>📌 prod (default)
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>   URL: https://canvas.instructure.com
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>   Auth: OAuth
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>   Status: ✓ Authenticated
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>📌 sandbox
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>   URL: https://sandbox.instructure.com
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>   Auth: API Token
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>   Status: ✓ Configured (token does not expire)
+</span></code></pre></div></p>
 <h2 id="oauth-20-setup">OAuth 2.0 Setup<a class="headerlink" href="#oauth-20-setup" title="Permanent link">&para;</a></h2>
 <h3 id="step-1-create-a-developer-key-optional">Step 1: Create a Developer Key (Optional)<a class="headerlink" href="#step-1-create-a-developer-key-optional" title="Permanent link">&para;</a></h3>
 <p>By default, Canvas CLI uses embedded OAuth credentials. For enhanced security or custom integrations, you can create your own:</p>
@@ -2336,30 +2565,30 @@
 </ol>
 <h3 id="step-2-authenticate">Step 2: Authenticate<a class="headerlink" href="#step-2-authenticate" title="Permanent link">&para;</a></h3>
 <h4 id="using-embedded-credentials-easiest">Using Embedded Credentials (Easiest)<a class="headerlink" href="#using-embedded-credentials-easiest" title="Permanent link">&para;</a></h4>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>canvas<span class="w"> </span>auth<span class="w"> </span>login<span class="w"> </span>--instance<span class="w"> </span>https://canvas.instructure.com
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>canvas<span class="w"> </span>auth<span class="w"> </span>login<span class="w"> </span>--instance<span class="w"> </span>https://canvas.instructure.com
 </span></code></pre></div>
 <h4 id="using-your-own-credentials">Using Your Own Credentials<a class="headerlink" href="#using-your-own-credentials" title="Permanent link">&para;</a></h4>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>canvas<span class="w"> </span>auth<span class="w"> </span>login<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span>--instance<span class="w"> </span>https://canvas.instructure.com<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span>--client-id<span class="w"> </span>YOUR_CLIENT_ID<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span>--client-secret<span class="w"> </span>YOUR_CLIENT_SECRET
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>canvas<span class="w"> </span>auth<span class="w"> </span>login<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span>--instance<span class="w"> </span>https://canvas.instructure.com<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">  </span>--client-id<span class="w"> </span>YOUR_CLIENT_ID<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">  </span>--client-secret<span class="w"> </span>YOUR_CLIENT_SECRET
 </span></code></pre></div>
 <h3 id="step-3-verify-authentication">Step 3: Verify Authentication<a class="headerlink" href="#step-3-verify-authentication" title="Permanent link">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Check authentication status</span>
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>canvas<span class="w"> </span>auth<span class="w"> </span>status
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
-</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="c1"># Test with a simple API call</span>
-</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>canvas<span class="w"> </span>courses<span class="w"> </span>list
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># Check authentication status</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>canvas<span class="w"> </span>auth<span class="w"> </span>status
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="c1"># Test with a simple API call</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>canvas<span class="w"> </span>courses<span class="w"> </span>list
 </span></code></pre></div>
 <h2 id="authentication-methods">Authentication Methods<a class="headerlink" href="#authentication-methods" title="Permanent link">&para;</a></h2>
 <h3 id="local-browser-flow-default">Local Browser Flow (Default)<a class="headerlink" href="#local-browser-flow-default" title="Permanent link">&para;</a></h3>
 <p>The CLI starts a local web server and opens your browser:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>canvas<span class="w"> </span>auth<span class="w"> </span>login<span class="w"> </span>--instance<span class="w"> </span>https://canvas.instructure.com
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>canvas<span class="w"> </span>auth<span class="w"> </span>login<span class="w"> </span>--instance<span class="w"> </span>https://canvas.instructure.com
 </span></code></pre></div>
 <p>This is the most user-friendly method and works on most systems.</p>
 <h3 id="out-of-band-oob-flow">Out-of-Band (OOB) Flow<a class="headerlink" href="#out-of-band-oob-flow" title="Permanent link">&para;</a></h3>
 <p>For systems without a browser or remote SSH sessions:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>canvas<span class="w"> </span>auth<span class="w"> </span>login<span class="w"> </span>--instance<span class="w"> </span>https://canvas.instructure.com<span class="w"> </span>--mode<span class="w"> </span>oob
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>canvas<span class="w"> </span>auth<span class="w"> </span>login<span class="w"> </span>--instance<span class="w"> </span>https://canvas.instructure.com<span class="w"> </span>--mode<span class="w"> </span>oob
 </span></code></pre></div>
 <p>This will:
 1. Display an authorization URL
@@ -2367,15 +2596,15 @@
 3. Prompt you to paste the authorization code</p>
 <h3 id="environment-variables-cicd">Environment Variables (CI/CD)<a class="headerlink" href="#environment-variables-cicd" title="Permanent link">&para;</a></h3>
 <p>For automated workflows and CI/CD pipelines, Canvas CLI supports authentication via environment variables:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># Required environment variables</span>
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">CANVAS_URL</span><span class="o">=</span><span class="s2">&quot;https://canvas.instructure.com&quot;</span>
-</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="nb">export</span><span class="w"> </span><span class="nv">CANVAS_TOKEN</span><span class="o">=</span><span class="s2">&quot;your-access-token&quot;</span>
-</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>
-</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="c1"># Optional: Control rate limiting (default: 5.0)</span>
-</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="nb">export</span><span class="w"> </span><span class="nv">CANVAS_REQUESTS_PER_SEC</span><span class="o">=</span><span class="s2">&quot;10.0&quot;</span>
-</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>
-</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="c1"># Commands will use these automatically</span>
-</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>canvas<span class="w"> </span>courses<span class="w"> </span>list
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1"># Required environment variables</span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">CANVAS_URL</span><span class="o">=</span><span class="s2">&quot;https://canvas.instructure.com&quot;</span>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="nb">export</span><span class="w"> </span><span class="nv">CANVAS_TOKEN</span><span class="o">=</span><span class="s2">&quot;your-access-token&quot;</span>
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="c1"># Optional: Control rate limiting (default: 5.0)</span>
+</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="nb">export</span><span class="w"> </span><span class="nv">CANVAS_REQUESTS_PER_SEC</span><span class="o">=</span><span class="s2">&quot;10.0&quot;</span>
+</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>
+</span><span id="__span-11-8"><a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="c1"># Commands will use these automatically</span>
+</span><span id="__span-11-9"><a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a>canvas<span class="w"> </span>courses<span class="w"> </span>list
 </span></code></pre></div>
 <p><strong>How to get your access token:</strong></p>
 <ol>
@@ -2385,53 +2614,55 @@
 <li>Copy the token (it will only be shown once)</li>
 </ol>
 <p><strong>Priority Order:</strong></p>
-<p>Canvas CLI checks for credentials in this order:
-1. <strong>Environment variables</strong> (CANVAS_URL + CANVAS_TOKEN) - highest priority
-2. <strong>Config file</strong> (~/.canvas-cli/config.yaml)
-3. <strong>OAuth tokens</strong> (stored in system keychain)</p>
+<p>Canvas CLI checks for credentials in this order:</p>
+<ol>
+<li><strong>Environment variables</strong> (CANVAS_URL + CANVAS_TOKEN) - highest priority</li>
+<li><strong>API Token</strong> in config (set via <code>canvas auth token set</code>)</li>
+<li><strong>OAuth tokens</strong> (stored in system keychain, set via <code>canvas auth login</code>)</li>
+</ol>
 <p><strong>CI/CD Example (GitHub Actions):</strong></p>
-<div class="language-yaml highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Canvas CI</span>
-</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="nt">on</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">push</span><span class="p p-Indicator">]</span>
-</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="nt">jobs</span><span class="p">:</span>
-</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">  </span><span class="nt">test</span><span class="p">:</span>
-</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">    </span><span class="nt">runs-on</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ubuntu-latest</span>
-</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">    </span><span class="nt">steps</span><span class="p">:</span>
-</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/checkout@v4</span>
-</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Run Canvas CLI</span>
-</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="w">        </span><span class="nt">env</span><span class="p">:</span>
-</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="w">          </span><span class="nt">CANVAS_URL</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ secrets.CANVAS_URL }}</span>
-</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="w">          </span><span class="nt">CANVAS_TOKEN</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ secrets.CANVAS_TOKEN }}</span>
-</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="w">        </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-</span><span id="__span-7-13"><a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="w">          </span><span class="no">canvas courses list</span>
-</span><span id="__span-7-14"><a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a><span class="w">          </span><span class="no">canvas assignments list --course-id 123</span>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Canvas CI</span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="nt">on</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">push</span><span class="p p-Indicator">]</span>
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="nt">jobs</span><span class="p">:</span>
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="w">  </span><span class="nt">test</span><span class="p">:</span>
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="w">    </span><span class="nt">runs-on</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ubuntu-latest</span>
+</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="w">    </span><span class="nt">steps</span><span class="p">:</span>
+</span><span id="__span-12-7"><a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/checkout@v4</span>
+</span><span id="__span-12-8"><a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Run Canvas CLI</span>
+</span><span id="__span-12-9"><a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a><span class="w">        </span><span class="nt">env</span><span class="p">:</span>
+</span><span id="__span-12-10"><a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a><span class="w">          </span><span class="nt">CANVAS_URL</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ secrets.CANVAS_URL }}</span>
+</span><span id="__span-12-11"><a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a><span class="w">          </span><span class="nt">CANVAS_TOKEN</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ secrets.CANVAS_TOKEN }}</span>
+</span><span id="__span-12-12"><a id="__codelineno-12-12" name="__codelineno-12-12" href="#__codelineno-12-12"></a><span class="w">        </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+</span><span id="__span-12-13"><a id="__codelineno-12-13" name="__codelineno-12-13" href="#__codelineno-12-13"></a><span class="w">          </span><span class="no">canvas courses list</span>
+</span><span id="__span-12-14"><a id="__codelineno-12-14" name="__codelineno-12-14" href="#__codelineno-12-14"></a><span class="w">          </span><span class="no">canvas assignments list --course-id 123</span>
 </span></code></pre></div>
 <h2 id="multi-instance-management">Multi-Instance Management<a class="headerlink" href="#multi-instance-management" title="Permanent link">&para;</a></h2>
 <p>Canvas CLI supports multiple Canvas installations:</p>
 <h3 id="add-multiple-instances">Add Multiple Instances<a class="headerlink" href="#add-multiple-instances" title="Permanent link">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># Add production instance</span>
-</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>canvas<span class="w"> </span>config<span class="w"> </span>add<span class="w"> </span>production<span class="w"> </span>--url<span class="w"> </span>https://canvas.instructure.com
-</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>
-</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="c1"># Add staging instance</span>
-</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>canvas<span class="w"> </span>config<span class="w"> </span>add<span class="w"> </span>staging<span class="w"> </span>--url<span class="w"> </span>https://staging.canvas.instructure.com
-</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>
-</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="c1"># Add self-hosted instance</span>
-</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>canvas<span class="w"> </span>config<span class="w"> </span>add<span class="w"> </span>onprem<span class="w"> </span>--url<span class="w"> </span>https://canvas.company.com
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c1"># Add production instance</span>
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>canvas<span class="w"> </span>config<span class="w"> </span>add<span class="w"> </span>production<span class="w"> </span>--url<span class="w"> </span>https://canvas.instructure.com
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="c1"># Add staging instance</span>
+</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>canvas<span class="w"> </span>config<span class="w"> </span>add<span class="w"> </span>staging<span class="w"> </span>--url<span class="w"> </span>https://staging.canvas.instructure.com
+</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>
+</span><span id="__span-13-7"><a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="c1"># Add self-hosted instance</span>
+</span><span id="__span-13-8"><a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a>canvas<span class="w"> </span>config<span class="w"> </span>add<span class="w"> </span>onprem<span class="w"> </span>--url<span class="w"> </span>https://canvas.company.com
 </span></code></pre></div>
 <h3 id="switch-between-instances">Switch Between Instances<a class="headerlink" href="#switch-between-instances" title="Permanent link">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># List all instances</span>
-</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>canvas<span class="w"> </span>config<span class="w"> </span>list
-</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>
-</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="c1"># Switch to a different instance</span>
-</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>canvas<span class="w"> </span>config<span class="w"> </span>use<span class="w"> </span>staging
-</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>
-</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="c1"># Use a specific instance for one command</span>
-</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a>canvas<span class="w"> </span>courses<span class="w"> </span>list<span class="w"> </span>--instance<span class="w"> </span>production
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1"># List all instances</span>
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>canvas<span class="w"> </span>config<span class="w"> </span>list
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="c1"># Switch to a different instance</span>
+</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>canvas<span class="w"> </span>config<span class="w"> </span>use<span class="w"> </span>staging
+</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>
+</span><span id="__span-14-7"><a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a><span class="c1"># Use a specific instance for one command</span>
+</span><span id="__span-14-8"><a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a>canvas<span class="w"> </span>courses<span class="w"> </span>list<span class="w"> </span>--instance<span class="w"> </span>production
 </span></code></pre></div>
 <h3 id="authenticate-each-instance">Authenticate Each Instance<a class="headerlink" href="#authenticate-each-instance" title="Permanent link">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1"># Authenticate with each instance separately</span>
-</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>canvas<span class="w"> </span>auth<span class="w"> </span>login<span class="w"> </span>--instance<span class="w"> </span>production
-</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>canvas<span class="w"> </span>auth<span class="w"> </span>login<span class="w"> </span>--instance<span class="w"> </span>staging
-</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>canvas<span class="w"> </span>auth<span class="w"> </span>login<span class="w"> </span>--instance<span class="w"> </span>onprem
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="c1"># Authenticate with each instance separately</span>
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>canvas<span class="w"> </span>auth<span class="w"> </span>login<span class="w"> </span>--instance<span class="w"> </span>production
+</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>canvas<span class="w"> </span>auth<span class="w"> </span>login<span class="w"> </span>--instance<span class="w"> </span>staging
+</span><span id="__span-15-4"><a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a>canvas<span class="w"> </span>auth<span class="w"> </span>login<span class="w"> </span>--instance<span class="w"> </span>onprem
 </span></code></pre></div>
 <h2 id="credential-storage">Credential Storage<a class="headerlink" href="#credential-storage" title="Permanent link">&para;</a></h2>
 <p>Canvas CLI stores credentials securely using your system's native keychain:</p>
@@ -2448,17 +2679,17 @@
 <li><strong>Key Derivation</strong>: Machine ID + username</li>
 </ul>
 <h3 id="manual-credential-management">Manual Credential Management<a class="headerlink" href="#manual-credential-management" title="Permanent link">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1"># View stored credentials (won&#39;t show tokens)</span>
-</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>canvas<span class="w"> </span>auth<span class="w"> </span>status
-</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>
-</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="c1"># Logout (removes credentials)</span>
-</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>canvas<span class="w"> </span>auth<span class="w"> </span><span class="nb">logout</span>
-</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>
-</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="c1"># Logout from specific instance</span>
-</span><span id="__span-11-8"><a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>canvas<span class="w"> </span>auth<span class="w"> </span><span class="nb">logout</span><span class="w"> </span>--instance<span class="w"> </span>staging
-</span><span id="__span-11-9"><a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a>
-</span><span id="__span-11-10"><a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a><span class="c1"># Logout from all instances</span>
-</span><span id="__span-11-11"><a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a>canvas<span class="w"> </span>auth<span class="w"> </span><span class="nb">logout</span><span class="w"> </span>--all
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="c1"># View stored credentials (won&#39;t show tokens)</span>
+</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>canvas<span class="w"> </span>auth<span class="w"> </span>status
+</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>
+</span><span id="__span-16-4"><a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a><span class="c1"># Logout (removes credentials)</span>
+</span><span id="__span-16-5"><a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>canvas<span class="w"> </span>auth<span class="w"> </span><span class="nb">logout</span>
+</span><span id="__span-16-6"><a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a>
+</span><span id="__span-16-7"><a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a><span class="c1"># Logout from specific instance</span>
+</span><span id="__span-16-8"><a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a>canvas<span class="w"> </span>auth<span class="w"> </span><span class="nb">logout</span><span class="w"> </span>--instance<span class="w"> </span>staging
+</span><span id="__span-16-9"><a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a>
+</span><span id="__span-16-10"><a id="__codelineno-16-10" name="__codelineno-16-10" href="#__codelineno-16-10"></a><span class="c1"># Logout from all instances</span>
+</span><span id="__span-16-11"><a id="__codelineno-16-11" name="__codelineno-16-11" href="#__codelineno-16-11"></a>canvas<span class="w"> </span>auth<span class="w"> </span><span class="nb">logout</span><span class="w"> </span>--all
 </span></code></pre></div>
 <h2 id="token-management">Token Management<a class="headerlink" href="#token-management" title="Permanent link">&para;</a></h2>
 <h3 id="token-refresh">Token Refresh<a class="headerlink" href="#token-refresh" title="Permanent link">&para;</a></h3>
@@ -2474,50 +2705,50 @@
 </ul>
 <h3 id="manual-token-usage">Manual Token Usage<a class="headerlink" href="#manual-token-usage" title="Permanent link">&para;</a></h3>
 <p>If you have an access token, use environment variables:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="c1"># Set environment variables</span>
-</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">CANVAS_URL</span><span class="o">=</span><span class="s2">&quot;https://canvas.instructure.com&quot;</span>
-</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="nb">export</span><span class="w"> </span><span class="nv">CANVAS_TOKEN</span><span class="o">=</span><span class="s2">&quot;YOUR_ACCESS_TOKEN&quot;</span>
-</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>
-</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="c1"># Commands will use these automatically</span>
-</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a>canvas<span class="w"> </span>courses<span class="w"> </span>list
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="c1"># Set environment variables</span>
+</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">CANVAS_URL</span><span class="o">=</span><span class="s2">&quot;https://canvas.instructure.com&quot;</span>
+</span><span id="__span-17-3"><a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="nb">export</span><span class="w"> </span><span class="nv">CANVAS_TOKEN</span><span class="o">=</span><span class="s2">&quot;YOUR_ACCESS_TOKEN&quot;</span>
+</span><span id="__span-17-4"><a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a>
+</span><span id="__span-17-5"><a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a><span class="c1"># Commands will use these automatically</span>
+</span><span id="__span-17-6"><a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a>canvas<span class="w"> </span>courses<span class="w"> </span>list
 </span></code></pre></div>
 <h2 id="security-best-practices">Security Best Practices<a class="headerlink" href="#security-best-practices" title="Permanent link">&para;</a></h2>
 <h3 id="1-use-system-keychain">1. Use System Keychain<a class="headerlink" href="#1-use-system-keychain" title="Permanent link">&para;</a></h3>
 <p>Always allow Canvas CLI to use your system keychain when prompted.</p>
 <h3 id="2-rotate-tokens-regularly">2. Rotate Tokens Regularly<a class="headerlink" href="#2-rotate-tokens-regularly" title="Permanent link">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c1"># Logout and login again to get fresh tokens</span>
-</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>canvas<span class="w"> </span>auth<span class="w"> </span><span class="nb">logout</span>
-</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>canvas<span class="w"> </span>auth<span class="w"> </span>login
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="c1"># Logout and login again to get fresh tokens</span>
+</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>canvas<span class="w"> </span>auth<span class="w"> </span><span class="nb">logout</span>
+</span><span id="__span-18-3"><a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a>canvas<span class="w"> </span>auth<span class="w"> </span>login
 </span></code></pre></div>
 <h3 id="3-limit-scope">3. Limit Scope<a class="headerlink" href="#3-limit-scope" title="Permanent link">&para;</a></h3>
 <p>When creating developer keys, only grant necessary scopes.</p>
 <h3 id="4-use-environment-variables-for-cicd">4. Use Environment Variables for CI/CD<a class="headerlink" href="#4-use-environment-variables-for-cicd" title="Permanent link">&para;</a></h3>
 <p>For automated systems, use environment variables instead of storing credentials in code:</p>
-<div class="language-yaml highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1"># Example GitHub Actions workflow</span>
-</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="nt">env</span><span class="p">:</span>
-</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="w">  </span><span class="nt">CANVAS_URL</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ secrets.CANVAS_URL }}</span>
-</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="w">  </span><span class="nt">CANVAS_TOKEN</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ secrets.CANVAS_TOKEN }}</span>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="c1"># Example GitHub Actions workflow</span>
+</span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="nt">env</span><span class="p">:</span>
+</span><span id="__span-19-3"><a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a><span class="w">  </span><span class="nt">CANVAS_URL</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ secrets.CANVAS_URL }}</span>
+</span><span id="__span-19-4"><a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a><span class="w">  </span><span class="nt">CANVAS_TOKEN</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ secrets.CANVAS_TOKEN }}</span>
 </span></code></pre></div>
 <h3 id="5-keep-credentials-private">5. Keep Credentials Private<a class="headerlink" href="#5-keep-credentials-private" title="Permanent link">&para;</a></h3>
 <p>Never commit tokens or credentials to version control:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="c1"># Add to .gitignore</span>
-</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;.canvas-cli/&quot;</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>.gitignore
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="c1"># Add to .gitignore</span>
+</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;.canvas-cli/&quot;</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>.gitignore
 </span></code></pre></div>
 <h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
 <h3 id="failed-to-open-browser">"Failed to open browser"<a class="headerlink" href="#failed-to-open-browser" title="Permanent link">&para;</a></h3>
 <p>Use OOB flow:
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>canvas<span class="w"> </span>auth<span class="w"> </span>login<span class="w"> </span>--instance<span class="w"> </span>https://canvas.instructure.com<span class="w"> </span>--mode<span class="w"> </span>oob
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>canvas<span class="w"> </span>auth<span class="w"> </span>login<span class="w"> </span>--instance<span class="w"> </span>https://canvas.instructure.com<span class="w"> </span>--mode<span class="w"> </span>oob
 </span></code></pre></div></p>
 <h3 id="failed-to-access-keychain">"Failed to access keychain"<a class="headerlink" href="#failed-to-access-keychain" title="Permanent link">&para;</a></h3>
 <p>Grant permission in system settings or use encrypted file storage (automatic fallback).</p>
 <h3 id="token-expired">"Token expired"<a class="headerlink" href="#token-expired" title="Permanent link">&para;</a></h3>
 <p>Tokens refresh automatically. If refresh fails:
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>canvas<span class="w"> </span>auth<span class="w"> </span><span class="nb">logout</span>
-</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>canvas<span class="w"> </span>auth<span class="w"> </span>login
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>canvas<span class="w"> </span>auth<span class="w"> </span><span class="nb">logout</span>
+</span><span id="__span-22-2"><a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a>canvas<span class="w"> </span>auth<span class="w"> </span>login
 </span></code></pre></div></p>
 <h3 id="unauthorized-or-403-forbidden">"Unauthorized" or "403 Forbidden"<a class="headerlink" href="#unauthorized-or-403-forbidden" title="Permanent link">&para;</a></h3>
 <p>Check your OAuth scopes or Canvas permissions:
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>canvas<span class="w"> </span>auth<span class="w"> </span>status
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>canvas<span class="w"> </span>auth<span class="w"> </span>status
 </span></code></pre></div></p>
 <h3 id="cors-errors">"CORS errors"<a class="headerlink" href="#cors-errors" title="Permanent link">&para;</a></h3>
 <p>Ensure your Canvas instance allows OAuth from localhost:
@@ -2526,11 +2757,11 @@
 <h2 id="advanced-configuration">Advanced Configuration<a class="headerlink" href="#advanced-configuration" title="Permanent link">&para;</a></h2>
 <h3 id="force-oob-mode">Force OOB Mode<a class="headerlink" href="#force-oob-mode" title="Permanent link">&para;</a></h3>
 <p>For headless servers or SSH sessions without X forwarding:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>canvas<span class="w"> </span>auth<span class="w"> </span>login<span class="w"> </span>--instance<span class="w"> </span>https://canvas.instructure.com<span class="w"> </span>--mode<span class="w"> </span>oob
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>canvas<span class="w"> </span>auth<span class="w"> </span>login<span class="w"> </span>--instance<span class="w"> </span>https://canvas.instructure.com<span class="w"> </span>--mode<span class="w"> </span>oob
 </span></code></pre></div>
 <h3 id="verbose-output">Verbose Output<a class="headerlink" href="#verbose-output" title="Permanent link">&para;</a></h3>
 <p>For troubleshooting authentication issues:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>canvas<span class="w"> </span>auth<span class="w"> </span>login<span class="w"> </span>--instance<span class="w"> </span>https://canvas.instructure.com<span class="w"> </span>--verbose
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-25-1"><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a>canvas<span class="w"> </span>auth<span class="w"> </span>login<span class="w"> </span>--instance<span class="w"> </span>https://canvas.instructure.com<span class="w"> </span>--verbose
 </span></code></pre></div>
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
 <p>After authentication:
@@ -2559,7 +2790,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="January 13, 2026 22:37:26 UTC"><span class="timeago" datetime="2026-01-13T22:37:26+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="January 13, 2026 22:37:26 UTC">2026-01-13</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="January 14, 2026 20:17:02 UTC"><span class="timeago" datetime="2026-01-14T20:17:02+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="January 14, 2026 20:17:02 UTC">2026-01-14</span>
   </span>
 
     
