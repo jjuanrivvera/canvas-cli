@@ -76,22 +76,58 @@ canvas webhook listen --addr 127.0.0.1:8080
 canvas webhook listen --addr 0.0.0.0:8080
 ```
 
-### Security with HMAC Signatures
+### Security Options
 
-Canvas signs webhook payloads using HMAC-SHA256. Enable signature verification:
+Canvas CLI supports two verification methods for webhook security:
+
+#### Option 1: JWT Verification (Canvas Data Services)
+
+For **Instructure-hosted Canvas** using Canvas Data Services, use JWT verification:
+
+```bash
+# Use official Canvas Data Services JWK endpoint
+canvas webhook listen --canvas-data-services --log
+
+# Or specify a custom JWK endpoint
+canvas webhook listen --jwks-url "https://your-jwks-endpoint.com/jwks"
+```
+
+With JWT verification:
+
+- Payloads are signed JWTs with event data in claims
+- JWKs are fetched from Canvas and cached (1 hour TTL)
+- Keys rotate monthly; the listener handles this automatically
+- Invalid JWTs are rejected (401 Unauthorized)
+
+!!! tip "Recommended for Canvas Data Services"
+    Use `--canvas-data-services` for production deployments with Instructure-hosted Canvas.
+
+#### Option 2: HMAC Signatures (Custom Integrations)
+
+For custom integrations or self-hosted Canvas, use HMAC-SHA256:
 
 ```bash
 canvas webhook listen --secret "your-canvas-webhook-secret"
 ```
 
-With a secret configured:
+With HMAC verification:
 
 - Requests without valid signatures are rejected (401 Unauthorized)
 - Prevents unauthorized systems from sending fake events
 - The secret must match what's configured in Canvas
 
-!!! warning "Always Use Signatures in Production"
-    Without `--secret`, any system can send events to your listener. Always configure signature verification in production environments.
+#### Combined Mode (Fallback)
+
+You can enable both methods for maximum compatibility:
+
+```bash
+canvas webhook listen --canvas-data-services --secret "backup-secret" --log
+```
+
+The listener tries JWT first, then falls back to HMAC if JWT fails.
+
+!!! warning "Always Use Verification in Production"
+    Without `--canvas-data-services` or `--secret`, any system can send events to your listener.
 
 ### Filter Specific Events
 
@@ -342,30 +378,41 @@ curl http://localhost:8080/health
 ```
 ┌─────────────┐         ┌──────────────────┐         ┌─────────────────┐
 │  Canvas LMS │  POST   │  Webhook Listener │         │  Your Handler   │
-│             │────────▶│  (canvas webhook  │────────▶│  (script/code)  │
-│             │         │   listen)         │         │                 │
+│  (or Data   │────────▶│  (canvas webhook  │────────▶│  (script/code)  │
+│   Services) │         │   listen)         │         │                 │
 └─────────────┘         └──────────────────┘         └─────────────────┘
                                │
                                ▼
-                        ┌──────────────┐
-                        │  Signature   │
-                        │  Verification│
-                        │  (HMAC-SHA256)│
-                        └──────────────┘
+                   ┌───────────────────────┐
+                   │   Verification Layer  │
+                   ├───────────────────────┤
+                   │ 1. JWT (Data Services)│
+                   │    ↓ fallback         │
+                   │ 2. HMAC-SHA256        │
+                   └───────────────────────┘
+                               │
+                               ▼
+                   ┌───────────────────────┐
+                   │   JWK Cache (1hr TTL) │
+                   │   (Canvas JWKs)       │
+                   └───────────────────────┘
 ```
 
 **Flow:**
 
 1. Canvas sends HTTP POST to `/webhook` endpoint
-2. Listener verifies HMAC signature (if secret configured)
+2. Listener verifies signature:
+   - If `--canvas-data-services`: Verify JWT using cached JWKs
+   - If `--secret`: Verify HMAC-SHA256 signature
+   - If both: Try JWT first, then HMAC as fallback
 3. Event is parsed and routed to registered handlers
 4. Handler processes the event (your custom logic)
 5. Returns 200 OK to Canvas (or error to trigger retry)
 
 ## Best Practices
 
-!!! tip "Always Verify Signatures"
-    In production, always use `--secret` to verify webhook authenticity.
+!!! tip "Use Canvas Data Services Mode"
+    For Instructure-hosted Canvas, use `--canvas-data-services` for JWT verification. It's the recommended approach for production.
 
 !!! tip "Handle Failures Gracefully"
     If your handler returns an error, Canvas will retry the webhook. Make handlers idempotent.

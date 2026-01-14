@@ -14,10 +14,12 @@ import (
 )
 
 var (
-	webhookAddr   string
-	webhookSecret string
-	webhookEvents []string
-	webhookLog    bool
+	webhookAddr          string
+	webhookSecret        string
+	webhookJWKsURL       string
+	webhookCanvasDataSvc bool
+	webhookEvents        []string
+	webhookLog           bool
 )
 
 var webhookCmd = &cobra.Command{
@@ -30,18 +32,22 @@ various events like assignment creation, submission updates, grade changes,
 enrollment changes, and more.
 
 The listener provides:
-  - HMAC signature verification for security
+  - JWT verification for Canvas Data Services (recommended)
+  - HMAC signature verification for custom integrations
   - Event routing to specific handlers
   - Graceful shutdown
   - Health check endpoint
   - Request logging
 
 Examples:
-  # Start webhook listener on default port
-  canvas webhook listen
+  # Start with Canvas Data Services JWT verification (recommended)
+  canvas webhook listen --canvas-data-services
 
-  # Start with custom address and secret
-  canvas webhook listen --addr :8080 --secret your-secret-key
+  # Start with HMAC signature verification
+  canvas webhook listen --secret your-secret-key
+
+  # Start with custom JWK URL
+  canvas webhook listen --jwks-url https://your-jwks-endpoint.com/jwks
 
   # Listen for specific event types
   canvas webhook listen --events submission_created,grade_change
@@ -56,25 +62,34 @@ var webhookListenCmd = &cobra.Command{
 	Long: `Start a webhook listener server to receive Canvas events.
 
 The server listens on the specified address and processes incoming
-webhook events. It verifies HMAC signatures if a secret is provided
-and routes events to registered handlers.
+webhook events. It supports two verification methods:
+
+1. JWT verification (Canvas Data Services):
+   Use --canvas-data-services or --jwks-url to verify JWT-signed payloads
+   from Canvas Data Services. JWKs are fetched from Canvas and cached.
+
+2. HMAC verification (custom integrations):
+   Use --secret to verify HMAC-SHA256 signatures for custom webhooks.
 
 Endpoints:
   POST /webhook - Receive webhook events
   GET  /health  - Health check endpoint
 
 Examples:
-  # Start listener on default address
-  canvas webhook listen
+  # Canvas Data Services mode (recommended for production)
+  canvas webhook listen --canvas-data-services --log
 
-  # Start with custom configuration
-  canvas webhook listen --addr :9000 --secret my-secret
+  # Custom JWK endpoint
+  canvas webhook listen --jwks-url https://your-jwks.com/jwks
 
-  # Enable request logging
-  canvas webhook listen --log
+  # HMAC signature verification
+  canvas webhook listen --secret my-secret --log
+
+  # Both modes (fallback)
+  canvas webhook listen --canvas-data-services --secret backup-secret
 
   # Listen for specific events
-  canvas webhook listen --events submission_created,assignment_updated`,
+  canvas webhook listen --events grade_change,submission_created`,
 	RunE: runWebhookListen,
 }
 
@@ -93,6 +108,8 @@ func init() {
 	// Listen command flags
 	webhookListenCmd.Flags().StringVar(&webhookAddr, "addr", ":8080", "Server address to listen on")
 	webhookListenCmd.Flags().StringVar(&webhookSecret, "secret", "", "Webhook secret for HMAC verification")
+	webhookListenCmd.Flags().StringVar(&webhookJWKsURL, "jwks-url", "", "JWK Set URL for JWT verification")
+	webhookListenCmd.Flags().BoolVar(&webhookCanvasDataSvc, "canvas-data-services", false, "Use Canvas Data Services JWK URL for JWT verification")
 	webhookListenCmd.Flags().StringSliceVar(&webhookEvents, "events", []string{}, "Event types to handle (comma-separated)")
 	webhookListenCmd.Flags().BoolVar(&webhookLog, "log", false, "Enable request logging")
 }
@@ -108,6 +125,13 @@ func runWebhookListen(cmd *cobra.Command, args []string) error {
 		logger = log.New(os.Stderr, "", log.LstdFlags)
 	}
 
+	// Determine JWK URL
+	jwksURL := webhookJWKsURL
+	if webhookCanvasDataSvc {
+		jwksURL = webhook.CanvasDataServicesJWKURL
+		logger.Printf("Using Canvas Data Services JWK URL: %s\n", jwksURL)
+	}
+
 	// Create middleware
 	middleware := []webhook.Middleware{
 		webhook.RecoveryMiddleware(logger),
@@ -120,6 +144,7 @@ func runWebhookListen(cmd *cobra.Command, args []string) error {
 	listener := webhook.New(&webhook.Config{
 		Addr:       webhookAddr,
 		Secret:     webhookSecret,
+		JWKSetURL:  jwksURL,
 		Logger:     logger,
 		Middleware: middleware,
 	})
