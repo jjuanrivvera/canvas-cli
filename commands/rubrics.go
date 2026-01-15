@@ -52,7 +52,10 @@ var rubricsListCmd = &cobra.Command{
 	Short: "List rubrics",
 	Long: `List all rubrics in a course or account.
 
+If neither --account-id nor --course-id is specified, uses default account.
+
 Examples:
+  canvas rubrics list                          # Uses default account
   canvas rubrics list --course-id 123
   canvas rubrics list --account-id 1
   canvas rubrics list --course-id 123 --include assessments,associations`,
@@ -175,8 +178,14 @@ func init() {
 }
 
 func runRubricsList(cmd *cobra.Command, args []string) error {
+	// Use default account ID if neither course nor account is specified
 	if rubricsCourseID == 0 && rubricsAccountID == 0 {
-		return fmt.Errorf("must specify either --course-id or --account-id")
+		defaultID, err := getDefaultAccountID()
+		if err != nil || defaultID == 0 {
+			return fmt.Errorf("must specify --course-id or --account-id (no default account configured). Use 'canvas config account --detect' to set one")
+		}
+		rubricsAccountID = defaultID
+		printVerbose("Using default account ID: %d\n", defaultID)
 	}
 
 	client, err := getAPIClient()

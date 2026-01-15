@@ -50,13 +50,16 @@ var sisListCmd = &cobra.Command{
 	Short: "List SIS imports",
 	Long: `List SIS imports for an account.
 
+If --account-id is not specified, uses the default account ID from config.
+
 Workflow states: initializing, created, importing, cleanup_batch,
                  imported, imported_with_messages, aborted,
                  failed, failed_with_messages, restoring, partially_restored
 
 Examples:
+  canvas sis-imports list                              # Uses default account
   canvas sis-imports list --account-id 1
-  canvas sis-imports list --account-id 1 --workflow-state imported`,
+  canvas sis-imports list --workflow-state imported`,
 	RunE: runSISList,
 }
 
@@ -132,11 +135,10 @@ func init() {
 	sisImportsCmd.AddCommand(sisErrorsCmd)
 
 	// List flags
-	sisListCmd.Flags().Int64Var(&sisAccountID, "account-id", 0, "Account ID (required)")
+	sisListCmd.Flags().Int64Var(&sisAccountID, "account-id", 0, "Account ID (uses default if configured)")
 	sisListCmd.Flags().StringVar(&sisWorkflowState, "workflow-state", "", "Filter by workflow state")
 	sisListCmd.Flags().StringVar(&sisCreatedSince, "created-since", "", "Filter imports created since date (ISO8601)")
 	sisListCmd.Flags().StringVar(&sisCreatedBefore, "created-before", "", "Filter imports created before date (ISO8601)")
-	sisListCmd.MarkFlagRequired("account-id")
 
 	// Get flags
 	sisGetCmd.Flags().Int64Var(&sisAccountID, "account-id", 0, "Account ID (required)")
@@ -173,6 +175,11 @@ func init() {
 }
 
 func runSISList(cmd *cobra.Command, args []string) error {
+	accountID, err := resolveAccountID(sisAccountID, "sis-imports list")
+	if err != nil {
+		return err
+	}
+
 	client, err := getAPIClient()
 	if err != nil {
 		return err
@@ -187,7 +194,7 @@ func runSISList(cmd *cobra.Command, args []string) error {
 	}
 
 	ctx := context.Background()
-	imports, err := service.List(ctx, sisAccountID, opts)
+	imports, err := service.List(ctx, accountID, opts)
 	if err != nil {
 		return fmt.Errorf("failed to list SIS imports: %w", err)
 	}

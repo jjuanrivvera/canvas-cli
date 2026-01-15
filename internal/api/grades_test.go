@@ -25,8 +25,8 @@ func TestGradesService_GetHistory(t *testing.T) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode([]GradebookHistoryDay{
-			{Date: "2024-01-15", Graders: 5},
-			{Date: "2024-01-16", Graders: 3},
+			{Date: "2024-01-15", Graders: []GradebookHistoryGrader{{ID: 1, Name: "Teacher1"}, {ID: 2, Name: "Teacher2"}}},
+			{Date: "2024-01-16", Graders: []GradebookHistoryGrader{{ID: 1, Name: "Teacher1"}}},
 		})
 	}))
 	defer server.Close()

@@ -90,15 +90,17 @@ var analyticsDepartmentCmd = &cobra.Command{
 	Short: "View department analytics",
 	Long: `View department-level analytics for an account.
 
+If --account-id is not specified, uses the default account ID from config.
+
 Analytics types:
   - statistics: Overall department statistics
   - activity: Department participation over time
   - grades: Grade distribution
 
 Examples:
+  canvas analytics department                     # Uses default account
   canvas analytics department --account-id 1
-  canvas analytics department --account-id 1 --type statistics
-  canvas analytics department --account-id 1 --type grades --term-id 123`,
+  canvas analytics department --type grades --term-id 123`,
 	RunE: runAnalyticsDepartment,
 }
 
@@ -129,10 +131,9 @@ func init() {
 	analyticsUserCmd.MarkFlagRequired("course-id")
 
 	// Department flags
-	analyticsDepartmentCmd.Flags().Int64Var(&analyticsAccountID, "account-id", 0, "Account ID (required)")
+	analyticsDepartmentCmd.Flags().Int64Var(&analyticsAccountID, "account-id", 0, "Account ID (uses default if configured)")
 	analyticsDepartmentCmd.Flags().StringVar(&analyticsType, "type", "statistics", "Analytics type: statistics, activity, grades")
 	analyticsDepartmentCmd.Flags().Int64Var(&analyticsTermID, "term-id", 0, "Filter by term ID")
-	analyticsDepartmentCmd.MarkFlagRequired("account-id")
 }
 
 func runAnalyticsActivity(cmd *cobra.Command, args []string) error {
@@ -274,6 +275,11 @@ func runAnalyticsUser(cmd *cobra.Command, args []string) error {
 }
 
 func runAnalyticsDepartment(cmd *cobra.Command, args []string) error {
+	accountID, err := resolveAccountID(analyticsAccountID, "analytics department")
+	if err != nil {
+		return err
+	}
+
 	client, err := getAPIClient()
 	if err != nil {
 		return err
@@ -289,14 +295,14 @@ func runAnalyticsDepartment(cmd *cobra.Command, args []string) error {
 
 	switch analyticsType {
 	case "statistics":
-		stats, err := service.GetDepartmentStatistics(ctx, analyticsAccountID, opts)
+		stats, err := service.GetDepartmentStatistics(ctx, accountID, opts)
 		if err != nil {
 			return fmt.Errorf("failed to get department statistics: %w", err)
 		}
 		return formatOutput(stats, nil)
 
 	case "activity":
-		activity, err := service.GetDepartmentActivity(ctx, analyticsAccountID, opts)
+		activity, err := service.GetDepartmentActivity(ctx, accountID, opts)
 		if err != nil {
 			return fmt.Errorf("failed to get department activity: %w", err)
 		}
@@ -307,7 +313,7 @@ func runAnalyticsDepartment(cmd *cobra.Command, args []string) error {
 		return formatOutput(activity, nil)
 
 	case "grades":
-		grades, err := service.GetDepartmentGrades(ctx, analyticsAccountID, opts)
+		grades, err := service.GetDepartmentGrades(ctx, accountID, opts)
 		if err != nil {
 			return fmt.Errorf("failed to get department grades: %w", err)
 		}

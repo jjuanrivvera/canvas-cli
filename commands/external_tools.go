@@ -60,7 +60,10 @@ var extToolsListCmd = &cobra.Command{
 	Short: "List external tools",
 	Long: `List external tools for a course or account.
 
+If neither --account-id nor --course-id is specified, uses default account.
+
 Examples:
+  canvas external-tools list                   # Uses default account
   canvas external-tools list --course-id 123
   canvas external-tools list --account-id 1
   canvas external-tools list --course-id 123 --search "quiz"
@@ -194,8 +197,14 @@ func init() {
 }
 
 func runExtToolsList(cmd *cobra.Command, args []string) error {
+	// Use default account ID if neither course nor account is specified
 	if extToolsCourseID == 0 && extToolsAccountID == 0 {
-		return fmt.Errorf("either --course-id or --account-id is required")
+		defaultID, err := getDefaultAccountID()
+		if err != nil || defaultID == 0 {
+			return fmt.Errorf("must specify --course-id or --account-id (no default account configured). Use 'canvas config account --detect' to set one")
+		}
+		extToolsAccountID = defaultID
+		printVerbose("Using default account ID: %d\n", defaultID)
 	}
 
 	client, err := getAPIClient()

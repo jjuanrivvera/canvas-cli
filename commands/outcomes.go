@@ -116,7 +116,10 @@ var outcomesGroupsListCmd = &cobra.Command{
 	Short: "List outcome groups",
 	Long: `List all outcome groups in a course or account.
 
+If neither --account-id nor --course-id is specified, uses default account.
+
 Examples:
+  canvas outcomes groups list                  # Uses default account
   canvas outcomes groups list --account-id 1
   canvas outcomes groups list --course-id 123`,
 	RunE: runOutcomesGroupsList,
@@ -385,8 +388,14 @@ func runOutcomesUpdate(cmd *cobra.Command, args []string) error {
 }
 
 func runOutcomesGroupsList(cmd *cobra.Command, args []string) error {
+	// Use default account ID if neither course nor account is specified
 	if outcomesCourseID == 0 && outcomesAccountID == 0 {
-		return fmt.Errorf("must specify either --course-id or --account-id")
+		defaultID, err := getDefaultAccountID()
+		if err != nil || defaultID == 0 {
+			return fmt.Errorf("must specify --course-id or --account-id (no default account configured). Use 'canvas config account --detect' to set one")
+		}
+		outcomesAccountID = defaultID
+		printVerbose("Using default account ID: %d\n", defaultID)
 	}
 
 	client, err := getAPIClient()

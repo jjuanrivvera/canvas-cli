@@ -847,3 +847,137 @@ func contains(s, substr string) bool {
 	}
 	return false
 }
+
+// Tests for Instance default account ID methods
+
+func TestInstance_HasDefaultAccountID(t *testing.T) {
+	tests := []struct {
+		name     string
+		instance Instance
+		expected bool
+	}{
+		{
+			name:     "with default account ID",
+			instance: Instance{Name: "test", URL: "https://test.com", DefaultAccountID: 42},
+			expected: true,
+		},
+		{
+			name:     "without default account ID",
+			instance: Instance{Name: "test", URL: "https://test.com"},
+			expected: false,
+		},
+		{
+			name:     "zero account ID",
+			instance: Instance{Name: "test", URL: "https://test.com", DefaultAccountID: 0},
+			expected: false,
+		},
+		{
+			name:     "negative account ID",
+			instance: Instance{Name: "test", URL: "https://test.com", DefaultAccountID: -1},
+			expected: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := tt.instance.HasDefaultAccountID()
+			if result != tt.expected {
+				t.Errorf("HasDefaultAccountID() = %v, expected %v", result, tt.expected)
+			}
+		})
+	}
+}
+
+func TestConfig_SetDefaultAccountID(t *testing.T) {
+	tempDir := t.TempDir()
+	configPath := filepath.Join(tempDir, "config.yaml")
+
+	cfg := &Config{
+		Instances: map[string]*Instance{
+			"test": {Name: "test", URL: "https://test.com"},
+		},
+		Settings:   DefaultSettings(),
+		configPath: configPath,
+	}
+
+	err := cfg.SetDefaultAccountID("test", 42)
+	if err != nil {
+		t.Fatalf("SetDefaultAccountID failed: %v", err)
+	}
+
+	// Verify the account ID was set
+	instance, _ := cfg.GetInstance("test")
+	if instance.DefaultAccountID != 42 {
+		t.Errorf("expected default account ID 42, got %d", instance.DefaultAccountID)
+	}
+}
+
+func TestConfig_SetDefaultAccountID_NonExistent(t *testing.T) {
+	tempDir := t.TempDir()
+	configPath := filepath.Join(tempDir, "config.yaml")
+
+	cfg := &Config{
+		Instances:  make(map[string]*Instance),
+		Settings:   DefaultSettings(),
+		configPath: configPath,
+	}
+
+	err := cfg.SetDefaultAccountID("nonexistent", 42)
+	if err == nil {
+		t.Error("expected error when setting account ID for non-existent instance")
+	}
+}
+
+func TestInstance_DefaultAccountIDSerialization(t *testing.T) {
+	// Test that DefaultAccountID field is properly serialized/deserialized in YAML
+	instance := &Instance{
+		Name:             "test",
+		URL:              "https://test.instructure.com",
+		DefaultAccountID: 123,
+	}
+
+	// Marshal to YAML
+	data, err := yaml.Marshal(instance)
+	if err != nil {
+		t.Fatalf("Failed to marshal instance: %v", err)
+	}
+
+	// Verify default_account_id is in the YAML
+	yamlStr := string(data)
+	if !contains(yamlStr, "default_account_id:") {
+		t.Error("DefaultAccountID field not found in serialized YAML")
+	}
+
+	// Unmarshal back
+	var loaded Instance
+	err = yaml.Unmarshal(data, &loaded)
+	if err != nil {
+		t.Fatalf("Failed to unmarshal instance: %v", err)
+	}
+
+	if loaded.DefaultAccountID != instance.DefaultAccountID {
+		t.Errorf("DefaultAccountID mismatch after round-trip: got %d, expected %d",
+			loaded.DefaultAccountID, instance.DefaultAccountID)
+	}
+}
+
+func TestInstance_DefaultAccountIDOmitEmpty(t *testing.T) {
+	// Test that DefaultAccountID with zero value is omitted from YAML
+	instance := &Instance{
+		Name:             "test",
+		URL:              "https://test.instructure.com",
+		DefaultAccountID: 0,
+	}
+
+	// Marshal to YAML
+	data, err := yaml.Marshal(instance)
+	if err != nil {
+		t.Fatalf("Failed to marshal instance: %v", err)
+	}
+
+	// Verify default_account_id is NOT in the YAML (omitempty)
+	yamlStr := string(data)
+	if contains(yamlStr, "default_account_id:") {
+		t.Error("DefaultAccountID field should be omitted when zero")
+	}
+}

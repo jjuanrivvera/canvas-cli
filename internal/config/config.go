@@ -25,12 +25,13 @@ type Config struct {
 
 // Instance represents a Canvas instance configuration
 type Instance struct {
-	Name         string `yaml:"name"`
-	URL          string `yaml:"url"`
-	ClientID     string `yaml:"client_id,omitempty"`
-	ClientSecret string `yaml:"client_secret,omitempty"`
-	Token        string `yaml:"token,omitempty"` // API access token (alternative to OAuth)
-	Description  string `yaml:"description,omitempty"`
+	Name             string `yaml:"name"`
+	URL              string `yaml:"url"`
+	ClientID         string `yaml:"client_id,omitempty"`
+	ClientSecret     string `yaml:"client_secret,omitempty"`
+	Token            string `yaml:"token,omitempty"` // API access token (alternative to OAuth)
+	Description      string `yaml:"description,omitempty"`
+	DefaultAccountID int64  `yaml:"default_account_id,omitempty"` // Default account ID for API calls
 }
 
 // HasToken returns true if the instance has an API token configured
@@ -52,6 +53,11 @@ func (i *Instance) AuthType() string {
 		return "oauth"
 	}
 	return "none"
+}
+
+// HasDefaultAccountID returns true if the instance has a default account ID configured
+func (i *Instance) HasDefaultAccountID() bool {
+	return i.DefaultAccountID > 0
 }
 
 // Settings holds global application settings
@@ -233,6 +239,17 @@ func (c *Config) SetDefaultInstance(name string) error {
 	}
 
 	c.DefaultInstance = name
+	return c.Save()
+}
+
+// SetDefaultAccountID sets the default account ID for an instance
+func (c *Config) SetDefaultAccountID(instanceName string, accountID int64) error {
+	instance, exists := c.Instances[instanceName]
+	if !exists {
+		return fmt.Errorf("instance %q does not exist", instanceName)
+	}
+
+	instance.DefaultAccountID = accountID
 	return c.Save()
 }
 
