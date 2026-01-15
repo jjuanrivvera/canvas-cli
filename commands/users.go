@@ -56,24 +56,25 @@ var usersListCmd = &cobra.Command{
 	Short: "List users in an account or course",
 	Long: `List users in a Canvas account or course.
 
-You must specify one of --account-id or --course-id to indicate the context.
+Specify --account-id or --course-id, or uses default account if configured.
+
+WARNING: Account-level user lists can be very large. Use --limit or --search
+to avoid long wait times.
 
 Account context (admin):
-  canvas users list --account-id 1        # All users in account 1
-  canvas users list --account-id 1 --search "john"
-  canvas users list --account-id 1 --enrollment-type student
+  canvas users list --limit 100           # First 100 users (recommended)
+  canvas users list --search "john"       # Search in default account
 
 Course context:
   canvas users list --course-id 123       # All users enrolled in course 123
   canvas users list --course-id 123 --enrollment-type teacher
-  canvas users list --course-id 123 --include enrollments,email
 
 Examples:
-  canvas users list --account-id 1
+  canvas users list --limit 50
+  canvas users list --account-id 1 --limit 100
   canvas users list --course-id 123
-  canvas users list --account-id 1 --search "john"
-  canvas users list --course-id 123 --enrollment-type student
-  canvas users list --account-id 1 --include email,enrollments`,
+  canvas users list --search "john"
+  canvas users list --include email,enrollments`,
 	RunE: runUsersList,
 }
 
@@ -207,19 +208,19 @@ func init() {
 }
 
 func runUsersList(cmd *cobra.Command, args []string) error {
-	// Validate that exactly one context is specified
-	contextsSpecified := 0
-	if usersAccountID > 0 {
-		contextsSpecified++
-	}
-	if usersCourseID > 0 {
-		contextsSpecified++
+	// Use default account ID if neither account nor course is specified
+	accountID := usersAccountID
+	if accountID == 0 && usersCourseID == 0 {
+		defaultID, err := getDefaultAccountID()
+		if err != nil || defaultID == 0 {
+			return fmt.Errorf("must specify --account-id or --course-id (no default account configured). Use 'canvas config account --detect' to set one")
+		}
+		accountID = defaultID
+		printVerbose("Using default account ID: %d\n", accountID)
 	}
 
-	if contextsSpecified == 0 {
-		return fmt.Errorf("must specify one of --account-id or --course-id")
-	}
-	if contextsSpecified > 1 {
+	// Validate that only one context is specified
+	if accountID > 0 && usersCourseID > 0 {
 		return fmt.Errorf("can only specify one of --account-id or --course-id")
 	}
 
@@ -245,10 +246,10 @@ func runUsersList(cmd *cobra.Command, args []string) error {
 	var users []api.User
 	var contextName string
 
-	if usersAccountID > 0 {
+	if accountID > 0 {
 		// Account context - list all users in the account
-		users, err = usersService.List(ctx, usersAccountID, opts)
-		contextName = fmt.Sprintf("account %d", usersAccountID)
+		users, err = usersService.List(ctx, accountID, opts)
+		contextName = fmt.Sprintf("account %d", accountID)
 	} else {
 		// Course context - list users enrolled in the course
 		users, err = usersService.ListCourseUsers(ctx, usersCourseID, opts)

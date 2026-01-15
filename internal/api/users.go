@@ -324,10 +324,13 @@ func (s *UsersService) Search(ctx context.Context, searchTerm string) ([]User, e
 	query := url.Values{}
 	query.Add("search", searchTerm)
 	query.Add("type", "user")
+	// Request more results per page (default is 10)
+	query.Add("per_page", "100")
 	path += "?" + query.Encode()
 
+	// Use GetAllPages to respect global limit
 	var users []User
-	if err := s.client.GetJSON(ctx, path, &users); err != nil {
+	if err := s.client.GetAllPages(ctx, path, &users); err != nil {
 		return nil, err
 	}
 

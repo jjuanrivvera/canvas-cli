@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/url"
 	"strconv"
@@ -186,16 +187,70 @@ func (s *AnalyticsService) GetStudentSummaries(ctx context.Context, courseID int
 	return summaries, nil
 }
 
+// UserActivityResponse represents the page_views/participations format response
+type UserActivityResponse struct {
+	PageViews      map[string]int `json:"page_views"`
+	Participations []struct {
+		CreatedAt string `json:"created_at"`
+		URL       string `json:"url,omitempty"`
+	} `json:"participations"`
+}
+
 // GetUserActivity retrieves a user's participation in a course
+// Note: Canvas API can return different formats depending on the course configuration
 func (s *AnalyticsService) GetUserActivity(ctx context.Context, courseID, userID int64) ([]UserActivity, error) {
 	path := fmt.Sprintf("/api/v1/courses/%d/analytics/users/%d/activity", courseID, userID)
 
-	var activity []UserActivity
-	if err := s.client.GetJSON(ctx, path, &activity); err != nil {
+	// First, get raw JSON to determine the response format
+	var rawResponse json.RawMessage
+	if err := s.client.GetJSON(ctx, path, &rawResponse); err != nil {
 		return nil, err
 	}
 
-	return activity, nil
+	// Try to unmarshal as array first (standard format)
+	var activity []UserActivity
+	if err := json.Unmarshal(rawResponse, &activity); err == nil {
+		return activity, nil
+	}
+
+	// Try page_views/participations format
+	var pvResponse UserActivityResponse
+	if err := json.Unmarshal(rawResponse, &pvResponse); err == nil && pvResponse.PageViews != nil {
+		// Convert page_views map to UserActivity slice
+		activity = make([]UserActivity, 0, len(pvResponse.PageViews))
+		for date, views := range pvResponse.PageViews {
+			activity = append(activity, UserActivity{
+				Date:           date,
+				Views:          views,
+				Participations: 0, // Participations are in a separate array in this format
+			})
+		}
+		return activity, nil
+	}
+
+	// Try date -> activity map format
+	var activityMap map[string]struct {
+		Views          int `json:"views"`
+		Participations int `json:"participations"`
+	}
+	if err := json.Unmarshal(rawResponse, &activityMap); err == nil {
+		activity = make([]UserActivity, 0, len(activityMap))
+		for date, data := range activityMap {
+			activity = append(activity, UserActivity{
+				Date:           date,
+				Views:          data.Views,
+				Participations: data.Participations,
+			})
+		}
+		return activity, nil
+	}
+
+	// If all formats fail, return error with context
+	preview := string(rawResponse)
+	if len(preview) > 100 {
+		preview = preview[:100]
+	}
+	return nil, fmt.Errorf("unexpected activity response format: %s", preview)
 }
 
 // GetUserAssignments retrieves a user's assignment data for a course

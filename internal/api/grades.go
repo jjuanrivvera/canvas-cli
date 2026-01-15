@@ -19,10 +19,16 @@ func NewGradesService(client *Client) *GradesService {
 	return &GradesService{client: client}
 }
 
+// GradebookHistoryGrader represents a grader in gradebook history
+type GradebookHistoryGrader struct {
+	ID   int64  `json:"id"`
+	Name string `json:"name"`
+}
+
 // GradebookHistoryDay represents a day in gradebook history
 type GradebookHistoryDay struct {
-	Date    string `json:"date"`
-	Graders int64  `json:"graders"`
+	Date    string                   `json:"date"`
+	Graders []GradebookHistoryGrader `json:"graders"`
 }
 
 // GradebookHistoryEntry represents an entry in gradebook history feed

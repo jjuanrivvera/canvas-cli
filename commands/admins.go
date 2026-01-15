@@ -44,8 +44,12 @@ var adminsListCmd = &cobra.Command{
 	Short: "List administrators for an account",
 	Long: `Retrieve a list of all administrators for the specified account.
 
+If --account-id is not specified, uses the default account ID from config.
+Set a default with: canvas config account --detect
+
 Examples:
-  canvas admins list --account-id 1`,
+  canvas admins list                 # Uses default account
+  canvas admins list --account-id 1  # Explicit account`,
 	RunE: runAdminsList,
 }
 
@@ -102,10 +106,13 @@ var rolesListCmd = &cobra.Command{
 	Short: "List roles for an account",
 	Long: `Retrieve a list of all roles for the specified account.
 
+If --account-id is not specified, uses the default account ID from config.
+
 Examples:
+  canvas roles list                              # Uses default account
   canvas roles list --account-id 1
   canvas roles list --account-id 1 --state active
-  canvas roles list --account-id 1 --show-inherited`,
+  canvas roles list --show-inherited`,
 	RunE: runRolesList,
 }
 
@@ -186,8 +193,7 @@ func init() {
 	rolesCmd.AddCommand(rolesActivateCmd)
 
 	// Admins list flags
-	adminsListCmd.Flags().Int64Var(&adminAccountID, "account-id", 0, "Account ID (required)")
-	adminsListCmd.MarkFlagRequired("account-id")
+	adminsListCmd.Flags().Int64Var(&adminAccountID, "account-id", 0, "Account ID (uses default if configured)")
 
 	// Admins add flags
 	adminsAddCmd.Flags().Int64Var(&adminAccountID, "account-id", 0, "Account ID (required)")
@@ -206,10 +212,9 @@ func init() {
 	adminsRemoveCmd.MarkFlagRequired("user-id")
 
 	// Roles list flags
-	rolesListCmd.Flags().Int64Var(&roleAccountID, "account-id", 0, "Account ID (required)")
+	rolesListCmd.Flags().Int64Var(&roleAccountID, "account-id", 0, "Account ID (uses default if configured)")
 	rolesListCmd.Flags().StringVar(&roleState, "state", "", "Filter by state (active, inactive)")
 	rolesListCmd.Flags().BoolVar(&roleShowInherited, "show-inherited", false, "Show inherited roles")
-	rolesListCmd.MarkFlagRequired("account-id")
 
 	// Roles get flags
 	rolesGetCmd.Flags().Int64Var(&roleAccountID, "account-id", 0, "Account ID (required)")
@@ -237,6 +242,11 @@ func init() {
 }
 
 func runAdminsList(cmd *cobra.Command, args []string) error {
+	accountID, err := resolveAccountID(adminAccountID, "admins list")
+	if err != nil {
+		return err
+	}
+
 	client, err := getAPIClient()
 	if err != nil {
 		return err
@@ -245,7 +255,7 @@ func runAdminsList(cmd *cobra.Command, args []string) error {
 	service := api.NewAdminsService(client)
 
 	ctx := context.Background()
-	admins, err := service.List(ctx, adminAccountID, nil)
+	admins, err := service.List(ctx, accountID, nil)
 	if err != nil {
 		return fmt.Errorf("failed to list admins: %w", err)
 	}
@@ -311,6 +321,11 @@ func runAdminsRemove(cmd *cobra.Command, args []string) error {
 }
 
 func runRolesList(cmd *cobra.Command, args []string) error {
+	accountID, err := resolveAccountID(roleAccountID, "roles list")
+	if err != nil {
+		return err
+	}
+
 	client, err := getAPIClient()
 	if err != nil {
 		return err
@@ -324,7 +339,7 @@ func runRolesList(cmd *cobra.Command, args []string) error {
 	service := api.NewRolesService(client)
 
 	ctx := context.Background()
-	roles, err := service.List(ctx, roleAccountID, opts)
+	roles, err := service.List(ctx, accountID, opts)
 	if err != nil {
 		return fmt.Errorf("failed to list roles: %w", err)
 	}

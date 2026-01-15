@@ -15,6 +15,7 @@ var (
 	verbose      bool
 	noCache      bool  // Disable caching for API requests
 	asUserID     int64 // Masquerading: act as another user
+	globalLimit  int   // Global limit for list operations
 	version      string
 	commit       string
 	buildDate    string
@@ -66,6 +67,7 @@ func init() {
 	rootCmd.PersistentFlags().Int64Var(&asUserID, "as-user", 0, "Masquerade as another user (admin feature, requires permission)")
 
 	rootCmd.PersistentFlags().BoolVar(&noCache, "no-cache", false, "Disable caching of API responses")
+	rootCmd.PersistentFlags().IntVar(&globalLimit, "limit", 0, "Limit number of results for list operations (0 = unlimited)")
 
 	// Bind flags to viper
 	viper.BindPFlag("instance", rootCmd.PersistentFlags().Lookup("instance"))

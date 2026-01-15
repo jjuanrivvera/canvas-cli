@@ -178,7 +178,13 @@ func (s *SISImportsService) List(ctx context.Context, accountID int64, opts *Lis
 		return nil, err
 	}
 
-	return response.SISImports, nil
+	// Respect global limit if set
+	results := response.SISImports
+	if maxResults := s.client.GetMaxResults(); maxResults > 0 && len(results) > maxResults {
+		results = results[:maxResults]
+	}
+
+	return results, nil
 }
 
 // Get retrieves a single SIS import

@@ -73,6 +73,7 @@ type Client struct {
 	cache          cache.CacheInterface
 	cacheEnabled   bool
 	userAgent      string // User-Agent header for API requests
+	maxResults     int    // Max results for paginated requests (0 = unlimited)
 	mu             sync.RWMutex
 }
 
@@ -153,6 +154,7 @@ type ClientConfig struct {
 	Cache          cache.CacheInterface
 	CacheEnabled   bool
 	UserAgent      string // User-Agent header for API requests (required by Canvas)
+	MaxResults     int    // Max results for paginated requests (0 = unlimited)
 }
 
 // NewClient creates a new Canvas API client
@@ -209,6 +211,7 @@ func NewClient(config ClientConfig) (*Client, error) {
 		cache:        config.Cache,
 		cacheEnabled: config.CacheEnabled && config.Cache != nil,
 		userAgent:    config.UserAgent,
+		maxResults:   config.MaxResults,
 	}
 
 	// Detect Canvas version
@@ -233,6 +236,12 @@ func (c *Client) GetVersion() *CanvasVersion {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	return c.version
+}
+
+// GetMaxResults returns the configured maximum results limit (0 = unlimited).
+// This value is set during client construction and is immutable, so no lock is needed.
+func (c *Client) GetMaxResults() int {
+	return c.maxResults
 }
 
 // SupportsFeature checks if a feature is supported
@@ -480,9 +489,10 @@ func (c *Client) PutJSON(ctx context.Context, path string, body interface{}, res
 
 // GetAllPages fetches all pages of a paginated endpoint
 // If caching is enabled, cached responses will be returned when available
+// If maxResults is set, stops fetching when limit is reached
 func (c *Client) GetAllPages(ctx context.Context, path string, result interface{}) error {
-	// Check cache first if enabled
-	if c.cacheEnabled && c.cache != nil {
+	// Check cache first if enabled (only if no limit set, as cached results might exceed limit)
+	if c.cacheEnabled && c.cache != nil && c.maxResults == 0 {
 		key := c.cacheKey("pages:" + path)
 		if err := c.cache.GetJSON(key, result); err == nil {
 			return nil // Cache hit
@@ -506,6 +516,13 @@ func (c *Client) GetAllPages(ctx context.Context, path string, result interface{
 		resp.Body.Close()
 
 		allResults = append(allResults, pageResults...)
+
+		// Check if we've reached the limit
+		if c.maxResults > 0 && len(allResults) >= c.maxResults {
+			// Truncate to exact limit
+			allResults = allResults[:c.maxResults]
+			break
+		}
 
 		// Check for next page
 		links := ParsePaginationLinks(resp)
