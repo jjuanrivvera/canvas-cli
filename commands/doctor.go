@@ -1,23 +1,28 @@
 package commands
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
 	"github.com/spf13/cobra"
 
+	"github.com/jjuanrivvera/canvas-cli/commands/internal/logging"
+	"github.com/jjuanrivvera/canvas-cli/commands/internal/options"
 	"github.com/jjuanrivvera/canvas-cli/internal/diagnostics"
 )
 
-var (
-	doctorVerbose bool
-	doctorJSON    bool
-)
+func init() {
+	rootCmd.AddCommand(newDoctorCmd())
+}
 
-var doctorCmd = &cobra.Command{
-	Use:   "doctor",
-	Short: "Run system diagnostics",
-	Long: `Run diagnostic checks to verify Canvas CLI configuration and connectivity.
+func newDoctorCmd() *cobra.Command {
+	opts := &options.DoctorOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "doctor",
+		Short: "Run system diagnostics",
+		Long: `Run diagnostic checks to verify Canvas CLI configuration and connectivity.
 
 The doctor command performs the following checks:
   - Environment (OS, architecture, Go version)
@@ -37,18 +42,27 @@ Examples:
 
   # Output results as JSON
   canvas doctor --json`,
-	RunE: runDoctor,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+
+			return runDoctor(cmd.Context(), opts)
+		},
+	}
+
+	cmd.Flags().BoolVarP(&opts.Verbose, "verbose", "v", false, "Show detailed output")
+	cmd.Flags().BoolVar(&opts.JSON, "json", false, "Output results as JSON")
+
+	return cmd
 }
 
-func init() {
-	rootCmd.AddCommand(doctorCmd)
-
-	doctorCmd.Flags().BoolVarP(&doctorVerbose, "verbose", "v", false, "Show detailed output")
-	doctorCmd.Flags().BoolVar(&doctorJSON, "json", false, "Output results as JSON")
-}
-
-func runDoctor(cmd *cobra.Command, args []string) error {
-	ctx := cmd.Context()
+func runDoctor(ctx context.Context, opts *options.DoctorOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+	logger.LogCommandStart(ctx, "doctor", map[string]interface{}{
+		"verbose": opts.Verbose,
+		"json":    opts.JSON,
+	})
 
 	// Load config
 	cfg, err := getConfig()
@@ -71,15 +85,20 @@ func runDoctor(cmd *cobra.Command, args []string) error {
 	fmt.Println("Running diagnostics...")
 	report, err := doctor.Run(ctx)
 	if err != nil {
+		logger.LogCommandError(ctx, "doctor", err, nil)
 		return fmt.Errorf("diagnostic error: %w", err)
 	}
 
 	// Print report
-	if doctorJSON {
-		printReportJSON(report)
+	if opts.JSON {
+		printReportJSON(report, opts)
 	} else {
-		printReportHuman(report)
+		printReportHuman(report, opts)
 	}
+
+	// Log completion
+	checksRun := len(report.Checks)
+	logger.LogCommandComplete(ctx, "doctor", checksRun)
 
 	// Exit with error if any checks failed
 	if !report.IsHealthy() {
@@ -89,7 +108,7 @@ func runDoctor(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func printReportHuman(report *diagnostics.Report) {
+func printReportHuman(report *diagnostics.Report, opts *options.DoctorOptions) {
 	// Print header
 	fmt.Println("Diagnostic Report")
 	fmt.Println(strings.Repeat("=", 70))
@@ -97,7 +116,7 @@ func printReportHuman(report *diagnostics.Report) {
 
 	// Print checks
 	for _, check := range report.Checks {
-		printCheck(check)
+		printCheck(check, opts)
 	}
 
 	// Print summary
@@ -115,7 +134,7 @@ func printReportHuman(report *diagnostics.Report) {
 	}
 }
 
-func printCheck(check diagnostics.Check) {
+func printCheck(check diagnostics.Check, opts *options.DoctorOptions) {
 	// Status icon
 	icon := getStatusIcon(check.Status)
 
@@ -123,7 +142,7 @@ func printCheck(check diagnostics.Check) {
 	fmt.Printf("%s [%s] %s\n", icon, check.Status, check.Name)
 
 	// Print description
-	if doctorVerbose {
+	if opts.Verbose {
 		fmt.Printf("  Description: %s\n", check.Description)
 	}
 
@@ -133,12 +152,12 @@ func printCheck(check diagnostics.Check) {
 	}
 
 	// Print error
-	if check.Error != nil && doctorVerbose {
+	if check.Error != nil && opts.Verbose {
 		fmt.Printf("  Error: %v\n", check.Error)
 	}
 
 	// Print duration
-	if doctorVerbose {
+	if opts.Verbose {
 		fmt.Printf("  Duration: %s\n", check.Duration)
 	}
 
@@ -160,7 +179,7 @@ func getStatusIcon(status diagnostics.CheckStatus) string {
 	}
 }
 
-func printReportJSON(report *diagnostics.Report) {
+func printReportJSON(report *diagnostics.Report, opts *options.DoctorOptions) {
 	// Create a simple JSON structure
 	fmt.Println("{")
 	fmt.Printf("  \"duration\": \"%s\",\n", report.Duration)

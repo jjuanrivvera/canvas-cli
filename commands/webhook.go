@@ -10,18 +10,12 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/jjuanrivvera/canvas-cli/commands/internal/logging"
+	"github.com/jjuanrivvera/canvas-cli/commands/internal/options"
 	"github.com/jjuanrivvera/canvas-cli/internal/webhook"
 )
 
-var (
-	webhookAddr          string
-	webhookSecret        string
-	webhookJWKsURL       string
-	webhookCanvasDataSvc bool
-	webhookEvents        []string
-	webhookLog           bool
-)
-
+// webhookCmd represents the webhook command group
 var webhookCmd = &cobra.Command{
 	Use:   "webhook",
 	Short: "Manage Canvas webhook listeners",
@@ -56,10 +50,19 @@ Examples:
   canvas webhook events`,
 }
 
-var webhookListenCmd = &cobra.Command{
-	Use:   "listen",
-	Short: "Start webhook listener server",
-	Long: `Start a webhook listener server to receive Canvas events.
+func init() {
+	rootCmd.AddCommand(webhookCmd)
+	webhookCmd.AddCommand(newWebhookListenCmd())
+	webhookCmd.AddCommand(newWebhookEventsCmd())
+}
+
+func newWebhookListenCmd() *cobra.Command {
+	opts := &options.WebhookListenOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "listen",
+		Short: "Start webhook listener server",
+		Long: `Start a webhook listener server to receive Canvas events.
 
 The server listens on the specified address and processes incoming
 webhook events. It supports two verification methods:
@@ -90,75 +93,89 @@ Examples:
 
   # Listen for specific events
   canvas webhook listen --events grade_change,submission_created`,
-	RunE: runWebhookListen,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+
+			return runWebhookListen(cmd.Context(), opts)
+		},
+	}
+
+	cmd.Flags().StringVar(&opts.Addr, "addr", ":8080", "Server address to listen on")
+	cmd.Flags().StringVar(&opts.Secret, "secret", "", "Webhook secret for HMAC verification")
+	cmd.Flags().StringVar(&opts.JWKsURL, "jwks-url", "", "JWK Set URL for JWT verification")
+	cmd.Flags().BoolVar(&opts.CanvasDataSvc, "canvas-data-services", false, "Use Canvas Data Services JWK URL for JWT verification")
+	cmd.Flags().StringSliceVar(&opts.Events, "events", []string{}, "Event types to handle (comma-separated)")
+	cmd.Flags().BoolVar(&opts.Log, "log", false, "Enable request logging")
+
+	return cmd
 }
 
-var webhookEventsCmd = &cobra.Command{
-	Use:   "events",
-	Short: "List available Canvas webhook event types",
-	Long:  `Display all supported Canvas webhook event types with their descriptions.`,
-	Run:   runWebhookEvents,
+func newWebhookEventsCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "events",
+		Short: "List available Canvas webhook event types",
+		Long:  `Display all supported Canvas webhook event types with their descriptions.`,
+		Run: func(cmd *cobra.Command, args []string) {
+			runWebhookEvents()
+		},
+	}
+
+	return cmd
 }
 
-func init() {
-	rootCmd.AddCommand(webhookCmd)
-	webhookCmd.AddCommand(webhookListenCmd)
-	webhookCmd.AddCommand(webhookEventsCmd)
+func runWebhookListen(ctx context.Context, opts *options.WebhookListenOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+	logger.LogCommandStart(ctx, "webhook.listen", map[string]interface{}{
+		"addr":            opts.Addr,
+		"canvas_data_svc": opts.CanvasDataSvc,
+		"events_count":    len(opts.Events),
+		"log_enabled":     opts.Log,
+	})
 
-	// Listen command flags
-	webhookListenCmd.Flags().StringVar(&webhookAddr, "addr", ":8080", "Server address to listen on")
-	webhookListenCmd.Flags().StringVar(&webhookSecret, "secret", "", "Webhook secret for HMAC verification")
-	webhookListenCmd.Flags().StringVar(&webhookJWKsURL, "jwks-url", "", "JWK Set URL for JWT verification")
-	webhookListenCmd.Flags().BoolVar(&webhookCanvasDataSvc, "canvas-data-services", false, "Use Canvas Data Services JWK URL for JWT verification")
-	webhookListenCmd.Flags().StringSliceVar(&webhookEvents, "events", []string{}, "Event types to handle (comma-separated)")
-	webhookListenCmd.Flags().BoolVar(&webhookLog, "log", false, "Enable request logging")
-}
-
-func runWebhookListen(cmd *cobra.Command, args []string) error {
-	ctx := cmd.Context()
-
-	// Create logger
-	var logger *log.Logger
-	if webhookLog {
-		logger = log.New(os.Stdout, "[webhook] ", log.LstdFlags)
+	// Create webhook logger
+	var webhookLogger *log.Logger
+	if opts.Log {
+		webhookLogger = log.New(os.Stdout, "[webhook] ", log.LstdFlags)
 	} else {
-		logger = log.New(os.Stderr, "", log.LstdFlags)
+		webhookLogger = log.New(os.Stderr, "", log.LstdFlags)
 	}
 
 	// Determine JWK URL
-	jwksURL := webhookJWKsURL
-	if webhookCanvasDataSvc {
+	jwksURL := opts.JWKsURL
+	if opts.CanvasDataSvc {
 		jwksURL = webhook.CanvasDataServicesJWKURL
-		logger.Printf("Using Canvas Data Services JWK URL: %s\n", jwksURL)
+		webhookLogger.Printf("Using Canvas Data Services JWK URL: %s\n", jwksURL)
 	}
 
 	// Create middleware
 	middleware := []webhook.Middleware{
-		webhook.RecoveryMiddleware(logger),
+		webhook.RecoveryMiddleware(webhookLogger),
 	}
-	if webhookLog {
-		middleware = append(middleware, webhook.EventLogger(logger))
+	if opts.Log {
+		middleware = append(middleware, webhook.EventLogger(webhookLogger))
 	}
 
 	// Create listener
 	listener := webhook.New(&webhook.Config{
-		Addr:       webhookAddr,
-		Secret:     webhookSecret,
+		Addr:       opts.Addr,
+		Secret:     opts.Secret,
 		JWKSetURL:  jwksURL,
-		Logger:     logger,
+		Logger:     webhookLogger,
 		Middleware: middleware,
 	})
 
 	// Register handlers
-	if len(webhookEvents) > 0 {
+	if len(opts.Events) > 0 {
 		// Register specific event types
-		for _, eventType := range webhookEvents {
-			registerHandler(listener, eventType, logger)
+		for _, eventType := range opts.Events {
+			registerHandler(listener, eventType, webhookLogger, opts.Log)
 		}
 	} else {
 		// Register all event types
 		for _, eventType := range webhook.AllEventTypes() {
-			registerHandler(listener, eventType, logger)
+			registerHandler(listener, eventType, webhookLogger, opts.Log)
 		}
 	}
 
@@ -174,20 +191,24 @@ func runWebhookListen(cmd *cobra.Command, args []string) error {
 
 	go func() {
 		<-sigChan
-		logger.Println("Received shutdown signal")
+		webhookLogger.Println("Received shutdown signal")
 		cancel()
 	}()
 
 	// Start listener
 	if err := listener.Start(ctx); err != nil {
+		logger.LogCommandError(ctx, "webhook.listen", err, map[string]interface{}{
+			"addr": opts.Addr,
+		})
 		return fmt.Errorf("webhook listener error: %w", err)
 	}
 
-	logger.Println("Webhook listener stopped")
+	webhookLogger.Println("Webhook listener stopped")
+	logger.LogCommandComplete(ctx, "webhook.listen", 0)
 	return nil
 }
 
-func runWebhookEvents(cmd *cobra.Command, args []string) {
+func runWebhookEvents() {
 	fmt.Println("Available Canvas Webhook Event Types:")
 
 	events := webhook.AllEventTypes()
@@ -199,12 +220,12 @@ func runWebhookEvents(cmd *cobra.Command, args []string) {
 	fmt.Printf("\nTotal: %d event types\n", len(events))
 }
 
-func registerHandler(listener *webhook.Listener, eventType string, logger *log.Logger) {
+func registerHandler(listener *webhook.Listener, eventType string, logger *log.Logger, logEnabled bool) {
 	listener.On(eventType, func(ctx context.Context, event *webhook.Event) error {
 		logger.Printf("Received event: %s (ID: %s)\n", event.EventType, event.ID)
 
 		// Print event body
-		if webhookLog {
+		if logEnabled {
 			logger.Printf("Event body: %+v\n", event.Body)
 		}
 

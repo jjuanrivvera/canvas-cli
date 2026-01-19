@@ -7,28 +7,9 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/jjuanrivvera/canvas-cli/commands/internal/logging"
+	"github.com/jjuanrivvera/canvas-cli/commands/internal/options"
 	"github.com/jjuanrivvera/canvas-cli/internal/api"
-)
-
-var (
-	// List flags
-	sectionsCourseID int64
-	sectionsInclude  []string
-
-	// Create/Update flags
-	sectionsName          string
-	sectionsSISSectionID  string
-	sectionsIntegrationID string
-	sectionsStartAt       string
-	sectionsEndAt         string
-	sectionsRestrictDates bool
-
-	// Crosslist flags
-	sectionsNewCourseID           int64
-	sectionsOverrideSISStickiness bool
-
-	// Delete flags
-	sectionsForce bool
 )
 
 // sectionsCmd represents the sections command group
@@ -46,64 +27,185 @@ Examples:
   canvas sections create --course-id 123 --name "Section A"`,
 }
 
-// sectionsListCmd represents the sections list command
-var sectionsListCmd = &cobra.Command{
-	Use:   "list",
-	Short: "List sections in a course",
-	Long: `List all sections in a course.
+func init() {
+	rootCmd.AddCommand(sectionsCmd)
+	sectionsCmd.AddCommand(newSectionsListCmd())
+	sectionsCmd.AddCommand(newSectionsGetCmd())
+	sectionsCmd.AddCommand(newSectionsCreateCmd())
+	sectionsCmd.AddCommand(newSectionsUpdateCmd())
+	sectionsCmd.AddCommand(newSectionsDeleteCmd())
+	sectionsCmd.AddCommand(newSectionsCrosslistCmd())
+	sectionsCmd.AddCommand(newSectionsUncrosslistCmd())
+}
+
+func newSectionsListCmd() *cobra.Command {
+	opts := &options.SectionsListOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "list",
+		Short: "List sections in a course",
+		Long: `List all sections in a course.
 
 Examples:
   canvas sections list --course-id 123
   canvas sections list --course-id 123 --include students,total_students
   canvas sections list --course-id 123 --include passback_status`,
-	RunE: runSectionsList,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+
+			return runSectionsList(cmd.Context(), client, opts)
+		},
+	}
+
+	cmd.Flags().Int64Var(&opts.CourseID, "course-id", 0, "Course ID (required)")
+	cmd.MarkFlagRequired("course-id")
+	cmd.Flags().StringSliceVar(&opts.Include, "include", []string{}, "Include additional data (students, total_students, passback_status, permissions)")
+
+	return cmd
 }
 
-// sectionsGetCmd represents the sections get command
-var sectionsGetCmd = &cobra.Command{
-	Use:   "get <section-id>",
-	Short: "Get section details",
-	Long: `Get details of a specific section.
+func newSectionsGetCmd() *cobra.Command {
+	opts := &options.SectionsGetOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "get <section-id>",
+		Short: "Get section details",
+		Long: `Get details of a specific section.
 
 Examples:
   canvas sections get 456
   canvas sections get 456 --include students,total_students`,
-	Args: ExactArgsWithUsage(1, "section-id"),
-	RunE: runSectionsGet,
+		Args: ExactArgsWithUsage(1, "section-id"),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			sectionID, err := strconv.ParseInt(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid section ID: %w", err)
+			}
+			opts.SectionID = sectionID
+
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+
+			return runSectionsGet(cmd.Context(), client, opts)
+		},
+	}
+
+	cmd.Flags().StringSliceVar(&opts.Include, "include", []string{}, "Include additional data (students, total_students, passback_status, permissions)")
+
+	return cmd
 }
 
-// sectionsCreateCmd represents the sections create command
-var sectionsCreateCmd = &cobra.Command{
-	Use:   "create",
-	Short: "Create a new section",
-	Long: `Create a new section in a course.
+func newSectionsCreateCmd() *cobra.Command {
+	opts := &options.SectionsCreateOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "create",
+		Short: "Create a new section",
+		Long: `Create a new section in a course.
 
 Examples:
   canvas sections create --course-id 123 --name "Section A"
   canvas sections create --course-id 123 --name "Section B" --sis-section-id "SIS123"
   canvas sections create --course-id 123 --name "Section C" --start-at "2024-01-15" --end-at "2024-05-15" --restrict-dates`,
-	RunE: runSectionsCreate,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+
+			return runSectionsCreate(cmd.Context(), client, opts)
+		},
+	}
+
+	cmd.Flags().Int64Var(&opts.CourseID, "course-id", 0, "Course ID (required)")
+	cmd.MarkFlagRequired("course-id")
+	cmd.Flags().StringVar(&opts.Name, "name", "", "Section name (required)")
+	cmd.MarkFlagRequired("name")
+	cmd.Flags().StringVar(&opts.SISSectionID, "sis-section-id", "", "SIS section ID")
+	cmd.Flags().StringVar(&opts.IntegrationID, "integration-id", "", "Integration ID")
+	cmd.Flags().StringVar(&opts.StartAt, "start-at", "", "Section start date (ISO 8601)")
+	cmd.Flags().StringVar(&opts.EndAt, "end-at", "", "Section end date (ISO 8601)")
+	cmd.Flags().BoolVar(&opts.RestrictDates, "restrict-dates", false, "Restrict enrollments to section dates")
+
+	return cmd
 }
 
-// sectionsUpdateCmd represents the sections update command
-var sectionsUpdateCmd = &cobra.Command{
-	Use:   "update <section-id>",
-	Short: "Update a section",
-	Long: `Update an existing section.
+func newSectionsUpdateCmd() *cobra.Command {
+	opts := &options.SectionsUpdateOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "update <section-id>",
+		Short: "Update a section",
+		Long: `Update an existing section.
 
 Examples:
   canvas sections update 456 --name "Updated Section Name"
   canvas sections update 456 --start-at "2024-02-01"
   canvas sections update 456 --restrict-dates`,
-	Args: ExactArgsWithUsage(1, "section-id"),
-	RunE: runSectionsUpdate,
+		Args: ExactArgsWithUsage(1, "section-id"),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			sectionID, err := strconv.ParseInt(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid section ID: %w", err)
+			}
+			opts.SectionID = sectionID
+
+			// Track which fields were set
+			opts.NameSet = cmd.Flags().Changed("name")
+			opts.SISSectionIDSet = cmd.Flags().Changed("sis-section-id")
+			opts.IntegrationIDSet = cmd.Flags().Changed("integration-id")
+			opts.StartAtSet = cmd.Flags().Changed("start-at")
+			opts.EndAtSet = cmd.Flags().Changed("end-at")
+			opts.RestrictDatesSet = cmd.Flags().Changed("restrict-dates")
+
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+
+			return runSectionsUpdate(cmd.Context(), client, opts)
+		},
+	}
+
+	cmd.Flags().StringVar(&opts.Name, "name", "", "Section name")
+	cmd.Flags().StringVar(&opts.SISSectionID, "sis-section-id", "", "SIS section ID")
+	cmd.Flags().StringVar(&opts.IntegrationID, "integration-id", "", "Integration ID")
+	cmd.Flags().StringVar(&opts.StartAt, "start-at", "", "Section start date (ISO 8601)")
+	cmd.Flags().StringVar(&opts.EndAt, "end-at", "", "Section end date (ISO 8601)")
+	cmd.Flags().BoolVar(&opts.RestrictDates, "restrict-dates", false, "Restrict enrollments to section dates")
+	cmd.Flags().BoolVar(&opts.OverrideSISStickiness, "override-sis-stickiness", false, "Override SIS stickiness")
+
+	return cmd
 }
 
-// sectionsDeleteCmd represents the sections delete command
-var sectionsDeleteCmd = &cobra.Command{
-	Use:   "delete <section-id>",
-	Short: "Delete a section",
-	Long: `Delete a section.
+func newSectionsDeleteCmd() *cobra.Command {
+	opts := &options.SectionsDeleteOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "delete <section-id>",
+		Short: "Delete a section",
+		Long: `Delete a section.
 
 WARNING: This action cannot be undone. All students in the section will be
 removed from the course unless they are also enrolled in another section.
@@ -111,15 +213,39 @@ removed from the course unless they are also enrolled in another section.
 Examples:
   canvas sections delete 456
   canvas sections delete 456 --force`,
-	Args: ExactArgsWithUsage(1, "section-id"),
-	RunE: runSectionsDelete,
+		Args: ExactArgsWithUsage(1, "section-id"),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			sectionID, err := strconv.ParseInt(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid section ID: %w", err)
+			}
+			opts.SectionID = sectionID
+
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+
+			return runSectionsDelete(cmd.Context(), client, opts)
+		},
+	}
+
+	cmd.Flags().BoolVar(&opts.Force, "force", false, "Skip confirmation prompt")
+
+	return cmd
 }
 
-// sectionsCrosslistCmd represents the sections crosslist command
-var sectionsCrosslistCmd = &cobra.Command{
-	Use:   "crosslist <section-id>",
-	Short: "Crosslist a section to another course",
-	Long: `Move a section to a different course (crosslist).
+func newSectionsCrosslistCmd() *cobra.Command {
+	opts := &options.SectionsCrosslistOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "crosslist <section-id>",
+		Short: "Crosslist a section to another course",
+		Long: `Move a section to a different course (crosslist).
 
 When you crosslist a section, it is moved from its original course to a new course.
 Students in the section will be enrolled in both courses.
@@ -127,222 +253,210 @@ Students in the section will be enrolled in both courses.
 Examples:
   canvas sections crosslist 456 --new-course-id 789
   canvas sections crosslist 456 --new-course-id 789 --override-sis-stickiness`,
-	Args: ExactArgsWithUsage(1, "section-id"),
-	RunE: runSectionsCrosslist,
+		Args: ExactArgsWithUsage(1, "section-id"),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			sectionID, err := strconv.ParseInt(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid section ID: %w", err)
+			}
+			opts.SectionID = sectionID
+
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+
+			return runSectionsCrosslist(cmd.Context(), client, opts)
+		},
+	}
+
+	cmd.Flags().Int64Var(&opts.NewCourseID, "new-course-id", 0, "Target course ID (required)")
+	cmd.MarkFlagRequired("new-course-id")
+	cmd.Flags().BoolVar(&opts.OverrideSISStickiness, "override-sis-stickiness", false, "Override SIS stickiness")
+
+	return cmd
 }
 
-// sectionsUncrosslistCmd represents the sections uncrosslist command
-var sectionsUncrosslistCmd = &cobra.Command{
-	Use:   "uncrosslist <section-id>",
-	Short: "Return a crosslisted section to its original course",
-	Long: `Return a crosslisted section to its original course.
+func newSectionsUncrosslistCmd() *cobra.Command {
+	opts := &options.SectionsUncrosslistOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "uncrosslist <section-id>",
+		Short: "Return a crosslisted section to its original course",
+		Long: `Return a crosslisted section to its original course.
 
 Examples:
   canvas sections uncrosslist 456
   canvas sections uncrosslist 456 --override-sis-stickiness`,
-	Args: ExactArgsWithUsage(1, "section-id"),
-	RunE: runSectionsUncrosslist,
-}
+		Args: ExactArgsWithUsage(1, "section-id"),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			sectionID, err := strconv.ParseInt(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid section ID: %w", err)
+			}
+			opts.SectionID = sectionID
 
-func init() {
-	rootCmd.AddCommand(sectionsCmd)
-	sectionsCmd.AddCommand(sectionsListCmd)
-	sectionsCmd.AddCommand(sectionsGetCmd)
-	sectionsCmd.AddCommand(sectionsCreateCmd)
-	sectionsCmd.AddCommand(sectionsUpdateCmd)
-	sectionsCmd.AddCommand(sectionsDeleteCmd)
-	sectionsCmd.AddCommand(sectionsCrosslistCmd)
-	sectionsCmd.AddCommand(sectionsUncrosslistCmd)
+			if err := opts.Validate(); err != nil {
+				return err
+			}
 
-	// List flags
-	sectionsListCmd.Flags().Int64Var(&sectionsCourseID, "course-id", 0, "Course ID (required)")
-	sectionsListCmd.MarkFlagRequired("course-id")
-	sectionsListCmd.Flags().StringSliceVar(&sectionsInclude, "include", []string{}, "Include additional data (students, total_students, passback_status, permissions)")
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
 
-	// Get flags
-	sectionsGetCmd.Flags().StringSliceVar(&sectionsInclude, "include", []string{}, "Include additional data (students, total_students, passback_status, permissions)")
-
-	// Create flags
-	sectionsCreateCmd.Flags().Int64Var(&sectionsCourseID, "course-id", 0, "Course ID (required)")
-	sectionsCreateCmd.MarkFlagRequired("course-id")
-	sectionsCreateCmd.Flags().StringVar(&sectionsName, "name", "", "Section name (required)")
-	sectionsCreateCmd.MarkFlagRequired("name")
-	sectionsCreateCmd.Flags().StringVar(&sectionsSISSectionID, "sis-section-id", "", "SIS section ID")
-	sectionsCreateCmd.Flags().StringVar(&sectionsIntegrationID, "integration-id", "", "Integration ID")
-	sectionsCreateCmd.Flags().StringVar(&sectionsStartAt, "start-at", "", "Section start date (ISO 8601)")
-	sectionsCreateCmd.Flags().StringVar(&sectionsEndAt, "end-at", "", "Section end date (ISO 8601)")
-	sectionsCreateCmd.Flags().BoolVar(&sectionsRestrictDates, "restrict-dates", false, "Restrict enrollments to section dates")
-
-	// Update flags
-	sectionsUpdateCmd.Flags().StringVar(&sectionsName, "name", "", "Section name")
-	sectionsUpdateCmd.Flags().StringVar(&sectionsSISSectionID, "sis-section-id", "", "SIS section ID")
-	sectionsUpdateCmd.Flags().StringVar(&sectionsIntegrationID, "integration-id", "", "Integration ID")
-	sectionsUpdateCmd.Flags().StringVar(&sectionsStartAt, "start-at", "", "Section start date (ISO 8601)")
-	sectionsUpdateCmd.Flags().StringVar(&sectionsEndAt, "end-at", "", "Section end date (ISO 8601)")
-	sectionsUpdateCmd.Flags().BoolVar(&sectionsRestrictDates, "restrict-dates", false, "Restrict enrollments to section dates")
-	sectionsUpdateCmd.Flags().BoolVar(&sectionsOverrideSISStickiness, "override-sis-stickiness", false, "Override SIS stickiness")
-
-	// Delete flags
-	sectionsDeleteCmd.Flags().BoolVar(&sectionsForce, "force", false, "Skip confirmation prompt")
-
-	// Crosslist flags
-	sectionsCrosslistCmd.Flags().Int64Var(&sectionsNewCourseID, "new-course-id", 0, "Target course ID (required)")
-	sectionsCrosslistCmd.MarkFlagRequired("new-course-id")
-	sectionsCrosslistCmd.Flags().BoolVar(&sectionsOverrideSISStickiness, "override-sis-stickiness", false, "Override SIS stickiness")
-
-	// Uncrosslist flags
-	sectionsUncrosslistCmd.Flags().BoolVar(&sectionsOverrideSISStickiness, "override-sis-stickiness", false, "Override SIS stickiness")
-}
-
-func runSectionsList(cmd *cobra.Command, args []string) error {
-	// Get API client
-	client, err := getAPIClient()
-	if err != nil {
-		return err
+			return runSectionsUncrosslist(cmd.Context(), client, opts)
+		},
 	}
 
-	// Create sections service
+	cmd.Flags().BoolVar(&opts.OverrideSISStickiness, "override-sis-stickiness", false, "Override SIS stickiness")
+
+	return cmd
+}
+
+func runSectionsList(ctx context.Context, client *api.Client, opts *options.SectionsListOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+	logger.LogCommandStart(ctx, "sections.list", map[string]interface{}{
+		"course_id": opts.CourseID,
+		"include":   opts.Include,
+	})
+
 	sectionsService := api.NewSectionsService(client)
 
-	// Build options
-	opts := &api.ListSectionsOptions{
-		Include: sectionsInclude,
+	apiOpts := &api.ListSectionsOptions{
+		Include: opts.Include,
 	}
 
-	// List sections
-	ctx := context.Background()
-	sections, err := sectionsService.ListCourse(ctx, sectionsCourseID, opts)
+	sections, err := sectionsService.ListCourse(ctx, opts.CourseID, apiOpts)
 	if err != nil {
+		logger.LogCommandError(ctx, "sections.list", err, map[string]interface{}{
+			"course_id": opts.CourseID,
+		})
 		return fmt.Errorf("failed to list sections: %w", err)
 	}
 
 	if len(sections) == 0 {
-		fmt.Printf("No sections found in course %d\n", sectionsCourseID)
+		fmt.Printf("No sections found in course %d\n", opts.CourseID)
+		logger.LogCommandComplete(ctx, "sections.list", 0)
 		return nil
 	}
 
-	printVerbose("Found %d sections in course %d:\n\n", len(sections), sectionsCourseID)
+	printVerbose("Found %d sections in course %d:\n\n", len(sections), opts.CourseID)
+	logger.LogCommandComplete(ctx, "sections.list", len(sections))
 	return formatOutput(sections, nil)
 }
 
-func runSectionsGet(cmd *cobra.Command, args []string) error {
-	// Parse section ID
-	sectionID, err := strconv.ParseInt(args[0], 10, 64)
-	if err != nil {
-		return fmt.Errorf("invalid section ID: %w", err)
-	}
+func runSectionsGet(ctx context.Context, client *api.Client, opts *options.SectionsGetOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+	logger.LogCommandStart(ctx, "sections.get", map[string]interface{}{
+		"section_id": opts.SectionID,
+		"include":    opts.Include,
+	})
 
-	// Get API client
-	client, err := getAPIClient()
-	if err != nil {
-		return err
-	}
-
-	// Create sections service
 	sectionsService := api.NewSectionsService(client)
 
-	// Get section
-	ctx := context.Background()
-	section, err := sectionsService.Get(ctx, sectionID, sectionsInclude)
+	section, err := sectionsService.Get(ctx, opts.SectionID, opts.Include)
 	if err != nil {
+		logger.LogCommandError(ctx, "sections.get", err, map[string]interface{}{
+			"section_id": opts.SectionID,
+		})
 		return fmt.Errorf("failed to get section: %w", err)
 	}
 
+	logger.LogCommandComplete(ctx, "sections.get", 1)
 	return formatOutput(section, nil)
 }
 
-func runSectionsCreate(cmd *cobra.Command, args []string) error {
-	// Get API client
-	client, err := getAPIClient()
-	if err != nil {
-		return err
-	}
+func runSectionsCreate(ctx context.Context, client *api.Client, opts *options.SectionsCreateOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+	logger.LogCommandStart(ctx, "sections.create", map[string]interface{}{
+		"course_id": opts.CourseID,
+		"name":      opts.Name,
+	})
 
-	// Create sections service
 	sectionsService := api.NewSectionsService(client)
 
-	// Build params
 	params := &api.CreateSectionParams{
-		Name:                              sectionsName,
-		SISSectionID:                      sectionsSISSectionID,
-		IntegrationID:                     sectionsIntegrationID,
-		StartAt:                           sectionsStartAt,
-		EndAt:                             sectionsEndAt,
-		RestrictEnrollmentsToSectionDates: sectionsRestrictDates,
+		Name:                              opts.Name,
+		SISSectionID:                      opts.SISSectionID,
+		IntegrationID:                     opts.IntegrationID,
+		StartAt:                           opts.StartAt,
+		EndAt:                             opts.EndAt,
+		RestrictEnrollmentsToSectionDates: opts.RestrictDates,
 	}
 
-	// Create section
-	ctx := context.Background()
-	section, err := sectionsService.Create(ctx, sectionsCourseID, params)
+	section, err := sectionsService.Create(ctx, opts.CourseID, params)
 	if err != nil {
+		logger.LogCommandError(ctx, "sections.create", err, map[string]interface{}{
+			"course_id": opts.CourseID,
+			"name":      opts.Name,
+		})
 		return fmt.Errorf("failed to create section: %w", err)
 	}
 
 	fmt.Printf("Section created successfully (ID: %d)\n", section.ID)
+	logger.LogCommandComplete(ctx, "sections.create", 1)
 	return formatOutput(section, nil)
 }
 
-func runSectionsUpdate(cmd *cobra.Command, args []string) error {
-	// Parse section ID
-	sectionID, err := strconv.ParseInt(args[0], 10, 64)
-	if err != nil {
-		return fmt.Errorf("invalid section ID: %w", err)
-	}
+func runSectionsUpdate(ctx context.Context, client *api.Client, opts *options.SectionsUpdateOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+	logger.LogCommandStart(ctx, "sections.update", map[string]interface{}{
+		"section_id": opts.SectionID,
+	})
 
-	// Get API client
-	client, err := getAPIClient()
-	if err != nil {
-		return err
-	}
-
-	// Create sections service
 	sectionsService := api.NewSectionsService(client)
 
-	// Build params - only include changed flags
 	params := &api.UpdateSectionParams{
-		OverrideSISStickiness: sectionsOverrideSISStickiness,
+		OverrideSISStickiness: opts.OverrideSISStickiness,
 	}
 
-	if cmd.Flags().Changed("name") {
-		params.Name = &sectionsName
+	if opts.NameSet {
+		params.Name = &opts.Name
 	}
-	if cmd.Flags().Changed("sis-section-id") {
-		params.SISSectionID = &sectionsSISSectionID
+	if opts.SISSectionIDSet {
+		params.SISSectionID = &opts.SISSectionID
 	}
-	if cmd.Flags().Changed("integration-id") {
-		params.IntegrationID = &sectionsIntegrationID
+	if opts.IntegrationIDSet {
+		params.IntegrationID = &opts.IntegrationID
 	}
-	if cmd.Flags().Changed("start-at") {
-		params.StartAt = &sectionsStartAt
+	if opts.StartAtSet {
+		params.StartAt = &opts.StartAt
 	}
-	if cmd.Flags().Changed("end-at") {
-		params.EndAt = &sectionsEndAt
+	if opts.EndAtSet {
+		params.EndAt = &opts.EndAt
 	}
-	if cmd.Flags().Changed("restrict-dates") {
-		params.RestrictEnrollmentsToSectionDates = &sectionsRestrictDates
+	if opts.RestrictDatesSet {
+		params.RestrictEnrollmentsToSectionDates = &opts.RestrictDates
 	}
 
-	// Update section
-	ctx := context.Background()
-	section, err := sectionsService.Update(ctx, sectionID, params)
+	section, err := sectionsService.Update(ctx, opts.SectionID, params)
 	if err != nil {
+		logger.LogCommandError(ctx, "sections.update", err, map[string]interface{}{
+			"section_id": opts.SectionID,
+		})
 		return fmt.Errorf("failed to update section: %w", err)
 	}
 
 	fmt.Printf("Section updated successfully (ID: %d)\n", section.ID)
+	logger.LogCommandComplete(ctx, "sections.update", 1)
 	return formatOutput(section, nil)
 }
 
-func runSectionsDelete(cmd *cobra.Command, args []string) error {
-	// Parse section ID
-	sectionID, err := strconv.ParseInt(args[0], 10, 64)
-	if err != nil {
-		return fmt.Errorf("invalid section ID: %w", err)
-	}
+func runSectionsDelete(ctx context.Context, client *api.Client, opts *options.SectionsDeleteOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+	logger.LogCommandStart(ctx, "sections.delete", map[string]interface{}{
+		"section_id": opts.SectionID,
+		"force":      opts.Force,
+	})
 
 	// Confirmation
-	if !sectionsForce {
-		fmt.Printf("WARNING: This will delete section %d and may remove students from the course.\n", sectionID)
+	if !opts.Force {
+		fmt.Printf("WARNING: This will delete section %d and may remove students from the course.\n", opts.SectionID)
 		fmt.Print("Type 'yes' to confirm: ")
 		var confirm string
 		fmt.Scanln(&confirm)
@@ -352,76 +466,63 @@ func runSectionsDelete(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	// Get API client
-	client, err := getAPIClient()
-	if err != nil {
-		return err
-	}
-
-	// Create sections service
 	sectionsService := api.NewSectionsService(client)
 
-	// Delete section
-	ctx := context.Background()
-	section, err := sectionsService.Delete(ctx, sectionID)
+	section, err := sectionsService.Delete(ctx, opts.SectionID)
 	if err != nil {
+		logger.LogCommandError(ctx, "sections.delete", err, map[string]interface{}{
+			"section_id": opts.SectionID,
+		})
 		return fmt.Errorf("failed to delete section: %w", err)
 	}
 
 	fmt.Printf("Section %d deleted\n", section.ID)
+	logger.LogCommandComplete(ctx, "sections.delete", 1)
 	return nil
 }
 
-func runSectionsCrosslist(cmd *cobra.Command, args []string) error {
-	// Parse section ID
-	sectionID, err := strconv.ParseInt(args[0], 10, 64)
-	if err != nil {
-		return fmt.Errorf("invalid section ID: %w", err)
-	}
+func runSectionsCrosslist(ctx context.Context, client *api.Client, opts *options.SectionsCrosslistOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+	logger.LogCommandStart(ctx, "sections.crosslist", map[string]interface{}{
+		"section_id":              opts.SectionID,
+		"new_course_id":           opts.NewCourseID,
+		"override_sis_stickiness": opts.OverrideSISStickiness,
+	})
 
-	// Get API client
-	client, err := getAPIClient()
-	if err != nil {
-		return err
-	}
-
-	// Create sections service
 	sectionsService := api.NewSectionsService(client)
 
-	// Crosslist section
-	ctx := context.Background()
-	section, err := sectionsService.Crosslist(ctx, sectionID, sectionsNewCourseID, sectionsOverrideSISStickiness)
+	section, err := sectionsService.Crosslist(ctx, opts.SectionID, opts.NewCourseID, opts.OverrideSISStickiness)
 	if err != nil {
+		logger.LogCommandError(ctx, "sections.crosslist", err, map[string]interface{}{
+			"section_id":    opts.SectionID,
+			"new_course_id": opts.NewCourseID,
+		})
 		return fmt.Errorf("failed to crosslist section: %w", err)
 	}
 
 	fmt.Printf("Section %d crosslisted to course %d\n", section.ID, section.CourseID)
+	logger.LogCommandComplete(ctx, "sections.crosslist", 1)
 	return formatOutput(section, nil)
 }
 
-func runSectionsUncrosslist(cmd *cobra.Command, args []string) error {
-	// Parse section ID
-	sectionID, err := strconv.ParseInt(args[0], 10, 64)
-	if err != nil {
-		return fmt.Errorf("invalid section ID: %w", err)
-	}
+func runSectionsUncrosslist(ctx context.Context, client *api.Client, opts *options.SectionsUncrosslistOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+	logger.LogCommandStart(ctx, "sections.uncrosslist", map[string]interface{}{
+		"section_id":              opts.SectionID,
+		"override_sis_stickiness": opts.OverrideSISStickiness,
+	})
 
-	// Get API client
-	client, err := getAPIClient()
-	if err != nil {
-		return err
-	}
-
-	// Create sections service
 	sectionsService := api.NewSectionsService(client)
 
-	// Uncrosslist section
-	ctx := context.Background()
-	section, err := sectionsService.Uncrosslist(ctx, sectionID, sectionsOverrideSISStickiness)
+	section, err := sectionsService.Uncrosslist(ctx, opts.SectionID, opts.OverrideSISStickiness)
 	if err != nil {
+		logger.LogCommandError(ctx, "sections.uncrosslist", err, map[string]interface{}{
+			"section_id": opts.SectionID,
+		})
 		return fmt.Errorf("failed to uncrosslist section: %w", err)
 	}
 
 	fmt.Printf("Section %d returned to course %d\n", section.ID, section.CourseID)
+	logger.LogCommandComplete(ctx, "sections.uncrosslist", 1)
 	return formatOutput(section, nil)
 }

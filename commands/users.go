@@ -10,31 +10,9 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/jjuanrivvera/canvas-cli/commands/internal/logging"
+	"github.com/jjuanrivvera/canvas-cli/commands/internal/options"
 	"github.com/jjuanrivvera/canvas-cli/internal/api"
-)
-
-var (
-	usersAccountID       int64
-	usersCourseID        int64
-	usersSearchTerm      string
-	usersInclude         []string
-	usersEnrollmentType  string
-	usersEnrollmentState string
-
-	// Create/Update flags
-	userName             string
-	userShortName        string
-	userSortableName     string
-	userEmail            string
-	userLoginID          string
-	userPassword         string
-	userSISUserID        string
-	userTimeZone         string
-	userLocale           string
-	userSkipRegistration bool
-	userSkipConfirmation bool
-	userJSONFile         string
-	userStdin            bool
 )
 
 // usersCmd represents the users command group
@@ -50,11 +28,23 @@ Examples:
   canvas users me`,
 }
 
-// usersListCmd represents the users list command
-var usersListCmd = &cobra.Command{
-	Use:   "list",
-	Short: "List users in an account or course",
-	Long: `List users in a Canvas account or course.
+func init() {
+	rootCmd.AddCommand(usersCmd)
+	usersCmd.AddCommand(newUsersListCmd())
+	usersCmd.AddCommand(newUsersGetCmd())
+	usersCmd.AddCommand(newUsersMeCmd())
+	usersCmd.AddCommand(newUsersSearchCmd())
+	usersCmd.AddCommand(newUsersCreateCmd())
+	usersCmd.AddCommand(newUsersUpdateCmd())
+}
+
+func newUsersListCmd() *cobra.Command {
+	opts := &options.UsersListOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "list",
+		Short: "List users in an account or course",
+		Long: `List users in a Canvas account or course.
 
 Specify --account-id or --course-id, or uses default account if configured.
 
@@ -75,51 +65,122 @@ Examples:
   canvas users list --course-id 123
   canvas users list --search "john"
   canvas users list --include email,enrollments`,
-	RunE: runUsersList,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+			return runUsersList(cmd.Context(), client, opts)
+		},
+	}
+
+	cmd.Flags().Int64Var(&opts.AccountID, "account-id", 0, "Account ID (for account users)")
+	cmd.Flags().Int64Var(&opts.CourseID, "course-id", 0, "Course ID (for course enrollees)")
+	cmd.Flags().StringVar(&opts.SearchTerm, "search", "", "Search by name, login ID, or email")
+	cmd.Flags().StringVar(&opts.EnrollmentType, "enrollment-type", "", "Filter by enrollment type (student, teacher, ta, observer, designer)")
+	cmd.Flags().StringVar(&opts.EnrollmentState, "enrollment-state", "", "Filter by enrollment state (active, invited, rejected, completed, inactive)")
+	cmd.Flags().StringSliceVar(&opts.Include, "include", []string{}, "Additional data to include (comma-separated)")
+
+	return cmd
 }
 
-// usersGetCmd represents the users get command
-var usersGetCmd = &cobra.Command{
-	Use:   "get <user-id>",
-	Short: "Get details of a specific user",
-	Long: `Get details of a specific user by ID.
+func newUsersGetCmd() *cobra.Command {
+	opts := &options.UsersGetOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "get <user-id>",
+		Short: "Get details of a specific user",
+		Long: `Get details of a specific user by ID.
 
 Examples:
   canvas users get 123
   canvas users get 123 --include email,enrollments,avatar_url`,
-	Args: ExactArgsWithUsage(1, "user-id"),
-	RunE: runUsersGet,
+		Args: ExactArgsWithUsage(1, "user-id"),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			userID, err := strconv.ParseInt(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid user ID: %s", args[0])
+			}
+			opts.UserID = userID
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+			return runUsersGet(cmd.Context(), client, opts)
+		},
+	}
+
+	cmd.Flags().StringSliceVar(&opts.Include, "include", []string{}, "Additional data to include (comma-separated)")
+
+	return cmd
 }
 
-// usersMeCmd represents the users me command
-var usersMeCmd = &cobra.Command{
-	Use:   "me",
-	Short: "Get details of the current authenticated user",
-	Long: `Get details of the current authenticated user.
+func newUsersMeCmd() *cobra.Command {
+	opts := &options.UsersMeOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "me",
+		Short: "Get details of the current authenticated user",
+		Long: `Get details of the current authenticated user.
 
 Examples:
   canvas users me`,
-	RunE: runUsersMe,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+			return runUsersMe(cmd.Context(), client, opts)
+		},
+	}
+
+	return cmd
 }
 
-// usersSearchCmd represents the users search command
-var usersSearchCmd = &cobra.Command{
-	Use:   "search <search-term>",
-	Short: "Search for users",
-	Long: `Search for users across the Canvas instance.
+func newUsersSearchCmd() *cobra.Command {
+	opts := &options.UsersSearchOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "search <search-term>",
+		Short: "Search for users",
+		Long: `Search for users across the Canvas instance.
 
 Examples:
   canvas users search "john doe"
   canvas users search "john@example.com"`,
-	Args: ExactArgsWithUsage(1, "search-term"),
-	RunE: runUsersSearch,
+		Args: ExactArgsWithUsage(1, "search-term"),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			opts.SearchTerm = args[0]
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+			return runUsersSearch(cmd.Context(), client, opts)
+		},
+	}
+
+	return cmd
 }
 
-// usersCreateCmd represents the users create command
-var usersCreateCmd = &cobra.Command{
-	Use:   "create",
-	Short: "Create a new user (admin)",
-	Long: `Create a new user in a Canvas account. Requires admin privileges.
+func newUsersCreateCmd() *cobra.Command {
+	opts := &options.UsersCreateOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "create",
+		Short: "Create a new user (admin)",
+		Long: `Create a new user in a Canvas account. Requires admin privileges.
 
 You can provide user data via flags or JSON file/stdin.
 
@@ -133,14 +194,44 @@ Examples:
 
   # Using stdin
   echo '{"name":"John Doe","email":"john@example.com"}' | canvas users create --account-id 1 --stdin`,
-	RunE: runUsersCreate,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+			return runUsersCreate(cmd.Context(), client, cmd, opts)
+		},
+	}
+
+	cmd.Flags().Int64Var(&opts.AccountID, "account-id", 0, "Account ID (required)")
+	cmd.Flags().StringVar(&opts.Name, "name", "", "User's full name")
+	cmd.Flags().StringVar(&opts.ShortName, "short-name", "", "User's display name")
+	cmd.Flags().StringVar(&opts.SortableName, "sortable-name", "", "User's sortable name (e.g., 'Doe, John')")
+	cmd.Flags().StringVar(&opts.Email, "email", "", "User's email address")
+	cmd.Flags().StringVar(&opts.LoginID, "login-id", "", "Login ID (unique identifier)")
+	cmd.Flags().StringVar(&opts.Password, "password", "", "User's password")
+	cmd.Flags().StringVar(&opts.SISUserID, "sis-user-id", "", "SIS User ID")
+	cmd.Flags().StringVar(&opts.TimeZone, "timezone", "", "User's timezone")
+	cmd.Flags().StringVar(&opts.Locale, "locale", "", "User's locale (e.g., 'en')")
+	cmd.Flags().BoolVar(&opts.SkipRegistration, "skip-registration", false, "Skip registration email")
+	cmd.Flags().BoolVar(&opts.SkipConfirmation, "skip-confirmation", false, "Skip email confirmation")
+	cmd.Flags().StringVar(&opts.JSONFile, "json", "", "JSON file with user data")
+	cmd.Flags().BoolVar(&opts.Stdin, "stdin", false, "Read JSON from stdin")
+	cmd.MarkFlagRequired("account-id")
+
+	return cmd
 }
 
-// usersUpdateCmd represents the users update command
-var usersUpdateCmd = &cobra.Command{
-	Use:   "update <user-id>",
-	Short: "Update an existing user",
-	Long: `Update an existing user's information.
+func newUsersUpdateCmd() *cobra.Command {
+	opts := &options.UsersUpdateOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "update <user-id>",
+		Short: "Update an existing user",
+		Long: `Update an existing user's information.
 
 You can provide user data via flags or JSON file/stdin.
 Only specified fields will be updated.
@@ -155,206 +246,188 @@ Examples:
 
   # Using stdin
   echo '{"name":"Updated Name"}' | canvas users update 123 --stdin`,
-	Args: ExactArgsWithUsage(1, "user-id"),
-	RunE: runUsersUpdate,
+		Args: ExactArgsWithUsage(1, "user-id"),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			userID, err := strconv.ParseInt(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid user ID: %s", args[0])
+			}
+			opts.UserID = userID
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+			return runUsersUpdate(cmd.Context(), client, opts)
+		},
+	}
+
+	cmd.Flags().StringVar(&opts.Name, "name", "", "User's full name")
+	cmd.Flags().StringVar(&opts.ShortName, "short-name", "", "User's display name")
+	cmd.Flags().StringVar(&opts.SortableName, "sortable-name", "", "User's sortable name (e.g., 'Doe, John')")
+	cmd.Flags().StringVar(&opts.Email, "email", "", "User's email address")
+	cmd.Flags().StringVar(&opts.TimeZone, "timezone", "", "User's timezone")
+	cmd.Flags().StringVar(&opts.Locale, "locale", "", "User's locale (e.g., 'en')")
+	cmd.Flags().StringVar(&opts.JSONFile, "json", "", "JSON file with user data")
+	cmd.Flags().BoolVar(&opts.Stdin, "stdin", false, "Read JSON from stdin")
+
+	return cmd
 }
 
-func init() {
-	rootCmd.AddCommand(usersCmd)
-	usersCmd.AddCommand(usersListCmd)
-	usersCmd.AddCommand(usersGetCmd)
-	usersCmd.AddCommand(usersMeCmd)
-	usersCmd.AddCommand(usersSearchCmd)
-	usersCmd.AddCommand(usersCreateCmd)
-	usersCmd.AddCommand(usersUpdateCmd)
+func runUsersList(ctx context.Context, client *api.Client, opts *options.UsersListOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+	logger.LogCommandStart(ctx, "users.list", map[string]interface{}{
+		"account_id":       opts.AccountID,
+		"course_id":        opts.CourseID,
+		"search_term":      opts.SearchTerm,
+		"enrollment_type":  opts.EnrollmentType,
+		"enrollment_state": opts.EnrollmentState,
+	})
 
-	// List flags
-	usersListCmd.Flags().Int64Var(&usersAccountID, "account-id", 0, "Account ID (for account users)")
-	usersListCmd.Flags().Int64Var(&usersCourseID, "course-id", 0, "Course ID (for course enrollees)")
-	usersListCmd.Flags().StringVar(&usersSearchTerm, "search", "", "Search by name, login ID, or email")
-	usersListCmd.Flags().StringVar(&usersEnrollmentType, "enrollment-type", "", "Filter by enrollment type (student, teacher, ta, observer, designer)")
-	usersListCmd.Flags().StringVar(&usersEnrollmentState, "enrollment-state", "", "Filter by enrollment state (active, invited, rejected, completed, inactive)")
-	usersListCmd.Flags().StringSliceVar(&usersInclude, "include", []string{}, "Additional data to include (comma-separated)")
-
-	// Get flags
-	usersGetCmd.Flags().StringSliceVar(&usersInclude, "include", []string{}, "Additional data to include (comma-separated)")
-
-	// Create flags
-	usersCreateCmd.Flags().Int64Var(&usersAccountID, "account-id", 0, "Account ID (required)")
-	usersCreateCmd.Flags().StringVar(&userName, "name", "", "User's full name")
-	usersCreateCmd.Flags().StringVar(&userShortName, "short-name", "", "User's display name")
-	usersCreateCmd.Flags().StringVar(&userSortableName, "sortable-name", "", "User's sortable name (e.g., 'Doe, John')")
-	usersCreateCmd.Flags().StringVar(&userEmail, "email", "", "User's email address")
-	usersCreateCmd.Flags().StringVar(&userLoginID, "login-id", "", "Login ID (unique identifier)")
-	usersCreateCmd.Flags().StringVar(&userPassword, "password", "", "User's password")
-	usersCreateCmd.Flags().StringVar(&userSISUserID, "sis-user-id", "", "SIS User ID")
-	usersCreateCmd.Flags().StringVar(&userTimeZone, "timezone", "", "User's timezone")
-	usersCreateCmd.Flags().StringVar(&userLocale, "locale", "", "User's locale (e.g., 'en')")
-	usersCreateCmd.Flags().BoolVar(&userSkipRegistration, "skip-registration", false, "Skip registration email")
-	usersCreateCmd.Flags().BoolVar(&userSkipConfirmation, "skip-confirmation", false, "Skip email confirmation")
-	usersCreateCmd.Flags().StringVar(&userJSONFile, "json", "", "JSON file with user data")
-	usersCreateCmd.Flags().BoolVar(&userStdin, "stdin", false, "Read JSON from stdin")
-	usersCreateCmd.MarkFlagRequired("account-id")
-
-	// Update flags
-	usersUpdateCmd.Flags().StringVar(&userName, "name", "", "User's full name")
-	usersUpdateCmd.Flags().StringVar(&userShortName, "short-name", "", "User's display name")
-	usersUpdateCmd.Flags().StringVar(&userSortableName, "sortable-name", "", "User's sortable name (e.g., 'Doe, John')")
-	usersUpdateCmd.Flags().StringVar(&userEmail, "email", "", "User's email address")
-	usersUpdateCmd.Flags().StringVar(&userTimeZone, "timezone", "", "User's timezone")
-	usersUpdateCmd.Flags().StringVar(&userLocale, "locale", "", "User's locale (e.g., 'en')")
-	usersUpdateCmd.Flags().StringVar(&userJSONFile, "json", "", "JSON file with user data")
-	usersUpdateCmd.Flags().BoolVar(&userStdin, "stdin", false, "Read JSON from stdin")
-}
-
-func runUsersList(cmd *cobra.Command, args []string) error {
 	// Use default account ID if neither account nor course is specified
-	accountID := usersAccountID
-	if accountID == 0 && usersCourseID == 0 {
+	accountID := opts.AccountID
+	if accountID == 0 && opts.CourseID == 0 {
 		defaultID, err := getDefaultAccountID()
 		if err != nil || defaultID == 0 {
+			logger.LogCommandError(ctx, "users.list", fmt.Errorf("no account or course specified"), map[string]interface{}{
+				"error": "must specify --account-id or --course-id (no default account configured)",
+			})
 			return fmt.Errorf("must specify --account-id or --course-id (no default account configured). Use 'canvas config account --detect' to set one")
 		}
 		accountID = defaultID
 		printVerbose("Using default account ID: %d\n", accountID)
 	}
 
-	// Validate that only one context is specified
-	if accountID > 0 && usersCourseID > 0 {
-		return fmt.Errorf("can only specify one of --account-id or --course-id")
-	}
-
-	// Get API client
-	client, err := getAPIClient()
-	if err != nil {
-		return err
-	}
-
 	// Create users service
 	usersService := api.NewUsersService(client)
 
 	// Build options
-	opts := &api.ListUsersOptions{
-		SearchTerm:      usersSearchTerm,
-		EnrollmentType:  usersEnrollmentType,
-		EnrollmentState: usersEnrollmentState,
-		Include:         usersInclude,
+	listOpts := &api.ListUsersOptions{
+		SearchTerm:      opts.SearchTerm,
+		EnrollmentType:  opts.EnrollmentType,
+		EnrollmentState: opts.EnrollmentState,
+		Include:         opts.Include,
 	}
 
 	// List users based on context
-	ctx := context.Background()
 	var users []api.User
 	var contextName string
+	var err error
 
 	if accountID > 0 {
 		// Account context - list all users in the account
-		users, err = usersService.List(ctx, accountID, opts)
+		users, err = usersService.List(ctx, accountID, listOpts)
 		contextName = fmt.Sprintf("account %d", accountID)
 	} else {
 		// Course context - list users enrolled in the course
-		users, err = usersService.ListCourseUsers(ctx, usersCourseID, opts)
-		contextName = fmt.Sprintf("course %d", usersCourseID)
+		users, err = usersService.ListCourseUsers(ctx, opts.CourseID, listOpts)
+		contextName = fmt.Sprintf("course %d", opts.CourseID)
 	}
 
 	if err != nil {
+		logger.LogCommandError(ctx, "users.list", err, map[string]interface{}{
+			"context": contextName,
+		})
 		return fmt.Errorf("failed to list users: %w", err)
 	}
 
 	if len(users) == 0 {
 		fmt.Printf("No users found in %s\n", contextName)
+		logger.LogCommandComplete(ctx, "users.list", 0)
 		return nil
 	}
 
 	// Format and display users
 	printVerbose("Found %d users in %s:\n\n", len(users), contextName)
+	logger.LogCommandComplete(ctx, "users.list", len(users))
 
 	return formatOutput(users, nil)
 }
 
-func runUsersGet(cmd *cobra.Command, args []string) error {
-	// Parse user ID
-	userID, err := strconv.ParseInt(args[0], 10, 64)
-	if err != nil {
-		return fmt.Errorf("invalid user ID: %w", err)
-	}
-
-	// Get API client
-	client, err := getAPIClient()
-	if err != nil {
-		return err
-	}
+func runUsersGet(ctx context.Context, client *api.Client, opts *options.UsersGetOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+	logger.LogCommandStart(ctx, "users.get", map[string]interface{}{
+		"user_id": opts.UserID,
+		"include": opts.Include,
+	})
 
 	// Create users service
 	usersService := api.NewUsersService(client)
 
 	// Get user
-	ctx := context.Background()
-	user, err := usersService.Get(ctx, userID, usersInclude)
+	user, err := usersService.Get(ctx, opts.UserID, opts.Include)
 	if err != nil {
+		logger.LogCommandError(ctx, "users.get", err, map[string]interface{}{
+			"user_id": opts.UserID,
+		})
 		return fmt.Errorf("failed to get user: %w", err)
 	}
+
+	logger.LogCommandComplete(ctx, "users.get", 1)
 
 	// Format and display user details
 	return formatOutput(user, nil)
 }
 
-func runUsersMe(cmd *cobra.Command, args []string) error {
-	// Get API client
-	client, err := getAPIClient()
-	if err != nil {
-		return err
-	}
+func runUsersMe(ctx context.Context, client *api.Client, opts *options.UsersMeOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+	logger.LogCommandStart(ctx, "users.me", map[string]interface{}{})
 
 	// Create users service
 	usersService := api.NewUsersService(client)
 
 	// Get current user
-	ctx := context.Background()
 	user, err := usersService.GetCurrentUser(ctx)
 	if err != nil {
+		logger.LogCommandError(ctx, "users.me", err, map[string]interface{}{})
 		return fmt.Errorf("failed to get current user: %w", err)
 	}
+
+	logger.LogCommandComplete(ctx, "users.me", 1)
 
 	// Format and display user details
 	return formatOutput(user, nil)
 }
 
-func runUsersSearch(cmd *cobra.Command, args []string) error {
-	searchTerm := args[0]
-
-	// Get API client
-	client, err := getAPIClient()
-	if err != nil {
-		return err
-	}
+func runUsersSearch(ctx context.Context, client *api.Client, opts *options.UsersSearchOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+	logger.LogCommandStart(ctx, "users.search", map[string]interface{}{
+		"search_term": opts.SearchTerm,
+	})
 
 	// Create users service
 	usersService := api.NewUsersService(client)
 
 	// Search users
-	ctx := context.Background()
-	users, err := usersService.Search(ctx, searchTerm)
+	users, err := usersService.Search(ctx, opts.SearchTerm)
 	if err != nil {
+		logger.LogCommandError(ctx, "users.search", err, map[string]interface{}{
+			"search_term": opts.SearchTerm,
+		})
 		return fmt.Errorf("failed to search users: %w", err)
 	}
 
 	if len(users) == 0 {
-		fmt.Printf("No users found matching '%s'\n", searchTerm)
+		fmt.Printf("No users found matching '%s'\n", opts.SearchTerm)
+		logger.LogCommandComplete(ctx, "users.search", 0)
 		return nil
 	}
 
 	// Format and display users
-	printVerbose("Found %d users matching '%s':\n\n", len(users), searchTerm)
+	printVerbose("Found %d users matching '%s':\n\n", len(users), opts.SearchTerm)
+	logger.LogCommandComplete(ctx, "users.search", len(users))
 
 	return formatOutput(users, nil)
 }
 
-func runUsersCreate(cmd *cobra.Command, args []string) error {
-	// Get API client
-	client, err := getAPIClient()
-	if err != nil {
-		return err
-	}
+func runUsersCreate(ctx context.Context, client *api.Client, cmd *cobra.Command, opts *options.UsersCreateOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+	logger.LogCommandStart(ctx, "users.create", map[string]interface{}{
+		"account_id": opts.AccountID,
+		"has_json":   opts.JSONFile != "" || opts.Stdin,
+	})
 
 	// Create users service
 	usersService := api.NewUsersService(client)
@@ -363,62 +436,76 @@ func runUsersCreate(cmd *cobra.Command, args []string) error {
 	params := &api.CreateUserParams{}
 
 	// Check for JSON input
-	if userJSONFile != "" || userStdin {
-		jsonData, err := readUserJSON(userJSONFile, userStdin)
+	if opts.JSONFile != "" || opts.Stdin {
+		jsonData, err := readUserJSON(opts.JSONFile, opts.Stdin)
 		if err != nil {
+			logger.LogCommandError(ctx, "users.create", err, map[string]interface{}{
+				"json_file": opts.JSONFile,
+				"stdin":     opts.Stdin,
+			})
 			return fmt.Errorf("failed to read JSON: %w", err)
 		}
 		if err := parseUserCreateJSON(jsonData, params); err != nil {
+			logger.LogCommandError(ctx, "users.create", err, map[string]interface{}{
+				"error": "failed to parse JSON",
+			})
 			return fmt.Errorf("failed to parse JSON: %w", err)
 		}
 	}
 
 	// Override with flags if provided
-	if userName != "" {
-		params.Name = userName
+	if opts.Name != "" {
+		params.Name = opts.Name
 	}
-	if userShortName != "" {
-		params.ShortName = userShortName
+	if opts.ShortName != "" {
+		params.ShortName = opts.ShortName
 	}
-	if userSortableName != "" {
-		params.SortableName = userSortableName
+	if opts.SortableName != "" {
+		params.SortableName = opts.SortableName
 	}
-	if userEmail != "" {
-		params.Email = userEmail
+	if opts.Email != "" {
+		params.Email = opts.Email
 	}
-	if userLoginID != "" {
-		params.UniqueID = userLoginID
+	if opts.LoginID != "" {
+		params.UniqueID = opts.LoginID
 	}
-	if userPassword != "" {
-		params.Password = userPassword
+	if opts.Password != "" {
+		params.Password = opts.Password
 	}
-	if userSISUserID != "" {
-		params.SISUserID = userSISUserID
+	if opts.SISUserID != "" {
+		params.SISUserID = opts.SISUserID
 	}
-	if userTimeZone != "" {
-		params.TimeZone = userTimeZone
+	if opts.TimeZone != "" {
+		params.TimeZone = opts.TimeZone
 	}
-	if userLocale != "" {
-		params.Locale = userLocale
+	if opts.Locale != "" {
+		params.Locale = opts.Locale
 	}
 	if cmd.Flags().Changed("skip-registration") {
-		params.SkipRegistration = userSkipRegistration
+		params.SkipRegistration = opts.SkipRegistration
 	}
 	if cmd.Flags().Changed("skip-confirmation") {
-		params.SkipConfirmation = userSkipConfirmation
+		params.SkipConfirmation = opts.SkipConfirmation
 	}
 
 	// Validate required fields
 	if params.Name == "" {
-		return fmt.Errorf("user name is required (use --name or provide in JSON)")
+		err := fmt.Errorf("user name is required (use --name or provide in JSON)")
+		logger.LogCommandError(ctx, "users.create", err, map[string]interface{}{})
+		return err
 	}
 
 	// Create user
-	ctx := context.Background()
-	user, err := usersService.Create(ctx, usersAccountID, params)
+	user, err := usersService.Create(ctx, opts.AccountID, params)
 	if err != nil {
+		logger.LogCommandError(ctx, "users.create", err, map[string]interface{}{
+			"account_id": opts.AccountID,
+			"user_name":  params.Name,
+		})
 		return fmt.Errorf("failed to create user: %w", err)
 	}
+
+	logger.LogCommandComplete(ctx, "users.create", 1)
 
 	fmt.Printf("User created successfully!\n")
 	fmt.Printf("  ID: %d\n", user.ID)
@@ -433,18 +520,12 @@ func runUsersCreate(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func runUsersUpdate(cmd *cobra.Command, args []string) error {
-	// Parse user ID
-	userID, err := strconv.ParseInt(args[0], 10, 64)
-	if err != nil {
-		return fmt.Errorf("invalid user ID: %w", err)
-	}
-
-	// Get API client
-	client, err := getAPIClient()
-	if err != nil {
-		return err
-	}
+func runUsersUpdate(ctx context.Context, client *api.Client, opts *options.UsersUpdateOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+	logger.LogCommandStart(ctx, "users.update", map[string]interface{}{
+		"user_id":  opts.UserID,
+		"has_json": opts.JSONFile != "" || opts.Stdin,
+	})
 
 	// Create users service
 	usersService := api.NewUsersService(client)
@@ -453,42 +534,53 @@ func runUsersUpdate(cmd *cobra.Command, args []string) error {
 	params := &api.UpdateUserParams{}
 
 	// Check for JSON input
-	if userJSONFile != "" || userStdin {
-		jsonData, err := readUserJSON(userJSONFile, userStdin)
+	if opts.JSONFile != "" || opts.Stdin {
+		jsonData, err := readUserJSON(opts.JSONFile, opts.Stdin)
 		if err != nil {
+			logger.LogCommandError(ctx, "users.update", err, map[string]interface{}{
+				"json_file": opts.JSONFile,
+				"stdin":     opts.Stdin,
+			})
 			return fmt.Errorf("failed to read JSON: %w", err)
 		}
 		if err := parseUserUpdateJSON(jsonData, params); err != nil {
+			logger.LogCommandError(ctx, "users.update", err, map[string]interface{}{
+				"error": "failed to parse JSON",
+			})
 			return fmt.Errorf("failed to parse JSON: %w", err)
 		}
 	}
 
 	// Override with flags if provided
-	if userName != "" {
-		params.Name = userName
+	if opts.Name != "" {
+		params.Name = opts.Name
 	}
-	if userShortName != "" {
-		params.ShortName = userShortName
+	if opts.ShortName != "" {
+		params.ShortName = opts.ShortName
 	}
-	if userSortableName != "" {
-		params.SortableName = userSortableName
+	if opts.SortableName != "" {
+		params.SortableName = opts.SortableName
 	}
-	if userEmail != "" {
-		params.Email = userEmail
+	if opts.Email != "" {
+		params.Email = opts.Email
 	}
-	if userTimeZone != "" {
-		params.TimeZone = userTimeZone
+	if opts.TimeZone != "" {
+		params.TimeZone = opts.TimeZone
 	}
-	if userLocale != "" {
-		params.Locale = userLocale
+	if opts.Locale != "" {
+		params.Locale = opts.Locale
 	}
 
 	// Update user
-	ctx := context.Background()
-	user, err := usersService.Update(ctx, userID, params)
+	user, err := usersService.Update(ctx, opts.UserID, params)
 	if err != nil {
+		logger.LogCommandError(ctx, "users.update", err, map[string]interface{}{
+			"user_id": opts.UserID,
+		})
 		return fmt.Errorf("failed to update user: %w", err)
 	}
+
+	logger.LogCommandComplete(ctx, "users.update", 1)
 
 	fmt.Printf("User updated successfully!\n")
 	fmt.Printf("  ID: %d\n", user.ID)

@@ -63,8 +63,8 @@ func (s *CoursesService) List(ctx context.Context, opts *ListCoursesOptions) ([]
 		}
 	}
 
-	var courses []Course
-	if err := s.client.GetAllPages(ctx, path, &courses); err != nil {
+	courses, err := GetAllPagesGeneric[Course](s.client, ctx, path)
+	if err != nil {
 		return nil, err
 	}
 

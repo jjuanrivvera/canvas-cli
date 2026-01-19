@@ -7,24 +7,9 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/jjuanrivvera/canvas-cli/commands/internal/logging"
+	"github.com/jjuanrivvera/canvas-cli/commands/internal/options"
 	"github.com/jjuanrivvera/canvas-cli/internal/api"
-)
-
-var (
-	// List flags
-	assignmentGroupsCourseID int64
-	assignmentGroupsInclude  []string
-
-	// Create/Update flags
-	assignmentGroupsName        string
-	assignmentGroupsPosition    int
-	assignmentGroupsWeight      float64
-	assignmentGroupsDropLowest  int
-	assignmentGroupsDropHighest int
-
-	// Delete flags
-	assignmentGroupsForce  bool
-	assignmentGroupsMoveTo int64
 )
 
 // assignmentGroupsCmd represents the assignment-groups command group
@@ -43,64 +28,183 @@ Examples:
   canvas assignment-groups create --course-id 123 --name "Homework" --weight 25`,
 }
 
-// assignmentGroupsListCmd represents the assignment-groups list command
-var assignmentGroupsListCmd = &cobra.Command{
-	Use:   "list",
-	Short: "List assignment groups in a course",
-	Long: `List all assignment groups in a course.
+func init() {
+	rootCmd.AddCommand(assignmentGroupsCmd)
+	assignmentGroupsCmd.AddCommand(newAssignmentGroupsListCmd())
+	assignmentGroupsCmd.AddCommand(newAssignmentGroupsGetCmd())
+	assignmentGroupsCmd.AddCommand(newAssignmentGroupsCreateCmd())
+	assignmentGroupsCmd.AddCommand(newAssignmentGroupsUpdateCmd())
+	assignmentGroupsCmd.AddCommand(newAssignmentGroupsDeleteCmd())
+}
+
+func newAssignmentGroupsListCmd() *cobra.Command {
+	opts := &options.AssignmentGroupsListOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "list",
+		Short: "List assignment groups in a course",
+		Long: `List all assignment groups in a course.
 
 Examples:
   canvas assignment-groups list --course-id 123
   canvas assignment-groups list --course-id 123 --include assignments
   canvas assignment-groups list --course-id 123 --include rules,assignments`,
-	RunE: runAssignmentGroupsList,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+
+			return runAssignmentGroupsList(cmd.Context(), client, opts)
+		},
+	}
+
+	cmd.Flags().Int64Var(&opts.CourseID, "course-id", 0, "Course ID (required)")
+	cmd.MarkFlagRequired("course-id")
+	cmd.Flags().StringSliceVar(&opts.Include, "include", []string{}, "Include additional data (assignments, discussion_topic, rules)")
+
+	return cmd
 }
 
-// assignmentGroupsGetCmd represents the assignment-groups get command
-var assignmentGroupsGetCmd = &cobra.Command{
-	Use:   "get <group-id>",
-	Short: "Get assignment group details",
-	Long: `Get details of a specific assignment group.
+func newAssignmentGroupsGetCmd() *cobra.Command {
+	opts := &options.AssignmentGroupsGetOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "get <group-id>",
+		Short: "Get assignment group details",
+		Long: `Get details of a specific assignment group.
 
 Examples:
   canvas assignment-groups get 456 --course-id 123
   canvas assignment-groups get 456 --course-id 123 --include assignments`,
-	Args: ExactArgsWithUsage(1, "group-id"),
-	RunE: runAssignmentGroupsGet,
+		Args: ExactArgsWithUsage(1, "group-id"),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			groupID, err := strconv.ParseInt(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid group ID: %w", err)
+			}
+			opts.GroupID = groupID
+
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+
+			return runAssignmentGroupsGet(cmd.Context(), client, opts)
+		},
+	}
+
+	cmd.Flags().Int64Var(&opts.CourseID, "course-id", 0, "Course ID (required)")
+	cmd.MarkFlagRequired("course-id")
+	cmd.Flags().StringSliceVar(&opts.Include, "include", []string{}, "Include additional data (assignments, discussion_topic, rules)")
+
+	return cmd
 }
 
-// assignmentGroupsCreateCmd represents the assignment-groups create command
-var assignmentGroupsCreateCmd = &cobra.Command{
-	Use:   "create",
-	Short: "Create a new assignment group",
-	Long: `Create a new assignment group in a course.
+func newAssignmentGroupsCreateCmd() *cobra.Command {
+	opts := &options.AssignmentGroupsCreateOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "create",
+		Short: "Create a new assignment group",
+		Long: `Create a new assignment group in a course.
 
 Examples:
   canvas assignment-groups create --course-id 123 --name "Homework"
   canvas assignment-groups create --course-id 123 --name "Exams" --weight 40 --position 2
   canvas assignment-groups create --course-id 123 --name "Quizzes" --weight 20 --drop-lowest 1`,
-	RunE: runAssignmentGroupsCreate,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+
+			return runAssignmentGroupsCreate(cmd.Context(), client, opts)
+		},
+	}
+
+	cmd.Flags().Int64Var(&opts.CourseID, "course-id", 0, "Course ID (required)")
+	cmd.MarkFlagRequired("course-id")
+	cmd.Flags().StringVar(&opts.Name, "name", "", "Group name (required)")
+	cmd.MarkFlagRequired("name")
+	cmd.Flags().IntVar(&opts.Position, "position", 0, "Position in course")
+	cmd.Flags().Float64Var(&opts.Weight, "weight", 0, "Group weight percentage (0-100)")
+	cmd.Flags().IntVar(&opts.DropLowest, "drop-lowest", 0, "Number of lowest scores to drop")
+	cmd.Flags().IntVar(&opts.DropHighest, "drop-highest", 0, "Number of highest scores to drop")
+
+	return cmd
 }
 
-// assignmentGroupsUpdateCmd represents the assignment-groups update command
-var assignmentGroupsUpdateCmd = &cobra.Command{
-	Use:   "update <group-id>",
-	Short: "Update an assignment group",
-	Long: `Update an existing assignment group.
+func newAssignmentGroupsUpdateCmd() *cobra.Command {
+	opts := &options.AssignmentGroupsUpdateOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "update <group-id>",
+		Short: "Update an assignment group",
+		Long: `Update an existing assignment group.
 
 Examples:
   canvas assignment-groups update 456 --course-id 123 --name "Updated Name"
   canvas assignment-groups update 456 --course-id 123 --weight 30
   canvas assignment-groups update 456 --course-id 123 --drop-lowest 2`,
-	Args: ExactArgsWithUsage(1, "group-id"),
-	RunE: runAssignmentGroupsUpdate,
+		Args: ExactArgsWithUsage(1, "group-id"),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			groupID, err := strconv.ParseInt(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid group ID: %w", err)
+			}
+			opts.GroupID = groupID
+
+			// Track which fields were set
+			opts.NameSet = cmd.Flags().Changed("name")
+			opts.PositionSet = cmd.Flags().Changed("position")
+			opts.WeightSet = cmd.Flags().Changed("weight")
+			opts.DropLowestSet = cmd.Flags().Changed("drop-lowest")
+			opts.DropHighestSet = cmd.Flags().Changed("drop-highest")
+
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+
+			return runAssignmentGroupsUpdate(cmd.Context(), client, opts)
+		},
+	}
+
+	cmd.Flags().Int64Var(&opts.CourseID, "course-id", 0, "Course ID (required)")
+	cmd.MarkFlagRequired("course-id")
+	cmd.Flags().StringVar(&opts.Name, "name", "", "Group name")
+	cmd.Flags().IntVar(&opts.Position, "position", 0, "Position in course")
+	cmd.Flags().Float64Var(&opts.Weight, "weight", 0, "Group weight percentage (0-100)")
+	cmd.Flags().IntVar(&opts.DropLowest, "drop-lowest", 0, "Number of lowest scores to drop")
+	cmd.Flags().IntVar(&opts.DropHighest, "drop-highest", 0, "Number of highest scores to drop")
+
+	return cmd
 }
 
-// assignmentGroupsDeleteCmd represents the assignment-groups delete command
-var assignmentGroupsDeleteCmd = &cobra.Command{
-	Use:   "delete <group-id>",
-	Short: "Delete an assignment group",
-	Long: `Delete an assignment group.
+func newAssignmentGroupsDeleteCmd() *cobra.Command {
+	opts := &options.AssignmentGroupsDeleteOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "delete <group-id>",
+		Short: "Delete an assignment group",
+		Long: `Delete an assignment group.
 
 You can optionally move assignments to another group before deleting.
 
@@ -108,207 +212,186 @@ Examples:
   canvas assignment-groups delete 456 --course-id 123
   canvas assignment-groups delete 456 --course-id 123 --force
   canvas assignment-groups delete 456 --course-id 123 --move-to 789`,
-	Args: ExactArgsWithUsage(1, "group-id"),
-	RunE: runAssignmentGroupsDelete,
-}
+		Args: ExactArgsWithUsage(1, "group-id"),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			groupID, err := strconv.ParseInt(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid group ID: %w", err)
+			}
+			opts.GroupID = groupID
 
-func init() {
-	rootCmd.AddCommand(assignmentGroupsCmd)
-	assignmentGroupsCmd.AddCommand(assignmentGroupsListCmd)
-	assignmentGroupsCmd.AddCommand(assignmentGroupsGetCmd)
-	assignmentGroupsCmd.AddCommand(assignmentGroupsCreateCmd)
-	assignmentGroupsCmd.AddCommand(assignmentGroupsUpdateCmd)
-	assignmentGroupsCmd.AddCommand(assignmentGroupsDeleteCmd)
+			if err := opts.Validate(); err != nil {
+				return err
+			}
 
-	// List flags
-	assignmentGroupsListCmd.Flags().Int64Var(&assignmentGroupsCourseID, "course-id", 0, "Course ID (required)")
-	assignmentGroupsListCmd.MarkFlagRequired("course-id")
-	assignmentGroupsListCmd.Flags().StringSliceVar(&assignmentGroupsInclude, "include", []string{}, "Include additional data (assignments, discussion_topic, rules)")
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
 
-	// Get flags
-	assignmentGroupsGetCmd.Flags().Int64Var(&assignmentGroupsCourseID, "course-id", 0, "Course ID (required)")
-	assignmentGroupsGetCmd.MarkFlagRequired("course-id")
-	assignmentGroupsGetCmd.Flags().StringSliceVar(&assignmentGroupsInclude, "include", []string{}, "Include additional data (assignments, discussion_topic, rules)")
-
-	// Create flags
-	assignmentGroupsCreateCmd.Flags().Int64Var(&assignmentGroupsCourseID, "course-id", 0, "Course ID (required)")
-	assignmentGroupsCreateCmd.MarkFlagRequired("course-id")
-	assignmentGroupsCreateCmd.Flags().StringVar(&assignmentGroupsName, "name", "", "Group name (required)")
-	assignmentGroupsCreateCmd.MarkFlagRequired("name")
-	assignmentGroupsCreateCmd.Flags().IntVar(&assignmentGroupsPosition, "position", 0, "Position in course")
-	assignmentGroupsCreateCmd.Flags().Float64Var(&assignmentGroupsWeight, "weight", 0, "Group weight percentage (0-100)")
-	assignmentGroupsCreateCmd.Flags().IntVar(&assignmentGroupsDropLowest, "drop-lowest", 0, "Number of lowest scores to drop")
-	assignmentGroupsCreateCmd.Flags().IntVar(&assignmentGroupsDropHighest, "drop-highest", 0, "Number of highest scores to drop")
-
-	// Update flags
-	assignmentGroupsUpdateCmd.Flags().Int64Var(&assignmentGroupsCourseID, "course-id", 0, "Course ID (required)")
-	assignmentGroupsUpdateCmd.MarkFlagRequired("course-id")
-	assignmentGroupsUpdateCmd.Flags().StringVar(&assignmentGroupsName, "name", "", "Group name")
-	assignmentGroupsUpdateCmd.Flags().IntVar(&assignmentGroupsPosition, "position", 0, "Position in course")
-	assignmentGroupsUpdateCmd.Flags().Float64Var(&assignmentGroupsWeight, "weight", 0, "Group weight percentage (0-100)")
-	assignmentGroupsUpdateCmd.Flags().IntVar(&assignmentGroupsDropLowest, "drop-lowest", 0, "Number of lowest scores to drop")
-	assignmentGroupsUpdateCmd.Flags().IntVar(&assignmentGroupsDropHighest, "drop-highest", 0, "Number of highest scores to drop")
-
-	// Delete flags
-	assignmentGroupsDeleteCmd.Flags().Int64Var(&assignmentGroupsCourseID, "course-id", 0, "Course ID (required)")
-	assignmentGroupsDeleteCmd.MarkFlagRequired("course-id")
-	assignmentGroupsDeleteCmd.Flags().BoolVar(&assignmentGroupsForce, "force", false, "Skip confirmation prompt")
-	assignmentGroupsDeleteCmd.Flags().Int64Var(&assignmentGroupsMoveTo, "move-to", 0, "Move assignments to another group before deleting")
-}
-
-func runAssignmentGroupsList(cmd *cobra.Command, args []string) error {
-	// Get API client
-	client, err := getAPIClient()
-	if err != nil {
-		return err
+			return runAssignmentGroupsDelete(cmd.Context(), client, opts)
+		},
 	}
 
-	// Create assignment groups service
+	cmd.Flags().Int64Var(&opts.CourseID, "course-id", 0, "Course ID (required)")
+	cmd.MarkFlagRequired("course-id")
+	cmd.Flags().BoolVar(&opts.Force, "force", false, "Skip confirmation prompt")
+	cmd.Flags().Int64Var(&opts.MoveTo, "move-to", 0, "Move assignments to another group before deleting")
+
+	return cmd
+}
+
+func runAssignmentGroupsList(ctx context.Context, client *api.Client, opts *options.AssignmentGroupsListOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+	logger.LogCommandStart(ctx, "assignment_groups.list", map[string]interface{}{
+		"course_id": opts.CourseID,
+		"include":   opts.Include,
+	})
+
 	service := api.NewAssignmentGroupsService(client)
 
-	// Build options
-	opts := &api.ListAssignmentGroupsOptions{
-		Include: assignmentGroupsInclude,
+	apiOpts := &api.ListAssignmentGroupsOptions{
+		Include: opts.Include,
 	}
 
-	// List groups
-	ctx := context.Background()
-	groups, err := service.List(ctx, assignmentGroupsCourseID, opts)
+	groups, err := service.List(ctx, opts.CourseID, apiOpts)
 	if err != nil {
+		logger.LogCommandError(ctx, "assignment_groups.list", err, map[string]interface{}{
+			"course_id": opts.CourseID,
+		})
 		return fmt.Errorf("failed to list assignment groups: %w", err)
 	}
 
 	if len(groups) == 0 {
-		fmt.Printf("No assignment groups found in course %d\n", assignmentGroupsCourseID)
+		fmt.Printf("No assignment groups found in course %d\n", opts.CourseID)
+		logger.LogCommandComplete(ctx, "assignment_groups.list", 0)
 		return nil
 	}
 
-	printVerbose("Found %d assignment groups in course %d:\n\n", len(groups), assignmentGroupsCourseID)
+	printVerbose("Found %d assignment groups in course %d:\n\n", len(groups), opts.CourseID)
+	logger.LogCommandComplete(ctx, "assignment_groups.list", len(groups))
 	return formatOutput(groups, nil)
 }
 
-func runAssignmentGroupsGet(cmd *cobra.Command, args []string) error {
-	// Parse group ID
-	groupID, err := strconv.ParseInt(args[0], 10, 64)
-	if err != nil {
-		return fmt.Errorf("invalid group ID: %w", err)
-	}
+func runAssignmentGroupsGet(ctx context.Context, client *api.Client, opts *options.AssignmentGroupsGetOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+	logger.LogCommandStart(ctx, "assignment_groups.get", map[string]interface{}{
+		"course_id": opts.CourseID,
+		"group_id":  opts.GroupID,
+		"include":   opts.Include,
+	})
 
-	// Get API client
-	client, err := getAPIClient()
-	if err != nil {
-		return err
-	}
-
-	// Create assignment groups service
 	service := api.NewAssignmentGroupsService(client)
 
-	// Get group
-	ctx := context.Background()
-	group, err := service.Get(ctx, assignmentGroupsCourseID, groupID, assignmentGroupsInclude)
+	group, err := service.Get(ctx, opts.CourseID, opts.GroupID, opts.Include)
 	if err != nil {
+		logger.LogCommandError(ctx, "assignment_groups.get", err, map[string]interface{}{
+			"course_id": opts.CourseID,
+			"group_id":  opts.GroupID,
+		})
 		return fmt.Errorf("failed to get assignment group: %w", err)
 	}
 
+	logger.LogCommandComplete(ctx, "assignment_groups.get", 1)
 	return formatOutput(group, nil)
 }
 
-func runAssignmentGroupsCreate(cmd *cobra.Command, args []string) error {
-	// Get API client
-	client, err := getAPIClient()
-	if err != nil {
-		return err
-	}
+func runAssignmentGroupsCreate(ctx context.Context, client *api.Client, opts *options.AssignmentGroupsCreateOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+	logger.LogCommandStart(ctx, "assignment_groups.create", map[string]interface{}{
+		"course_id": opts.CourseID,
+		"name":      opts.Name,
+		"weight":    opts.Weight,
+	})
 
-	// Create assignment groups service
 	service := api.NewAssignmentGroupsService(client)
 
-	// Build params
 	params := &api.CreateAssignmentGroupParams{
-		Name:        assignmentGroupsName,
-		Position:    assignmentGroupsPosition,
-		GroupWeight: assignmentGroupsWeight,
+		Name:        opts.Name,
+		Position:    opts.Position,
+		GroupWeight: opts.Weight,
 	}
 
 	// Add rules if specified
-	if assignmentGroupsDropLowest > 0 || assignmentGroupsDropHighest > 0 {
+	if opts.DropLowest > 0 || opts.DropHighest > 0 {
 		params.Rules = &api.GradingRules{
-			DropLowest:  assignmentGroupsDropLowest,
-			DropHighest: assignmentGroupsDropHighest,
+			DropLowest:  opts.DropLowest,
+			DropHighest: opts.DropHighest,
 		}
 	}
 
-	// Create group
-	ctx := context.Background()
-	group, err := service.Create(ctx, assignmentGroupsCourseID, params)
+	group, err := service.Create(ctx, opts.CourseID, params)
 	if err != nil {
+		logger.LogCommandError(ctx, "assignment_groups.create", err, map[string]interface{}{
+			"course_id": opts.CourseID,
+			"name":      opts.Name,
+		})
 		return fmt.Errorf("failed to create assignment group: %w", err)
 	}
 
 	fmt.Printf("Assignment group created successfully (ID: %d)\n", group.ID)
+	logger.LogCommandComplete(ctx, "assignment_groups.create", 1)
 	return formatOutput(group, nil)
 }
 
-func runAssignmentGroupsUpdate(cmd *cobra.Command, args []string) error {
-	// Parse group ID
-	groupID, err := strconv.ParseInt(args[0], 10, 64)
-	if err != nil {
-		return fmt.Errorf("invalid group ID: %w", err)
-	}
+func runAssignmentGroupsUpdate(ctx context.Context, client *api.Client, opts *options.AssignmentGroupsUpdateOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+	logger.LogCommandStart(ctx, "assignment_groups.update", map[string]interface{}{
+		"course_id": opts.CourseID,
+		"group_id":  opts.GroupID,
+	})
 
-	// Get API client
-	client, err := getAPIClient()
-	if err != nil {
-		return err
-	}
-
-	// Create assignment groups service
 	service := api.NewAssignmentGroupsService(client)
 
 	// Build params - only include changed flags
 	params := &api.UpdateAssignmentGroupParams{}
 
-	if cmd.Flags().Changed("name") {
-		params.Name = &assignmentGroupsName
+	if opts.NameSet {
+		params.Name = &opts.Name
 	}
-	if cmd.Flags().Changed("position") {
-		params.Position = &assignmentGroupsPosition
+	if opts.PositionSet {
+		params.Position = &opts.Position
 	}
-	if cmd.Flags().Changed("weight") {
-		params.GroupWeight = &assignmentGroupsWeight
+	if opts.WeightSet {
+		params.GroupWeight = &opts.Weight
 	}
 
 	// Add rules if specified
-	if cmd.Flags().Changed("drop-lowest") || cmd.Flags().Changed("drop-highest") {
+	if opts.DropLowestSet || opts.DropHighestSet {
 		params.Rules = &api.GradingRules{
-			DropLowest:  assignmentGroupsDropLowest,
-			DropHighest: assignmentGroupsDropHighest,
+			DropLowest:  opts.DropLowest,
+			DropHighest: opts.DropHighest,
 		}
 	}
 
-	// Update group
-	ctx := context.Background()
-	group, err := service.Update(ctx, assignmentGroupsCourseID, groupID, params)
+	group, err := service.Update(ctx, opts.CourseID, opts.GroupID, params)
 	if err != nil {
+		logger.LogCommandError(ctx, "assignment_groups.update", err, map[string]interface{}{
+			"course_id": opts.CourseID,
+			"group_id":  opts.GroupID,
+		})
 		return fmt.Errorf("failed to update assignment group: %w", err)
 	}
 
 	fmt.Printf("Assignment group updated successfully (ID: %d)\n", group.ID)
+	logger.LogCommandComplete(ctx, "assignment_groups.update", 1)
 	return formatOutput(group, nil)
 }
 
-func runAssignmentGroupsDelete(cmd *cobra.Command, args []string) error {
-	// Parse group ID
-	groupID, err := strconv.ParseInt(args[0], 10, 64)
-	if err != nil {
-		return fmt.Errorf("invalid group ID: %w", err)
-	}
+func runAssignmentGroupsDelete(ctx context.Context, client *api.Client, opts *options.AssignmentGroupsDeleteOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+	logger.LogCommandStart(ctx, "assignment_groups.delete", map[string]interface{}{
+		"course_id": opts.CourseID,
+		"group_id":  opts.GroupID,
+		"move_to":   opts.MoveTo,
+		"force":     opts.Force,
+	})
 
 	// Confirmation
-	if !assignmentGroupsForce {
-		msg := fmt.Sprintf("WARNING: This will delete assignment group %d", groupID)
-		if assignmentGroupsMoveTo > 0 {
-			msg += fmt.Sprintf(". Assignments will be moved to group %d", assignmentGroupsMoveTo)
+	if !opts.Force {
+		msg := fmt.Sprintf("WARNING: This will delete assignment group %d", opts.GroupID)
+		if opts.MoveTo > 0 {
+			msg += fmt.Sprintf(". Assignments will be moved to group %d", opts.MoveTo)
 		} else {
 			msg += ". Any assignments in this group will also be deleted"
 		}
@@ -318,34 +401,31 @@ func runAssignmentGroupsDelete(cmd *cobra.Command, args []string) error {
 		fmt.Scanln(&confirm)
 		if confirm != "yes" {
 			fmt.Println("Delete cancelled")
+			logger.LogCommandComplete(ctx, "assignment_groups.delete", 0)
 			return nil
 		}
 	}
 
-	// Get API client
-	client, err := getAPIClient()
-	if err != nil {
-		return err
-	}
-
-	// Create assignment groups service
 	service := api.NewAssignmentGroupsService(client)
 
 	// Build options
-	var opts *api.DeleteAssignmentGroupOptions
-	if assignmentGroupsMoveTo > 0 {
-		opts = &api.DeleteAssignmentGroupOptions{
-			MoveAssignmentsTo: assignmentGroupsMoveTo,
+	var deleteOpts *api.DeleteAssignmentGroupOptions
+	if opts.MoveTo > 0 {
+		deleteOpts = &api.DeleteAssignmentGroupOptions{
+			MoveAssignmentsTo: opts.MoveTo,
 		}
 	}
 
-	// Delete group
-	ctx := context.Background()
-	group, err := service.Delete(ctx, assignmentGroupsCourseID, groupID, opts)
+	group, err := service.Delete(ctx, opts.CourseID, opts.GroupID, deleteOpts)
 	if err != nil {
+		logger.LogCommandError(ctx, "assignment_groups.delete", err, map[string]interface{}{
+			"course_id": opts.CourseID,
+			"group_id":  opts.GroupID,
+		})
 		return fmt.Errorf("failed to delete assignment group: %w", err)
 	}
 
 	fmt.Printf("Assignment group %d deleted\n", group.ID)
+	logger.LogCommandComplete(ctx, "assignment_groups.delete", 1)
 	return nil
 }

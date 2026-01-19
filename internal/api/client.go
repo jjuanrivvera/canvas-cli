@@ -487,7 +487,80 @@ func (c *Client) PutJSON(ctx context.Context, path string, body interface{}, res
 	return nil
 }
 
+// GetAllPagesGeneric fetches all pages of a paginated endpoint using generics
+// This is the preferred method for type-safe pagination with better performance
+// If caching is enabled, cached responses will be returned when available
+// If maxResults is set, stops fetching when limit is reached
+func GetAllPagesGeneric[T any](c *Client, ctx context.Context, path string) ([]T, error) {
+	// Check cache first if enabled (only if no limit set, as cached results might exceed limit)
+	if c.cacheEnabled && c.cache != nil && c.maxResults == 0 {
+		key := c.cacheKey("pages:" + path)
+		var cached []T
+		if err := c.cache.GetJSON(key, &cached); err == nil {
+			return cached, nil // Cache hit
+		}
+	}
+
+	var allResults []T
+	currentURL := path
+
+	for currentURL != "" {
+		resp, err := c.Get(ctx, currentURL)
+		if err != nil {
+			return nil, err
+		}
+
+		var pageResults []T
+		if err := json.NewDecoder(resp.Body).Decode(&pageResults); err != nil {
+			resp.Body.Close()
+			return nil, fmt.Errorf("failed to decode response: %w", err)
+		}
+		resp.Body.Close()
+
+		allResults = append(allResults, pageResults...)
+
+		// Check if we've reached the limit
+		if c.maxResults > 0 && len(allResults) >= c.maxResults {
+			// Truncate to exact limit
+			allResults = allResults[:c.maxResults]
+			break
+		}
+
+		// Check for next page
+		links := ParsePaginationLinks(resp)
+		if links.HasNextPage() {
+			// Extract path from full URL
+			nextURL, err := url.Parse(links.Next)
+			if err != nil {
+				return nil, fmt.Errorf("failed to parse next URL: %w", err)
+			}
+			// Handle empty query string properly to avoid trailing '?'
+			if nextURL.RawQuery != "" {
+				currentURL = nextURL.Path + "?" + nextURL.RawQuery
+			} else {
+				currentURL = nextURL.Path
+			}
+		} else {
+			currentURL = ""
+		}
+	}
+
+	// Cache the combined result if caching is enabled
+	if c.cacheEnabled && c.cache != nil {
+		key := c.cacheKey("pages:" + path)
+		// Marshal for caching
+		allJSON, err := json.Marshal(allResults)
+		if err == nil {
+			c.cache.Set(key, allJSON)
+		}
+	}
+
+	return allResults, nil
+}
+
 // GetAllPages fetches all pages of a paginated endpoint
+// Deprecated: Use GetAllPagesGeneric for better performance and type safety
+// This method will be removed in v2.0.0
 // If caching is enabled, cached responses will be returned when available
 // If maxResults is set, stops fetching when limit is reached
 func (c *Client) GetAllPages(ctx context.Context, path string, result interface{}) error {

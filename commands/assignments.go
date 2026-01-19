@@ -10,32 +10,9 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/jjuanrivvera/canvas-cli/commands/internal/logging"
+	"github.com/jjuanrivvera/canvas-cli/commands/internal/options"
 	"github.com/jjuanrivvera/canvas-cli/internal/api"
-)
-
-var assignmentForce bool
-
-var (
-	assignmentsCourseID   int64
-	assignmentsInclude    []string
-	assignmentsSearchTerm string
-	assignmentsBucket     string
-	assignmentsOrderBy    string
-
-	// Create/Update flags
-	assignmentName            string
-	assignmentPoints          float64
-	assignmentGradingType     string
-	assignmentDueAt           string
-	assignmentUnlockAt        string
-	assignmentLockAt          string
-	assignmentDescription     string
-	assignmentPublished       bool
-	assignmentSubmissionTypes []string
-	assignmentGroupID         int64
-	assignmentPosition        int
-	assignmentJSONFile        string
-	assignmentStdin           bool
 )
 
 // assignmentsCmd represents the assignments command group
@@ -51,11 +28,22 @@ Examples:
   canvas assignments list --course-id 123 --search "quiz"`,
 }
 
-// assignmentsListCmd represents the assignments list command
-var assignmentsListCmd = &cobra.Command{
-	Use:   "list",
-	Short: "List assignments in a course",
-	Long: `List all assignments in a Canvas course.
+func init() {
+	rootCmd.AddCommand(assignmentsCmd)
+	assignmentsCmd.AddCommand(newAssignmentsListCmd())
+	assignmentsCmd.AddCommand(newAssignmentsGetCmd())
+	assignmentsCmd.AddCommand(newAssignmentsCreateCmd())
+	assignmentsCmd.AddCommand(newAssignmentsUpdateCmd())
+	assignmentsCmd.AddCommand(newAssignmentsDeleteCmd())
+}
+
+func newAssignmentsListCmd() *cobra.Command {
+	opts := &options.AssignmentsListOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "list",
+		Short: "List assignments in a course",
+		Long: `List all assignments in a Canvas course.
 
 You can filter assignments by search term, bucket, and order.
 
@@ -74,27 +62,76 @@ Examples:
   canvas assignments list --course-id 123 --search "quiz"
   canvas assignments list --course-id 123 --order-by due_at
   canvas assignments list --course-id 123 --include submission,rubric`,
-	RunE: runAssignmentsList,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+
+			return runAssignmentsList(cmd.Context(), client, opts)
+		},
+	}
+
+	cmd.Flags().Int64Var(&opts.CourseID, "course-id", 0, "Course ID (required)")
+	cmd.Flags().StringVar(&opts.SearchTerm, "search", "", "Search by assignment name")
+	cmd.Flags().StringVar(&opts.Bucket, "bucket", "", "Filter by bucket (past, overdue, undated, ungraded, unsubmitted, upcoming, future)")
+	cmd.Flags().StringVar(&opts.OrderBy, "order-by", "", "Order by (position, name, due_at)")
+	cmd.Flags().StringSliceVar(&opts.Include, "include", []string{}, "Additional data to include (comma-separated)")
+	cmd.MarkFlagRequired("course-id")
+
+	return cmd
 }
 
-// assignmentsGetCmd represents the assignments get command
-var assignmentsGetCmd = &cobra.Command{
-	Use:   "get <assignment-id>",
-	Short: "Get details of a specific assignment",
-	Long: `Get details of a specific assignment by ID.
+func newAssignmentsGetCmd() *cobra.Command {
+	opts := &options.AssignmentsGetOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "get <assignment-id>",
+		Short: "Get details of a specific assignment",
+		Long: `Get details of a specific assignment by ID.
 
 Examples:
   canvas assignments get --course-id 123 456
   canvas assignments get --course-id 123 456 --include submission,rubric`,
-	Args: ExactArgsWithUsage(1, "assignment-id"),
-	RunE: runAssignmentsGet,
+		Args: ExactArgsWithUsage(1, "assignment-id"),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			assignmentID, err := strconv.ParseInt(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid assignment ID: %s", args[0])
+			}
+			opts.AssignmentID = assignmentID
+
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+
+			return runAssignmentsGet(cmd.Context(), client, opts)
+		},
+	}
+
+	cmd.Flags().Int64Var(&opts.CourseID, "course-id", 0, "Course ID (required)")
+	cmd.Flags().StringSliceVar(&opts.Include, "include", []string{}, "Additional data to include (comma-separated)")
+	cmd.MarkFlagRequired("course-id")
+
+	return cmd
 }
 
-// assignmentsCreateCmd represents the assignments create command
-var assignmentsCreateCmd = &cobra.Command{
-	Use:   "create",
-	Short: "Create a new assignment",
-	Long: `Create a new assignment in a Canvas course.
+func newAssignmentsCreateCmd() *cobra.Command {
+	opts := &options.AssignmentsCreateOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "create",
+		Short: "Create a new assignment",
+		Long: `Create a new assignment in a Canvas course.
 
 You can provide assignment data via flags or JSON file/stdin.
 
@@ -108,14 +145,46 @@ Examples:
 
   # Using stdin
   echo '{"name":"Quiz 1","points_possible":100}' | canvas assignments create --course-id 123 --stdin`,
-	RunE: runAssignmentsCreate,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+
+			return runAssignmentsCreate(cmd.Context(), client, cmd, opts)
+		},
+	}
+
+	cmd.Flags().Int64Var(&opts.CourseID, "course-id", 0, "Course ID (required)")
+	cmd.Flags().StringVar(&opts.Name, "name", "", "Assignment name")
+	cmd.Flags().Float64Var(&opts.Points, "points", 0, "Points possible")
+	cmd.Flags().StringVar(&opts.GradingType, "grading-type", "", "Grading type (points, pass_fail, percent, letter_grade, gpa_scale, not_graded)")
+	cmd.Flags().StringVar(&opts.DueAt, "due-at", "", "Due date (ISO8601 format)")
+	cmd.Flags().StringVar(&opts.UnlockAt, "unlock-at", "", "Unlock date (ISO8601 format)")
+	cmd.Flags().StringVar(&opts.LockAt, "lock-at", "", "Lock date (ISO8601 format)")
+	cmd.Flags().StringVar(&opts.Description, "description", "", "Assignment description (HTML)")
+	cmd.Flags().BoolVar(&opts.Published, "published", false, "Publish the assignment")
+	cmd.Flags().StringSliceVar(&opts.SubmissionTypes, "submission-types", []string{}, "Submission types (online_text_entry, online_url, online_upload, media_recording, none)")
+	cmd.Flags().Int64Var(&opts.GroupID, "group-id", 0, "Assignment group ID")
+	cmd.Flags().IntVar(&opts.Position, "position", 0, "Position in the assignment group")
+	cmd.Flags().StringVar(&opts.JSONFile, "json", "", "JSON file with assignment data")
+	cmd.Flags().BoolVar(&opts.Stdin, "stdin", false, "Read JSON from stdin")
+	cmd.MarkFlagRequired("course-id")
+
+	return cmd
 }
 
-// assignmentsUpdateCmd represents the assignments update command
-var assignmentsUpdateCmd = &cobra.Command{
-	Use:   "update <assignment-id>",
-	Short: "Update an existing assignment",
-	Long: `Update an existing assignment in a Canvas course.
+func newAssignmentsUpdateCmd() *cobra.Command {
+	opts := &options.AssignmentsUpdateOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "update <assignment-id>",
+		Short: "Update an existing assignment",
+		Long: `Update an existing assignment in a Canvas course.
 
 You can provide assignment data via flags or JSON file/stdin.
 Only specified fields will be updated.
@@ -130,224 +199,253 @@ Examples:
 
   # Using stdin
   echo '{"points_possible":200}' | canvas assignments update --course-id 123 456 --stdin`,
-	Args: ExactArgsWithUsage(1, "assignment-id"),
-	RunE: runAssignmentsUpdate,
+		Args: ExactArgsWithUsage(1, "assignment-id"),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			assignmentID, err := strconv.ParseInt(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid assignment ID: %s", args[0])
+			}
+			opts.AssignmentID = assignmentID
+
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+
+			return runAssignmentsUpdate(cmd.Context(), client, cmd, opts)
+		},
+	}
+
+	cmd.Flags().Int64Var(&opts.CourseID, "course-id", 0, "Course ID (required)")
+	cmd.Flags().StringVar(&opts.Name, "name", "", "Assignment name")
+	cmd.Flags().Float64Var(&opts.Points, "points", 0, "Points possible")
+	cmd.Flags().StringVar(&opts.GradingType, "grading-type", "", "Grading type (points, pass_fail, percent, letter_grade, gpa_scale, not_graded)")
+	cmd.Flags().StringVar(&opts.DueAt, "due-at", "", "Due date (ISO8601 format)")
+	cmd.Flags().StringVar(&opts.UnlockAt, "unlock-at", "", "Unlock date (ISO8601 format)")
+	cmd.Flags().StringVar(&opts.LockAt, "lock-at", "", "Lock date (ISO8601 format)")
+	cmd.Flags().StringVar(&opts.Description, "description", "", "Assignment description (HTML)")
+	cmd.Flags().BoolVar(&opts.Published, "published", false, "Publish the assignment")
+	cmd.Flags().StringSliceVar(&opts.SubmissionTypes, "submission-types", []string{}, "Submission types")
+	cmd.Flags().Int64Var(&opts.GroupID, "group-id", 0, "Assignment group ID")
+	cmd.Flags().IntVar(&opts.Position, "position", 0, "Position in the assignment group")
+	cmd.Flags().StringVar(&opts.JSONFile, "json", "", "JSON file with assignment data")
+	cmd.Flags().BoolVar(&opts.Stdin, "stdin", false, "Read JSON from stdin")
+	cmd.MarkFlagRequired("course-id")
+
+	return cmd
 }
 
-// assignmentsDeleteCmd represents the assignments delete command
-var assignmentsDeleteCmd = &cobra.Command{
-	Use:   "delete <assignment-id>",
-	Short: "Delete an assignment",
-	Long: `Delete an assignment from a Canvas course.
+func newAssignmentsDeleteCmd() *cobra.Command {
+	opts := &options.AssignmentsDeleteOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "delete <assignment-id>",
+		Short: "Delete an assignment",
+		Long: `Delete an assignment from a Canvas course.
 
 This action cannot be undone.
 
 Examples:
   canvas assignments delete --course-id 123 456`,
-	Args: ExactArgsWithUsage(1, "assignment-id"),
-	RunE: runAssignmentsDelete,
-}
+		Args: ExactArgsWithUsage(1, "assignment-id"),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			assignmentID, err := strconv.ParseInt(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid assignment ID: %s", args[0])
+			}
+			opts.AssignmentID = assignmentID
 
-func init() {
-	rootCmd.AddCommand(assignmentsCmd)
-	assignmentsCmd.AddCommand(assignmentsListCmd)
-	assignmentsCmd.AddCommand(assignmentsGetCmd)
-	assignmentsCmd.AddCommand(assignmentsCreateCmd)
-	assignmentsCmd.AddCommand(assignmentsUpdateCmd)
-	assignmentsCmd.AddCommand(assignmentsDeleteCmd)
+			if err := opts.Validate(); err != nil {
+				return err
+			}
 
-	// List flags
-	assignmentsListCmd.Flags().Int64Var(&assignmentsCourseID, "course-id", 0, "Course ID (required)")
-	assignmentsListCmd.Flags().StringVar(&assignmentsSearchTerm, "search", "", "Search by assignment name")
-	assignmentsListCmd.Flags().StringVar(&assignmentsBucket, "bucket", "", "Filter by bucket (past, overdue, undated, ungraded, unsubmitted, upcoming, future)")
-	assignmentsListCmd.Flags().StringVar(&assignmentsOrderBy, "order-by", "", "Order by (position, name, due_at)")
-	assignmentsListCmd.Flags().StringSliceVar(&assignmentsInclude, "include", []string{}, "Additional data to include (comma-separated)")
-	assignmentsListCmd.MarkFlagRequired("course-id")
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
 
-	// Get flags
-	assignmentsGetCmd.Flags().Int64Var(&assignmentsCourseID, "course-id", 0, "Course ID (required)")
-	assignmentsGetCmd.Flags().StringSliceVar(&assignmentsInclude, "include", []string{}, "Additional data to include (comma-separated)")
-	assignmentsGetCmd.MarkFlagRequired("course-id")
-
-	// Create flags
-	assignmentsCreateCmd.Flags().Int64Var(&assignmentsCourseID, "course-id", 0, "Course ID (required)")
-	assignmentsCreateCmd.Flags().StringVar(&assignmentName, "name", "", "Assignment name")
-	assignmentsCreateCmd.Flags().Float64Var(&assignmentPoints, "points", 0, "Points possible")
-	assignmentsCreateCmd.Flags().StringVar(&assignmentGradingType, "grading-type", "", "Grading type (points, pass_fail, percent, letter_grade, gpa_scale, not_graded)")
-	assignmentsCreateCmd.Flags().StringVar(&assignmentDueAt, "due-at", "", "Due date (ISO8601 format)")
-	assignmentsCreateCmd.Flags().StringVar(&assignmentUnlockAt, "unlock-at", "", "Unlock date (ISO8601 format)")
-	assignmentsCreateCmd.Flags().StringVar(&assignmentLockAt, "lock-at", "", "Lock date (ISO8601 format)")
-	assignmentsCreateCmd.Flags().StringVar(&assignmentDescription, "description", "", "Assignment description (HTML)")
-	assignmentsCreateCmd.Flags().BoolVar(&assignmentPublished, "published", false, "Publish the assignment")
-	assignmentsCreateCmd.Flags().StringSliceVar(&assignmentSubmissionTypes, "submission-types", []string{}, "Submission types (online_text_entry, online_url, online_upload, media_recording, none)")
-	assignmentsCreateCmd.Flags().Int64Var(&assignmentGroupID, "group-id", 0, "Assignment group ID")
-	assignmentsCreateCmd.Flags().IntVar(&assignmentPosition, "position", 0, "Position in the assignment group")
-	assignmentsCreateCmd.Flags().StringVar(&assignmentJSONFile, "json", "", "JSON file with assignment data")
-	assignmentsCreateCmd.Flags().BoolVar(&assignmentStdin, "stdin", false, "Read JSON from stdin")
-	assignmentsCreateCmd.MarkFlagRequired("course-id")
-
-	// Update flags
-	assignmentsUpdateCmd.Flags().Int64Var(&assignmentsCourseID, "course-id", 0, "Course ID (required)")
-	assignmentsUpdateCmd.Flags().StringVar(&assignmentName, "name", "", "Assignment name")
-	assignmentsUpdateCmd.Flags().Float64Var(&assignmentPoints, "points", 0, "Points possible")
-	assignmentsUpdateCmd.Flags().StringVar(&assignmentGradingType, "grading-type", "", "Grading type (points, pass_fail, percent, letter_grade, gpa_scale, not_graded)")
-	assignmentsUpdateCmd.Flags().StringVar(&assignmentDueAt, "due-at", "", "Due date (ISO8601 format)")
-	assignmentsUpdateCmd.Flags().StringVar(&assignmentUnlockAt, "unlock-at", "", "Unlock date (ISO8601 format)")
-	assignmentsUpdateCmd.Flags().StringVar(&assignmentLockAt, "lock-at", "", "Lock date (ISO8601 format)")
-	assignmentsUpdateCmd.Flags().StringVar(&assignmentDescription, "description", "", "Assignment description (HTML)")
-	assignmentsUpdateCmd.Flags().BoolVar(&assignmentPublished, "published", false, "Publish the assignment")
-	assignmentsUpdateCmd.Flags().StringSliceVar(&assignmentSubmissionTypes, "submission-types", []string{}, "Submission types")
-	assignmentsUpdateCmd.Flags().Int64Var(&assignmentGroupID, "group-id", 0, "Assignment group ID")
-	assignmentsUpdateCmd.Flags().IntVar(&assignmentPosition, "position", 0, "Position in the assignment group")
-	assignmentsUpdateCmd.Flags().StringVar(&assignmentJSONFile, "json", "", "JSON file with assignment data")
-	assignmentsUpdateCmd.Flags().BoolVar(&assignmentStdin, "stdin", false, "Read JSON from stdin")
-	assignmentsUpdateCmd.MarkFlagRequired("course-id")
-
-	// Delete flags
-	assignmentsDeleteCmd.Flags().Int64Var(&assignmentsCourseID, "course-id", 0, "Course ID (required)")
-	assignmentsDeleteCmd.Flags().BoolVarP(&assignmentForce, "force", "f", false, "Skip confirmation prompt")
-	assignmentsDeleteCmd.MarkFlagRequired("course-id")
-}
-
-func runAssignmentsList(cmd *cobra.Command, args []string) error {
-	// Get API client
-	client, err := getAPIClient()
-	if err != nil {
-		return err
+			return runAssignmentsDelete(cmd.Context(), client, opts)
+		},
 	}
+
+	cmd.Flags().Int64Var(&opts.CourseID, "course-id", 0, "Course ID (required)")
+	cmd.Flags().BoolVarP(&opts.Force, "force", "f", false, "Skip confirmation prompt")
+	cmd.MarkFlagRequired("course-id")
+
+	return cmd
+}
+
+// Run functions
+
+func runAssignmentsList(ctx context.Context, client *api.Client, opts *options.AssignmentsListOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+
+	logger.LogCommandStart(ctx, "assignments.list", map[string]interface{}{
+		"course_id": opts.CourseID,
+		"bucket":    opts.Bucket,
+		"search":    opts.SearchTerm,
+	})
 
 	// Validate course ID exists
-	if _, err := validateCourseID(client, assignmentsCourseID); err != nil {
+	if _, err := validateCourseID(client, opts.CourseID); err != nil {
+		logger.LogCommandError(ctx, "assignments.list", err, map[string]interface{}{
+			"course_id": opts.CourseID,
+		})
 		return err
 	}
 
-	// Create assignments service
 	assignmentsService := api.NewAssignmentsService(client)
 
-	// Build options
-	opts := &api.ListAssignmentsOptions{
-		SearchTerm: assignmentsSearchTerm,
-		Bucket:     assignmentsBucket,
-		OrderBy:    assignmentsOrderBy,
-		Include:    assignmentsInclude,
+	apiOpts := &api.ListAssignmentsOptions{
+		SearchTerm: opts.SearchTerm,
+		Bucket:     opts.Bucket,
+		OrderBy:    opts.OrderBy,
+		Include:    opts.Include,
 	}
 
-	// List assignments
-	ctx := context.Background()
-	assignments, err := assignmentsService.List(ctx, assignmentsCourseID, opts)
+	assignments, err := assignmentsService.List(ctx, opts.CourseID, apiOpts)
 	if err != nil {
+		logger.LogCommandError(ctx, "assignments.list", err, map[string]interface{}{
+			"course_id": opts.CourseID,
+		})
 		return fmt.Errorf("failed to list assignments: %w", err)
 	}
 
-	// Format and display assignments
-	return formatEmptyOrOutput(assignments, "No assignments found")
+	if err := formatEmptyOrOutput(assignments, "No assignments found"); err != nil {
+		return fmt.Errorf("failed to print results: %w", err)
+	}
+
+	logger.LogCommandComplete(ctx, "assignments.list", len(assignments))
+	return nil
 }
 
-func runAssignmentsGet(cmd *cobra.Command, args []string) error {
-	// Parse assignment ID
-	assignmentID, err := strconv.ParseInt(args[0], 10, 64)
-	if err != nil {
-		return fmt.Errorf("invalid assignment ID: %w", err)
-	}
+func runAssignmentsGet(ctx context.Context, client *api.Client, opts *options.AssignmentsGetOptions) error {
+	logger := logging.NewCommandLogger(verbose)
 
-	// Get API client
-	client, err := getAPIClient()
-	if err != nil {
-		return err
-	}
+	logger.LogCommandStart(ctx, "assignments.get", map[string]interface{}{
+		"course_id":     opts.CourseID,
+		"assignment_id": opts.AssignmentID,
+	})
 
 	// Validate course ID exists
-	if _, err := validateCourseID(client, assignmentsCourseID); err != nil {
+	if _, err := validateCourseID(client, opts.CourseID); err != nil {
+		logger.LogCommandError(ctx, "assignments.get", err, map[string]interface{}{
+			"course_id": opts.CourseID,
+		})
 		return err
 	}
 
-	// Create assignments service
 	assignmentsService := api.NewAssignmentsService(client)
 
-	// Get assignment
-	ctx := context.Background()
-	assignment, err := assignmentsService.Get(ctx, assignmentsCourseID, assignmentID, assignmentsInclude)
+	assignment, err := assignmentsService.Get(ctx, opts.CourseID, opts.AssignmentID, opts.Include)
 	if err != nil {
+		logger.LogCommandError(ctx, "assignments.get", err, map[string]interface{}{
+			"course_id":     opts.CourseID,
+			"assignment_id": opts.AssignmentID,
+		})
 		return fmt.Errorf("failed to get assignment: %w", err)
 	}
 
-	// Format and display assignment details
-	return formatOutput(assignment, nil)
+	if err := formatOutput(assignment, nil); err != nil {
+		return fmt.Errorf("failed to print results: %w", err)
+	}
+
+	logger.LogCommandComplete(ctx, "assignments.get", 1)
+	return nil
 }
 
-func runAssignmentsCreate(cmd *cobra.Command, args []string) error {
-	// Get API client
-	client, err := getAPIClient()
-	if err != nil {
-		return err
-	}
+func runAssignmentsCreate(ctx context.Context, client *api.Client, cmd *cobra.Command, opts *options.AssignmentsCreateOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+
+	logger.LogCommandStart(ctx, "assignments.create", map[string]interface{}{
+		"course_id": opts.CourseID,
+		"name":      opts.Name,
+	})
 
 	// Validate course ID exists
-	if _, err := validateCourseID(client, assignmentsCourseID); err != nil {
+	if _, err := validateCourseID(client, opts.CourseID); err != nil {
+		logger.LogCommandError(ctx, "assignments.create", err, map[string]interface{}{
+			"course_id": opts.CourseID,
+		})
 		return err
 	}
 
-	// Create assignments service
 	assignmentsService := api.NewAssignmentsService(client)
 
 	// Build params from flags or JSON
 	params := &api.CreateAssignmentParams{}
 
 	// Check for JSON input
-	if assignmentJSONFile != "" || assignmentStdin {
-		jsonData, err := readAssignmentJSON(assignmentJSONFile, assignmentStdin)
+	if opts.JSONFile != "" || opts.Stdin {
+		jsonData, err := readAssignmentJSON(opts.JSONFile, opts.Stdin)
 		if err != nil {
+			logger.LogCommandError(ctx, "assignments.create", err, map[string]interface{}{
+				"course_id": opts.CourseID,
+			})
 			return fmt.Errorf("failed to read JSON: %w", err)
 		}
 		if err := parseAssignmentCreateJSON(jsonData, params); err != nil {
+			logger.LogCommandError(ctx, "assignments.create", err, map[string]interface{}{
+				"course_id": opts.CourseID,
+			})
 			return fmt.Errorf("failed to parse JSON: %w", err)
 		}
 	}
 
 	// Override with flags if provided
-	if assignmentName != "" {
-		params.Name = assignmentName
+	if opts.Name != "" {
+		params.Name = opts.Name
 	}
-	if assignmentPoints > 0 {
-		params.PointsPossible = assignmentPoints
+	if opts.Points > 0 {
+		params.PointsPossible = opts.Points
 	}
-	if assignmentGradingType != "" {
-		params.GradingType = assignmentGradingType
+	if opts.GradingType != "" {
+		params.GradingType = opts.GradingType
 	}
-	if assignmentDueAt != "" {
-		params.DueAt = assignmentDueAt
+	if opts.DueAt != "" {
+		params.DueAt = opts.DueAt
 	}
-	if assignmentUnlockAt != "" {
-		params.UnlockAt = assignmentUnlockAt
+	if opts.UnlockAt != "" {
+		params.UnlockAt = opts.UnlockAt
 	}
-	if assignmentLockAt != "" {
-		params.LockAt = assignmentLockAt
+	if opts.LockAt != "" {
+		params.LockAt = opts.LockAt
 	}
-	if assignmentDescription != "" {
-		params.Description = assignmentDescription
+	if opts.Description != "" {
+		params.Description = opts.Description
 	}
 	if cmd.Flags().Changed("published") {
-		params.Published = assignmentPublished
+		params.Published = opts.Published
 	}
-	if len(assignmentSubmissionTypes) > 0 {
-		params.SubmissionTypes = assignmentSubmissionTypes
+	if len(opts.SubmissionTypes) > 0 {
+		params.SubmissionTypes = opts.SubmissionTypes
 	}
-	if assignmentGroupID > 0 {
-		params.AssignmentGroupID = assignmentGroupID
+	if opts.GroupID > 0 {
+		params.AssignmentGroupID = opts.GroupID
 	}
-	if assignmentPosition > 0 {
-		params.Position = assignmentPosition
+	if opts.Position > 0 {
+		params.Position = opts.Position
 	}
 
 	// Validate required fields
 	if params.Name == "" {
-		return fmt.Errorf("assignment name is required (use --name or provide in JSON)")
+		err := fmt.Errorf("assignment name is required (use --name or provide in JSON)")
+		logger.LogCommandError(ctx, "assignments.create", err, map[string]interface{}{
+			"course_id": opts.CourseID,
+		})
+		return err
 	}
 
-	// Create assignment
-	ctx := context.Background()
-	assignment, err := assignmentsService.Create(ctx, assignmentsCourseID, params)
+	assignment, err := assignmentsService.Create(ctx, opts.CourseID, params)
 	if err != nil {
+		logger.LogCommandError(ctx, "assignments.create", err, map[string]interface{}{
+			"course_id": opts.CourseID,
+			"name":      params.Name,
+		})
 		return fmt.Errorf("failed to create assignment: %w", err)
 	}
 
@@ -364,83 +462,91 @@ func runAssignmentsCreate(cmd *cobra.Command, args []string) error {
 		fmt.Printf("  Status: Unpublished\n")
 	}
 
+	logger.LogCommandComplete(ctx, "assignments.create", 1)
 	return nil
 }
 
-func runAssignmentsUpdate(cmd *cobra.Command, args []string) error {
-	// Parse assignment ID
-	assignmentID, err := strconv.ParseInt(args[0], 10, 64)
-	if err != nil {
-		return fmt.Errorf("invalid assignment ID: %w", err)
-	}
+func runAssignmentsUpdate(ctx context.Context, client *api.Client, cmd *cobra.Command, opts *options.AssignmentsUpdateOptions) error {
+	logger := logging.NewCommandLogger(verbose)
 
-	// Get API client
-	client, err := getAPIClient()
-	if err != nil {
-		return err
-	}
+	logger.LogCommandStart(ctx, "assignments.update", map[string]interface{}{
+		"course_id":     opts.CourseID,
+		"assignment_id": opts.AssignmentID,
+	})
 
 	// Validate course ID exists
-	if _, err := validateCourseID(client, assignmentsCourseID); err != nil {
+	if _, err := validateCourseID(client, opts.CourseID); err != nil {
+		logger.LogCommandError(ctx, "assignments.update", err, map[string]interface{}{
+			"course_id": opts.CourseID,
+		})
 		return err
 	}
 
-	// Create assignments service
 	assignmentsService := api.NewAssignmentsService(client)
 
 	// Build params from flags or JSON
 	params := &api.UpdateAssignmentParams{}
 
 	// Check for JSON input
-	if assignmentJSONFile != "" || assignmentStdin {
-		jsonData, err := readAssignmentJSON(assignmentJSONFile, assignmentStdin)
+	if opts.JSONFile != "" || opts.Stdin {
+		jsonData, err := readAssignmentJSON(opts.JSONFile, opts.Stdin)
 		if err != nil {
+			logger.LogCommandError(ctx, "assignments.update", err, map[string]interface{}{
+				"course_id":     opts.CourseID,
+				"assignment_id": opts.AssignmentID,
+			})
 			return fmt.Errorf("failed to read JSON: %w", err)
 		}
 		if err := parseAssignmentUpdateJSON(jsonData, params); err != nil {
+			logger.LogCommandError(ctx, "assignments.update", err, map[string]interface{}{
+				"course_id":     opts.CourseID,
+				"assignment_id": opts.AssignmentID,
+			})
 			return fmt.Errorf("failed to parse JSON: %w", err)
 		}
 	}
 
 	// Override with flags if provided
-	if assignmentName != "" {
-		params.Name = assignmentName
+	if opts.Name != "" {
+		params.Name = opts.Name
 	}
 	if cmd.Flags().Changed("points") {
-		params.PointsPossible = &assignmentPoints
+		params.PointsPossible = &opts.Points
 	}
-	if assignmentGradingType != "" {
-		params.GradingType = assignmentGradingType
+	if opts.GradingType != "" {
+		params.GradingType = opts.GradingType
 	}
 	if cmd.Flags().Changed("due-at") {
-		params.DueAt = &assignmentDueAt
+		params.DueAt = &opts.DueAt
 	}
 	if cmd.Flags().Changed("unlock-at") {
-		params.UnlockAt = &assignmentUnlockAt
+		params.UnlockAt = &opts.UnlockAt
 	}
 	if cmd.Flags().Changed("lock-at") {
-		params.LockAt = &assignmentLockAt
+		params.LockAt = &opts.LockAt
 	}
-	if assignmentDescription != "" {
-		params.Description = assignmentDescription
+	if opts.Description != "" {
+		params.Description = opts.Description
 	}
 	if cmd.Flags().Changed("published") {
-		params.Published = &assignmentPublished
+		params.Published = &opts.Published
 	}
-	if len(assignmentSubmissionTypes) > 0 {
-		params.SubmissionTypes = assignmentSubmissionTypes
+	if len(opts.SubmissionTypes) > 0 {
+		params.SubmissionTypes = opts.SubmissionTypes
 	}
 	if cmd.Flags().Changed("group-id") {
-		params.AssignmentGroupID = &assignmentGroupID
+		params.AssignmentGroupID = &opts.GroupID
 	}
 	if cmd.Flags().Changed("position") {
-		params.Position = &assignmentPosition
+		params.Position = &opts.Position
 	}
 
-	// Update assignment
-	ctx := context.Background()
-	assignment, err := assignmentsService.Update(ctx, assignmentsCourseID, assignmentID, params)
+	assignment, err := assignmentsService.Update(ctx, opts.CourseID, opts.AssignmentID, params)
 	if err != nil {
+		logger.LogCommandError(ctx, "assignments.update", err, map[string]interface{}{
+			"course_id":     opts.CourseID,
+			"assignment_id": opts.AssignmentID,
+		})
 		return fmt.Errorf("failed to update assignment: %w", err)
 	}
 
@@ -457,29 +563,28 @@ func runAssignmentsUpdate(cmd *cobra.Command, args []string) error {
 		fmt.Printf("  Status: Unpublished\n")
 	}
 
+	logger.LogCommandComplete(ctx, "assignments.update", 1)
 	return nil
 }
 
-func runAssignmentsDelete(cmd *cobra.Command, args []string) error {
-	// Parse assignment ID
-	assignmentID, err := strconv.ParseInt(args[0], 10, 64)
-	if err != nil {
-		return fmt.Errorf("invalid assignment ID: %w", err)
-	}
+func runAssignmentsDelete(ctx context.Context, client *api.Client, opts *options.AssignmentsDeleteOptions) error {
+	logger := logging.NewCommandLogger(verbose)
 
-	// Get API client first to validate course ID before asking for confirmation
-	client, err := getAPIClient()
-	if err != nil {
-		return err
-	}
+	logger.LogCommandStart(ctx, "assignments.delete", map[string]interface{}{
+		"course_id":     opts.CourseID,
+		"assignment_id": opts.AssignmentID,
+	})
 
 	// Validate course ID exists
-	if _, err := validateCourseID(client, assignmentsCourseID); err != nil {
+	if _, err := validateCourseID(client, opts.CourseID); err != nil {
+		logger.LogCommandError(ctx, "assignments.delete", err, map[string]interface{}{
+			"course_id": opts.CourseID,
+		})
 		return err
 	}
 
 	// Confirm deletion
-	confirmed, err := confirmDelete("assignment", assignmentID, assignmentForce)
+	confirmed, err := confirmDelete("assignment", opts.AssignmentID, opts.Force)
 	if err != nil {
 		return err
 	}
@@ -488,16 +593,19 @@ func runAssignmentsDelete(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	// Create assignments service
 	assignmentsService := api.NewAssignmentsService(client)
 
-	// Delete assignment
-	ctx := context.Background()
-	if err := assignmentsService.Delete(ctx, assignmentsCourseID, assignmentID); err != nil {
+	if err := assignmentsService.Delete(ctx, opts.CourseID, opts.AssignmentID); err != nil {
+		logger.LogCommandError(ctx, "assignments.delete", err, map[string]interface{}{
+			"course_id":     opts.CourseID,
+			"assignment_id": opts.AssignmentID,
+		})
 		return fmt.Errorf("failed to delete assignment: %w", err)
 	}
 
-	fmt.Printf("Assignment %d deleted successfully.\n", assignmentID)
+	fmt.Printf("Assignment %d deleted successfully.\n", opts.AssignmentID)
+
+	logger.LogCommandComplete(ctx, "assignments.delete", 1)
 	return nil
 }
 

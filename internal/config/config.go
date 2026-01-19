@@ -161,12 +161,9 @@ func (c *Config) Save() error {
 
 // AddInstance adds a new instance to the configuration
 func (c *Config) AddInstance(instance *Instance) error {
-	if instance.Name == "" {
-		return fmt.Errorf("instance name is required")
-	}
-
-	if instance.URL == "" {
-		return fmt.Errorf("instance URL is required")
+	// Validate instance configuration
+	if err := ValidateInstance(instance); err != nil {
+		return fmt.Errorf("invalid instance configuration: %w", err)
 	}
 
 	// Check if instance already exists
@@ -186,6 +183,11 @@ func (c *Config) AddInstance(instance *Instance) error {
 
 // UpdateInstance updates an existing instance
 func (c *Config) UpdateInstance(name string, instance *Instance) error {
+	// Validate instance configuration
+	if err := ValidateInstance(instance); err != nil {
+		return fmt.Errorf("invalid instance configuration: %w", err)
+	}
+
 	if _, exists := c.Instances[name]; !exists {
 		return fmt.Errorf("instance %q does not exist", name)
 	}

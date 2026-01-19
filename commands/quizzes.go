@@ -7,48 +7,9 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/jjuanrivvera/canvas-cli/commands/internal/logging"
+	"github.com/jjuanrivvera/canvas-cli/commands/internal/options"
 	"github.com/jjuanrivvera/canvas-cli/internal/api"
-)
-
-var (
-	// Common flags
-	quizzesCourseID int64
-	quizzesQuizID   int64
-
-	// List flags
-	quizzesSearchTerm string
-
-	// Create/Update flags
-	quizzesTitle                string
-	quizzesDescription          string
-	quizzesQuizType             string
-	quizzesAssignmentGroupID    int64
-	quizzesTimeLimit            int
-	quizzesShuffleAnswers       bool
-	quizzesHideResults          string
-	quizzesShowCorrectAnswers   bool
-	quizzesScoringPolicy        string
-	quizzesAllowedAttempts      int
-	quizzesOneQuestionAtATime   bool
-	quizzesCantGoBack           bool
-	quizzesAccessCode           string
-	quizzesIPFilter             string
-	quizzesDueAt                string
-	quizzesLockAt               string
-	quizzesUnlockAt             string
-	quizzesPublished            bool
-	quizzesAnonymousSubmissions bool
-
-	// Question flags
-	quizzesQuestionName      string
-	quizzesQuestionText      string
-	quizzesQuestionType      string
-	quizzesPointsPossible    float64
-	quizzesCorrectComments   string
-	quizzesIncorrectComments string
-
-	// Delete flags
-	quizzesForce bool
 )
 
 // quizzesCmd represents the quizzes command group
@@ -67,72 +28,6 @@ Examples:
   canvas quizzes create --course-id 123 --title "Midterm Exam" --quiz-type assignment`,
 }
 
-// quizzesListCmd represents the quizzes list command
-var quizzesListCmd = &cobra.Command{
-	Use:   "list",
-	Short: "List quizzes in a course",
-	Long: `List all quizzes in a course.
-
-Examples:
-  canvas quizzes list --course-id 123
-  canvas quizzes list --course-id 123 --search "midterm"`,
-	RunE: runQuizzesList,
-}
-
-// quizzesGetCmd represents the quizzes get command
-var quizzesGetCmd = &cobra.Command{
-	Use:   "get <quiz-id>",
-	Short: "Get quiz details",
-	Long: `Get details of a specific quiz.
-
-Examples:
-  canvas quizzes get 456 --course-id 123`,
-	Args: ExactArgsWithUsage(1, "quiz-id"),
-	RunE: runQuizzesGet,
-}
-
-// quizzesCreateCmd represents the quizzes create command
-var quizzesCreateCmd = &cobra.Command{
-	Use:   "create",
-	Short: "Create a new quiz",
-	Long: `Create a new quiz in a course.
-
-Examples:
-  canvas quizzes create --course-id 123 --title "Midterm Exam" --quiz-type assignment
-  canvas quizzes create --course-id 123 --title "Practice Quiz" --quiz-type practice_quiz --time-limit 30
-  canvas quizzes create --course-id 123 --title "Survey" --quiz-type survey --anonymous`,
-	RunE: runQuizzesCreate,
-}
-
-// quizzesUpdateCmd represents the quizzes update command
-var quizzesUpdateCmd = &cobra.Command{
-	Use:   "update <quiz-id>",
-	Short: "Update a quiz",
-	Long: `Update an existing quiz.
-
-Examples:
-  canvas quizzes update 456 --course-id 123 --title "Updated Title"
-  canvas quizzes update 456 --course-id 123 --time-limit 60
-  canvas quizzes update 456 --course-id 123 --published`,
-	Args: ExactArgsWithUsage(1, "quiz-id"),
-	RunE: runQuizzesUpdate,
-}
-
-// quizzesDeleteCmd represents the quizzes delete command
-var quizzesDeleteCmd = &cobra.Command{
-	Use:   "delete <quiz-id>",
-	Short: "Delete a quiz",
-	Long: `Delete a quiz.
-
-Examples:
-  canvas quizzes delete 456 --course-id 123
-  canvas quizzes delete 456 --course-id 123 --force`,
-	Args: ExactArgsWithUsage(1, "quiz-id"),
-	RunE: runQuizzesDelete,
-}
-
-// Quiz Questions Commands
-
 // quizzesQuestionsCmd represents the quizzes questions command group
 var quizzesQuestionsCmd = &cobra.Command{
 	Use:     "questions",
@@ -140,54 +35,6 @@ var quizzesQuestionsCmd = &cobra.Command{
 	Short:   "Manage quiz questions",
 	Long:    `Manage questions within a quiz.`,
 }
-
-// quizzesQuestionsListCmd represents the quizzes questions list command
-var quizzesQuestionsListCmd = &cobra.Command{
-	Use:   "list",
-	Short: "List questions in a quiz",
-	Long: `List all questions in a quiz.
-
-Examples:
-  canvas quizzes questions list --course-id 123 --quiz-id 456`,
-	RunE: runQuizzesQuestionsList,
-}
-
-// quizzesQuestionsGetCmd represents the quizzes questions get command
-var quizzesQuestionsGetCmd = &cobra.Command{
-	Use:   "get <question-id>",
-	Short: "Get question details",
-	Long: `Get details of a specific question.
-
-Examples:
-  canvas quizzes questions get 789 --course-id 123 --quiz-id 456`,
-	Args: ExactArgsWithUsage(1, "question-id"),
-	RunE: runQuizzesQuestionsGet,
-}
-
-// quizzesQuestionsCreateCmd represents the quizzes questions create command
-var quizzesQuestionsCreateCmd = &cobra.Command{
-	Use:   "create",
-	Short: "Create a new question",
-	Long: `Create a new question in a quiz.
-
-Examples:
-  canvas quizzes questions create --course-id 123 --quiz-id 456 --text "What is 2+2?" --type multiple_choice_question --points 10`,
-	RunE: runQuizzesQuestionsCreate,
-}
-
-// quizzesQuestionsDeleteCmd represents the quizzes questions delete command
-var quizzesQuestionsDeleteCmd = &cobra.Command{
-	Use:   "delete <question-id>",
-	Short: "Delete a question",
-	Long: `Delete a question from a quiz.
-
-Examples:
-  canvas quizzes questions delete 789 --course-id 123 --quiz-id 456 --force`,
-	Args: ExactArgsWithUsage(1, "question-id"),
-	RunE: runQuizzesQuestionsDelete,
-}
-
-// Quiz Submissions Commands
 
 // quizzesSubmissionsCmd represents the quizzes submissions command group
 var quizzesSubmissionsCmd = &cobra.Command{
@@ -197,336 +44,704 @@ var quizzesSubmissionsCmd = &cobra.Command{
 	Long:    `View and manage quiz submissions.`,
 }
 
-// quizzesSubmissionsListCmd represents the quizzes submissions list command
-var quizzesSubmissionsListCmd = &cobra.Command{
-	Use:   "list",
-	Short: "List quiz submissions",
-	Long: `List all submissions for a quiz.
-
-Examples:
-  canvas quizzes submissions list --course-id 123 --quiz-id 456`,
-	RunE: runQuizzesSubmissionsList,
-}
-
-// quizzesSubmissionsGetCmd represents the quizzes submissions get command
-var quizzesSubmissionsGetCmd = &cobra.Command{
-	Use:   "get <submission-id>",
-	Short: "Get submission details",
-	Long: `Get details of a specific quiz submission.
-
-Examples:
-  canvas quizzes submissions get 789 --course-id 123 --quiz-id 456`,
-	Args: ExactArgsWithUsage(1, "submission-id"),
-	RunE: runQuizzesSubmissionsGet,
-}
-
 func init() {
 	rootCmd.AddCommand(quizzesCmd)
-	quizzesCmd.AddCommand(quizzesListCmd)
-	quizzesCmd.AddCommand(quizzesGetCmd)
-	quizzesCmd.AddCommand(quizzesCreateCmd)
-	quizzesCmd.AddCommand(quizzesUpdateCmd)
-	quizzesCmd.AddCommand(quizzesDeleteCmd)
+	quizzesCmd.AddCommand(newQuizzesListCmd())
+	quizzesCmd.AddCommand(newQuizzesGetCmd())
+	quizzesCmd.AddCommand(newQuizzesCreateCmd())
+	quizzesCmd.AddCommand(newQuizzesUpdateCmd())
+	quizzesCmd.AddCommand(newQuizzesDeleteCmd())
 	quizzesCmd.AddCommand(quizzesQuestionsCmd)
 	quizzesCmd.AddCommand(quizzesSubmissionsCmd)
 
 	// Questions subcommands
-	quizzesQuestionsCmd.AddCommand(quizzesQuestionsListCmd)
-	quizzesQuestionsCmd.AddCommand(quizzesQuestionsGetCmd)
-	quizzesQuestionsCmd.AddCommand(quizzesQuestionsCreateCmd)
-	quizzesQuestionsCmd.AddCommand(quizzesQuestionsDeleteCmd)
+	quizzesQuestionsCmd.AddCommand(newQuizzesQuestionsListCmd())
+	quizzesQuestionsCmd.AddCommand(newQuizzesQuestionsGetCmd())
+	quizzesQuestionsCmd.AddCommand(newQuizzesQuestionsCreateCmd())
+	quizzesQuestionsCmd.AddCommand(newQuizzesQuestionsDeleteCmd())
 
 	// Submissions subcommands
-	quizzesSubmissionsCmd.AddCommand(quizzesSubmissionsListCmd)
-	quizzesSubmissionsCmd.AddCommand(quizzesSubmissionsGetCmd)
-
-	// List flags
-	quizzesListCmd.Flags().Int64Var(&quizzesCourseID, "course-id", 0, "Course ID (required)")
-	quizzesListCmd.MarkFlagRequired("course-id")
-	quizzesListCmd.Flags().StringVar(&quizzesSearchTerm, "search", "", "Search term")
-
-	// Get flags
-	quizzesGetCmd.Flags().Int64Var(&quizzesCourseID, "course-id", 0, "Course ID (required)")
-	quizzesGetCmd.MarkFlagRequired("course-id")
-
-	// Create flags
-	quizzesCreateCmd.Flags().Int64Var(&quizzesCourseID, "course-id", 0, "Course ID (required)")
-	quizzesCreateCmd.MarkFlagRequired("course-id")
-	quizzesCreateCmd.Flags().StringVar(&quizzesTitle, "title", "", "Quiz title (required)")
-	quizzesCreateCmd.MarkFlagRequired("title")
-	quizzesCreateCmd.Flags().StringVar(&quizzesDescription, "description", "", "Quiz description")
-	quizzesCreateCmd.Flags().StringVar(&quizzesQuizType, "quiz-type", "assignment", "Quiz type: practice_quiz, assignment, graded_survey, survey")
-	quizzesCreateCmd.Flags().Int64Var(&quizzesAssignmentGroupID, "assignment-group-id", 0, "Assignment group ID")
-	quizzesCreateCmd.Flags().IntVar(&quizzesTimeLimit, "time-limit", 0, "Time limit in minutes")
-	quizzesCreateCmd.Flags().BoolVar(&quizzesShuffleAnswers, "shuffle-answers", false, "Shuffle answer choices")
-	quizzesCreateCmd.Flags().StringVar(&quizzesHideResults, "hide-results", "", "When to hide results: always, until_after_last_attempt")
-	quizzesCreateCmd.Flags().BoolVar(&quizzesShowCorrectAnswers, "show-correct", false, "Show correct answers")
-	quizzesCreateCmd.Flags().StringVar(&quizzesScoringPolicy, "scoring-policy", "", "Scoring policy: keep_highest, keep_latest")
-	quizzesCreateCmd.Flags().IntVar(&quizzesAllowedAttempts, "attempts", 1, "Number of allowed attempts (-1 = unlimited)")
-	quizzesCreateCmd.Flags().BoolVar(&quizzesOneQuestionAtATime, "one-at-a-time", false, "Show one question at a time")
-	quizzesCreateCmd.Flags().BoolVar(&quizzesCantGoBack, "cant-go-back", false, "Prevent going back to previous questions")
-	quizzesCreateCmd.Flags().StringVar(&quizzesAccessCode, "access-code", "", "Quiz access code")
-	quizzesCreateCmd.Flags().StringVar(&quizzesIPFilter, "ip-filter", "", "IP address filter")
-	quizzesCreateCmd.Flags().StringVar(&quizzesDueAt, "due-at", "", "Due date (ISO 8601)")
-	quizzesCreateCmd.Flags().StringVar(&quizzesLockAt, "lock-at", "", "Lock date (ISO 8601)")
-	quizzesCreateCmd.Flags().StringVar(&quizzesUnlockAt, "unlock-at", "", "Unlock date (ISO 8601)")
-	quizzesCreateCmd.Flags().BoolVar(&quizzesPublished, "published", false, "Publish immediately")
-	quizzesCreateCmd.Flags().BoolVar(&quizzesAnonymousSubmissions, "anonymous", false, "Anonymous submissions")
-
-	// Update flags
-	quizzesUpdateCmd.Flags().Int64Var(&quizzesCourseID, "course-id", 0, "Course ID (required)")
-	quizzesUpdateCmd.MarkFlagRequired("course-id")
-	quizzesUpdateCmd.Flags().StringVar(&quizzesTitle, "title", "", "Quiz title")
-	quizzesUpdateCmd.Flags().StringVar(&quizzesDescription, "description", "", "Quiz description")
-	quizzesUpdateCmd.Flags().StringVar(&quizzesQuizType, "quiz-type", "", "Quiz type")
-	quizzesUpdateCmd.Flags().Int64Var(&quizzesAssignmentGroupID, "assignment-group-id", 0, "Assignment group ID")
-	quizzesUpdateCmd.Flags().IntVar(&quizzesTimeLimit, "time-limit", 0, "Time limit in minutes")
-	quizzesUpdateCmd.Flags().BoolVar(&quizzesShuffleAnswers, "shuffle-answers", false, "Shuffle answer choices")
-	quizzesUpdateCmd.Flags().StringVar(&quizzesHideResults, "hide-results", "", "When to hide results")
-	quizzesUpdateCmd.Flags().BoolVar(&quizzesShowCorrectAnswers, "show-correct", false, "Show correct answers")
-	quizzesUpdateCmd.Flags().StringVar(&quizzesScoringPolicy, "scoring-policy", "", "Scoring policy")
-	quizzesUpdateCmd.Flags().IntVar(&quizzesAllowedAttempts, "attempts", 0, "Number of allowed attempts")
-	quizzesUpdateCmd.Flags().BoolVar(&quizzesOneQuestionAtATime, "one-at-a-time", false, "Show one question at a time")
-	quizzesUpdateCmd.Flags().BoolVar(&quizzesCantGoBack, "cant-go-back", false, "Prevent going back")
-	quizzesUpdateCmd.Flags().StringVar(&quizzesAccessCode, "access-code", "", "Quiz access code")
-	quizzesUpdateCmd.Flags().StringVar(&quizzesIPFilter, "ip-filter", "", "IP address filter")
-	quizzesUpdateCmd.Flags().StringVar(&quizzesDueAt, "due-at", "", "Due date (ISO 8601)")
-	quizzesUpdateCmd.Flags().StringVar(&quizzesLockAt, "lock-at", "", "Lock date (ISO 8601)")
-	quizzesUpdateCmd.Flags().StringVar(&quizzesUnlockAt, "unlock-at", "", "Unlock date (ISO 8601)")
-	quizzesUpdateCmd.Flags().BoolVar(&quizzesPublished, "published", false, "Publish quiz")
-	quizzesUpdateCmd.Flags().BoolVar(&quizzesAnonymousSubmissions, "anonymous", false, "Anonymous submissions")
-
-	// Delete flags
-	quizzesDeleteCmd.Flags().Int64Var(&quizzesCourseID, "course-id", 0, "Course ID (required)")
-	quizzesDeleteCmd.MarkFlagRequired("course-id")
-	quizzesDeleteCmd.Flags().BoolVar(&quizzesForce, "force", false, "Skip confirmation prompt")
-
-	// Questions List flags
-	quizzesQuestionsListCmd.Flags().Int64Var(&quizzesCourseID, "course-id", 0, "Course ID (required)")
-	quizzesQuestionsListCmd.MarkFlagRequired("course-id")
-	quizzesQuestionsListCmd.Flags().Int64Var(&quizzesQuizID, "quiz-id", 0, "Quiz ID (required)")
-	quizzesQuestionsListCmd.MarkFlagRequired("quiz-id")
-
-	// Questions Get flags
-	quizzesQuestionsGetCmd.Flags().Int64Var(&quizzesCourseID, "course-id", 0, "Course ID (required)")
-	quizzesQuestionsGetCmd.MarkFlagRequired("course-id")
-	quizzesQuestionsGetCmd.Flags().Int64Var(&quizzesQuizID, "quiz-id", 0, "Quiz ID (required)")
-	quizzesQuestionsGetCmd.MarkFlagRequired("quiz-id")
-
-	// Questions Create flags
-	quizzesQuestionsCreateCmd.Flags().Int64Var(&quizzesCourseID, "course-id", 0, "Course ID (required)")
-	quizzesQuestionsCreateCmd.MarkFlagRequired("course-id")
-	quizzesQuestionsCreateCmd.Flags().Int64Var(&quizzesQuizID, "quiz-id", 0, "Quiz ID (required)")
-	quizzesQuestionsCreateCmd.MarkFlagRequired("quiz-id")
-	quizzesQuestionsCreateCmd.Flags().StringVar(&quizzesQuestionName, "name", "", "Question name")
-	quizzesQuestionsCreateCmd.Flags().StringVar(&quizzesQuestionText, "text", "", "Question text (required)")
-	quizzesQuestionsCreateCmd.MarkFlagRequired("text")
-	quizzesQuestionsCreateCmd.Flags().StringVar(&quizzesQuestionType, "type", "multiple_choice_question", "Question type")
-	quizzesQuestionsCreateCmd.Flags().Float64Var(&quizzesPointsPossible, "points", 0, "Points possible")
-	quizzesQuestionsCreateCmd.Flags().StringVar(&quizzesCorrectComments, "correct-comments", "", "Comments for correct answer")
-	quizzesQuestionsCreateCmd.Flags().StringVar(&quizzesIncorrectComments, "incorrect-comments", "", "Comments for incorrect answer")
-
-	// Questions Delete flags
-	quizzesQuestionsDeleteCmd.Flags().Int64Var(&quizzesCourseID, "course-id", 0, "Course ID (required)")
-	quizzesQuestionsDeleteCmd.MarkFlagRequired("course-id")
-	quizzesQuestionsDeleteCmd.Flags().Int64Var(&quizzesQuizID, "quiz-id", 0, "Quiz ID (required)")
-	quizzesQuestionsDeleteCmd.MarkFlagRequired("quiz-id")
-	quizzesQuestionsDeleteCmd.Flags().BoolVar(&quizzesForce, "force", false, "Skip confirmation prompt")
-
-	// Submissions List flags
-	quizzesSubmissionsListCmd.Flags().Int64Var(&quizzesCourseID, "course-id", 0, "Course ID (required)")
-	quizzesSubmissionsListCmd.MarkFlagRequired("course-id")
-	quizzesSubmissionsListCmd.Flags().Int64Var(&quizzesQuizID, "quiz-id", 0, "Quiz ID (required)")
-	quizzesSubmissionsListCmd.MarkFlagRequired("quiz-id")
-
-	// Submissions Get flags
-	quizzesSubmissionsGetCmd.Flags().Int64Var(&quizzesCourseID, "course-id", 0, "Course ID (required)")
-	quizzesSubmissionsGetCmd.MarkFlagRequired("course-id")
-	quizzesSubmissionsGetCmd.Flags().Int64Var(&quizzesQuizID, "quiz-id", 0, "Quiz ID (required)")
-	quizzesSubmissionsGetCmd.MarkFlagRequired("quiz-id")
+	quizzesSubmissionsCmd.AddCommand(newQuizzesSubmissionsListCmd())
+	quizzesSubmissionsCmd.AddCommand(newQuizzesSubmissionsGetCmd())
 }
 
-func runQuizzesList(cmd *cobra.Command, args []string) error {
-	client, err := getAPIClient()
-	if err != nil {
+func newQuizzesListCmd() *cobra.Command {
+	opts := &options.QuizzesListOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "list",
+		Short: "List quizzes in a course",
+		Long: `List all quizzes in a course.
+
+Examples:
+  canvas quizzes list --course-id 123
+  canvas quizzes list --course-id 123 --search "midterm"`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+
+			return runQuizzesList(cmd.Context(), client, opts)
+		},
+	}
+
+	cmd.Flags().Int64Var(&opts.CourseID, "course-id", 0, "Course ID (required)")
+	cmd.Flags().StringVar(&opts.SearchTerm, "search", "", "Search term")
+	cmd.MarkFlagRequired("course-id")
+
+	return cmd
+}
+
+func newQuizzesGetCmd() *cobra.Command {
+	opts := &options.QuizzesGetOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "get <quiz-id>",
+		Short: "Get quiz details",
+		Long: `Get details of a specific quiz.
+
+Examples:
+  canvas quizzes get 456 --course-id 123`,
+		Args: ExactArgsWithUsage(1, "quiz-id"),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			quizID, err := strconv.ParseInt(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid quiz ID: %s", args[0])
+			}
+			opts.QuizID = quizID
+
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+
+			return runQuizzesGet(cmd.Context(), client, opts)
+		},
+	}
+
+	cmd.Flags().Int64Var(&opts.CourseID, "course-id", 0, "Course ID (required)")
+	cmd.MarkFlagRequired("course-id")
+
+	return cmd
+}
+
+func newQuizzesCreateCmd() *cobra.Command {
+	opts := &options.QuizzesCreateOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "create",
+		Short: "Create a new quiz",
+		Long: `Create a new quiz in a course.
+
+Examples:
+  canvas quizzes create --course-id 123 --title "Midterm Exam" --quiz-type assignment
+  canvas quizzes create --course-id 123 --title "Practice Quiz" --quiz-type practice_quiz --time-limit 30
+  canvas quizzes create --course-id 123 --title "Survey" --quiz-type survey --anonymous`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+
+			return runQuizzesCreate(cmd.Context(), client, opts)
+		},
+	}
+
+	cmd.Flags().Int64Var(&opts.CourseID, "course-id", 0, "Course ID (required)")
+	cmd.Flags().StringVar(&opts.Title, "title", "", "Quiz title (required)")
+	cmd.Flags().StringVar(&opts.Description, "description", "", "Quiz description")
+	cmd.Flags().StringVar(&opts.QuizType, "quiz-type", "assignment", "Quiz type: practice_quiz, assignment, graded_survey, survey")
+	cmd.Flags().Int64Var(&opts.AssignmentGroupID, "assignment-group-id", 0, "Assignment group ID")
+	cmd.Flags().IntVar(&opts.TimeLimit, "time-limit", 0, "Time limit in minutes")
+	cmd.Flags().BoolVar(&opts.ShuffleAnswers, "shuffle-answers", false, "Shuffle answer choices")
+	cmd.Flags().StringVar(&opts.HideResults, "hide-results", "", "When to hide results: always, until_after_last_attempt")
+	cmd.Flags().BoolVar(&opts.ShowCorrectAnswers, "show-correct", false, "Show correct answers")
+	cmd.Flags().StringVar(&opts.ScoringPolicy, "scoring-policy", "", "Scoring policy: keep_highest, keep_latest")
+	cmd.Flags().IntVar(&opts.AllowedAttempts, "attempts", 1, "Number of allowed attempts (-1 = unlimited)")
+	cmd.Flags().BoolVar(&opts.OneQuestionAtATime, "one-at-a-time", false, "Show one question at a time")
+	cmd.Flags().BoolVar(&opts.CantGoBack, "cant-go-back", false, "Prevent going back to previous questions")
+	cmd.Flags().StringVar(&opts.AccessCode, "access-code", "", "Quiz access code")
+	cmd.Flags().StringVar(&opts.IPFilter, "ip-filter", "", "IP address filter")
+	cmd.Flags().StringVar(&opts.DueAt, "due-at", "", "Due date (ISO 8601)")
+	cmd.Flags().StringVar(&opts.LockAt, "lock-at", "", "Lock date (ISO 8601)")
+	cmd.Flags().StringVar(&opts.UnlockAt, "unlock-at", "", "Unlock date (ISO 8601)")
+	cmd.Flags().BoolVar(&opts.Published, "published", false, "Publish immediately")
+	cmd.Flags().BoolVar(&opts.AnonymousSubmissions, "anonymous", false, "Anonymous submissions")
+	cmd.MarkFlagRequired("course-id")
+	cmd.MarkFlagRequired("title")
+
+	return cmd
+}
+
+func newQuizzesUpdateCmd() *cobra.Command {
+	opts := &options.QuizzesUpdateOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "update <quiz-id>",
+		Short: "Update a quiz",
+		Long: `Update an existing quiz.
+
+Examples:
+  canvas quizzes update 456 --course-id 123 --title "Updated Title"
+  canvas quizzes update 456 --course-id 123 --time-limit 60
+  canvas quizzes update 456 --course-id 123 --published`,
+		Args: ExactArgsWithUsage(1, "quiz-id"),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			quizID, err := strconv.ParseInt(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid quiz ID: %s", args[0])
+			}
+			opts.QuizID = quizID
+
+			// Track which flags were set
+			opts.TitleSet = cmd.Flags().Changed("title")
+			opts.DescriptionSet = cmd.Flags().Changed("description")
+			opts.QuizTypeSet = cmd.Flags().Changed("quiz-type")
+			opts.AssignmentGroupIDSet = cmd.Flags().Changed("assignment-group-id")
+			opts.TimeLimitSet = cmd.Flags().Changed("time-limit")
+			opts.ShuffleAnswersSet = cmd.Flags().Changed("shuffle-answers")
+			opts.HideResultsSet = cmd.Flags().Changed("hide-results")
+			opts.ShowCorrectAnswersSet = cmd.Flags().Changed("show-correct")
+			opts.ScoringPolicySet = cmd.Flags().Changed("scoring-policy")
+			opts.AllowedAttemptsSet = cmd.Flags().Changed("attempts")
+			opts.OneQuestionAtATimeSet = cmd.Flags().Changed("one-at-a-time")
+			opts.CantGoBackSet = cmd.Flags().Changed("cant-go-back")
+			opts.AccessCodeSet = cmd.Flags().Changed("access-code")
+			opts.IPFilterSet = cmd.Flags().Changed("ip-filter")
+			opts.DueAtSet = cmd.Flags().Changed("due-at")
+			opts.LockAtSet = cmd.Flags().Changed("lock-at")
+			opts.UnlockAtSet = cmd.Flags().Changed("unlock-at")
+			opts.PublishedSet = cmd.Flags().Changed("published")
+			opts.AnonymousSubmissionsSet = cmd.Flags().Changed("anonymous")
+
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+
+			return runQuizzesUpdate(cmd.Context(), client, opts)
+		},
+	}
+
+	cmd.Flags().Int64Var(&opts.CourseID, "course-id", 0, "Course ID (required)")
+	cmd.Flags().StringVar(&opts.Title, "title", "", "Quiz title")
+	cmd.Flags().StringVar(&opts.Description, "description", "", "Quiz description")
+	cmd.Flags().StringVar(&opts.QuizType, "quiz-type", "", "Quiz type")
+	cmd.Flags().Int64Var(&opts.AssignmentGroupID, "assignment-group-id", 0, "Assignment group ID")
+	cmd.Flags().IntVar(&opts.TimeLimit, "time-limit", 0, "Time limit in minutes")
+	cmd.Flags().BoolVar(&opts.ShuffleAnswers, "shuffle-answers", false, "Shuffle answer choices")
+	cmd.Flags().StringVar(&opts.HideResults, "hide-results", "", "When to hide results")
+	cmd.Flags().BoolVar(&opts.ShowCorrectAnswers, "show-correct", false, "Show correct answers")
+	cmd.Flags().StringVar(&opts.ScoringPolicy, "scoring-policy", "", "Scoring policy")
+	cmd.Flags().IntVar(&opts.AllowedAttempts, "attempts", 0, "Number of allowed attempts")
+	cmd.Flags().BoolVar(&opts.OneQuestionAtATime, "one-at-a-time", false, "Show one question at a time")
+	cmd.Flags().BoolVar(&opts.CantGoBack, "cant-go-back", false, "Prevent going back")
+	cmd.Flags().StringVar(&opts.AccessCode, "access-code", "", "Quiz access code")
+	cmd.Flags().StringVar(&opts.IPFilter, "ip-filter", "", "IP address filter")
+	cmd.Flags().StringVar(&opts.DueAt, "due-at", "", "Due date (ISO 8601)")
+	cmd.Flags().StringVar(&opts.LockAt, "lock-at", "", "Lock date (ISO 8601)")
+	cmd.Flags().StringVar(&opts.UnlockAt, "unlock-at", "", "Unlock date (ISO 8601)")
+	cmd.Flags().BoolVar(&opts.Published, "published", false, "Publish quiz")
+	cmd.Flags().BoolVar(&opts.AnonymousSubmissions, "anonymous", false, "Anonymous submissions")
+	cmd.MarkFlagRequired("course-id")
+
+	return cmd
+}
+
+func newQuizzesDeleteCmd() *cobra.Command {
+	opts := &options.QuizzesDeleteOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "delete <quiz-id>",
+		Short: "Delete a quiz",
+		Long: `Delete a quiz.
+
+Examples:
+  canvas quizzes delete 456 --course-id 123
+  canvas quizzes delete 456 --course-id 123 --force`,
+		Args: ExactArgsWithUsage(1, "quiz-id"),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			quizID, err := strconv.ParseInt(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid quiz ID: %s", args[0])
+			}
+			opts.QuizID = quizID
+
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+
+			return runQuizzesDelete(cmd.Context(), client, opts)
+		},
+	}
+
+	cmd.Flags().Int64Var(&opts.CourseID, "course-id", 0, "Course ID (required)")
+	cmd.Flags().BoolVar(&opts.Force, "force", false, "Skip confirmation prompt")
+	cmd.MarkFlagRequired("course-id")
+
+	return cmd
+}
+
+func newQuizzesQuestionsListCmd() *cobra.Command {
+	opts := &options.QuizzesQuestionsListOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "list",
+		Short: "List questions in a quiz",
+		Long: `List all questions in a quiz.
+
+Examples:
+  canvas quizzes questions list --course-id 123 --quiz-id 456`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+
+			return runQuizzesQuestionsList(cmd.Context(), client, opts)
+		},
+	}
+
+	cmd.Flags().Int64Var(&opts.CourseID, "course-id", 0, "Course ID (required)")
+	cmd.Flags().Int64Var(&opts.QuizID, "quiz-id", 0, "Quiz ID (required)")
+	cmd.MarkFlagRequired("course-id")
+	cmd.MarkFlagRequired("quiz-id")
+
+	return cmd
+}
+
+func newQuizzesQuestionsGetCmd() *cobra.Command {
+	opts := &options.QuizzesQuestionsGetOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "get <question-id>",
+		Short: "Get question details",
+		Long: `Get details of a specific question.
+
+Examples:
+  canvas quizzes questions get 789 --course-id 123 --quiz-id 456`,
+		Args: ExactArgsWithUsage(1, "question-id"),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			questionID, err := strconv.ParseInt(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid question ID: %s", args[0])
+			}
+			opts.QuestionID = questionID
+
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+
+			return runQuizzesQuestionsGet(cmd.Context(), client, opts)
+		},
+	}
+
+	cmd.Flags().Int64Var(&opts.CourseID, "course-id", 0, "Course ID (required)")
+	cmd.Flags().Int64Var(&opts.QuizID, "quiz-id", 0, "Quiz ID (required)")
+	cmd.MarkFlagRequired("course-id")
+	cmd.MarkFlagRequired("quiz-id")
+
+	return cmd
+}
+
+func newQuizzesQuestionsCreateCmd() *cobra.Command {
+	opts := &options.QuizzesQuestionsCreateOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "create",
+		Short: "Create a new question",
+		Long: `Create a new question in a quiz.
+
+Examples:
+  canvas quizzes questions create --course-id 123 --quiz-id 456 --text "What is 2+2?" --type multiple_choice_question --points 10`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+
+			return runQuizzesQuestionsCreate(cmd.Context(), client, opts)
+		},
+	}
+
+	cmd.Flags().Int64Var(&opts.CourseID, "course-id", 0, "Course ID (required)")
+	cmd.Flags().Int64Var(&opts.QuizID, "quiz-id", 0, "Quiz ID (required)")
+	cmd.Flags().StringVar(&opts.QuestionName, "name", "", "Question name")
+	cmd.Flags().StringVar(&opts.QuestionText, "text", "", "Question text (required)")
+	cmd.Flags().StringVar(&opts.QuestionType, "type", "multiple_choice_question", "Question type")
+	cmd.Flags().Float64Var(&opts.PointsPossible, "points", 0, "Points possible")
+	cmd.Flags().StringVar(&opts.CorrectComments, "correct-comments", "", "Comments for correct answer")
+	cmd.Flags().StringVar(&opts.IncorrectComments, "incorrect-comments", "", "Comments for incorrect answer")
+	cmd.MarkFlagRequired("course-id")
+	cmd.MarkFlagRequired("quiz-id")
+	cmd.MarkFlagRequired("text")
+
+	return cmd
+}
+
+func newQuizzesQuestionsDeleteCmd() *cobra.Command {
+	opts := &options.QuizzesQuestionsDeleteOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "delete <question-id>",
+		Short: "Delete a question",
+		Long: `Delete a question from a quiz.
+
+Examples:
+  canvas quizzes questions delete 789 --course-id 123 --quiz-id 456 --force`,
+		Args: ExactArgsWithUsage(1, "question-id"),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			questionID, err := strconv.ParseInt(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid question ID: %s", args[0])
+			}
+			opts.QuestionID = questionID
+
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+
+			return runQuizzesQuestionsDelete(cmd.Context(), client, opts)
+		},
+	}
+
+	cmd.Flags().Int64Var(&opts.CourseID, "course-id", 0, "Course ID (required)")
+	cmd.Flags().Int64Var(&opts.QuizID, "quiz-id", 0, "Quiz ID (required)")
+	cmd.Flags().BoolVar(&opts.Force, "force", false, "Skip confirmation prompt")
+	cmd.MarkFlagRequired("course-id")
+	cmd.MarkFlagRequired("quiz-id")
+
+	return cmd
+}
+
+func newQuizzesSubmissionsListCmd() *cobra.Command {
+	opts := &options.QuizzesSubmissionsListOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "list",
+		Short: "List quiz submissions",
+		Long: `List all submissions for a quiz.
+
+Examples:
+  canvas quizzes submissions list --course-id 123 --quiz-id 456`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+
+			return runQuizzesSubmissionsList(cmd.Context(), client, opts)
+		},
+	}
+
+	cmd.Flags().Int64Var(&opts.CourseID, "course-id", 0, "Course ID (required)")
+	cmd.Flags().Int64Var(&opts.QuizID, "quiz-id", 0, "Quiz ID (required)")
+	cmd.MarkFlagRequired("course-id")
+	cmd.MarkFlagRequired("quiz-id")
+
+	return cmd
+}
+
+func newQuizzesSubmissionsGetCmd() *cobra.Command {
+	opts := &options.QuizzesSubmissionsGetOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "get <submission-id>",
+		Short: "Get submission details",
+		Long: `Get details of a specific quiz submission.
+
+Examples:
+  canvas quizzes submissions get 789 --course-id 123 --quiz-id 456`,
+		Args: ExactArgsWithUsage(1, "submission-id"),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			submissionID, err := strconv.ParseInt(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid submission ID: %s", args[0])
+			}
+			opts.SubmissionID = submissionID
+
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+
+			return runQuizzesSubmissionsGet(cmd.Context(), client, opts)
+		},
+	}
+
+	cmd.Flags().Int64Var(&opts.CourseID, "course-id", 0, "Course ID (required)")
+	cmd.Flags().Int64Var(&opts.QuizID, "quiz-id", 0, "Quiz ID (required)")
+	cmd.MarkFlagRequired("course-id")
+	cmd.MarkFlagRequired("quiz-id")
+
+	return cmd
+}
+
+// Run functions
+
+func runQuizzesList(ctx context.Context, client *api.Client, opts *options.QuizzesListOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+
+	logger.LogCommandStart(ctx, "quizzes.list", map[string]interface{}{
+		"course_id":   opts.CourseID,
+		"search_term": opts.SearchTerm,
+	})
+
+	// Validate course ID exists
+	if _, err := validateCourseID(client, opts.CourseID); err != nil {
+		logger.LogCommandError(ctx, "quizzes.list", err, map[string]interface{}{
+			"course_id": opts.CourseID,
+		})
 		return err
 	}
 
 	service := api.NewQuizzesService(client)
 
-	opts := &api.ListQuizzesOptions{}
-	if quizzesSearchTerm != "" {
-		opts.SearchTerm = quizzesSearchTerm
+	apiOpts := &api.ListQuizzesOptions{}
+	if opts.SearchTerm != "" {
+		apiOpts.SearchTerm = opts.SearchTerm
 	}
 
-	ctx := context.Background()
-	quizzes, err := service.List(ctx, quizzesCourseID, opts)
+	quizzes, err := service.List(ctx, opts.CourseID, apiOpts)
 	if err != nil {
+		logger.LogCommandError(ctx, "quizzes.list", err, map[string]interface{}{
+			"course_id": opts.CourseID,
+		})
 		return fmt.Errorf("failed to list quizzes: %w", err)
 	}
 
-	if len(quizzes) == 0 {
-		fmt.Printf("No quizzes found in course %d\n", quizzesCourseID)
-		return nil
+	if err := formatEmptyOrOutput(quizzes, "No quizzes found"); err != nil {
+		return fmt.Errorf("failed to print results: %w", err)
 	}
 
-	printVerbose("Found %d quizzes in course %d:\n\n", len(quizzes), quizzesCourseID)
-	return formatOutput(quizzes, nil)
+	logger.LogCommandComplete(ctx, "quizzes.list", len(quizzes))
+	return nil
 }
 
-func runQuizzesGet(cmd *cobra.Command, args []string) error {
-	quizID, err := strconv.ParseInt(args[0], 10, 64)
-	if err != nil {
-		return fmt.Errorf("invalid quiz ID: %w", err)
-	}
+func runQuizzesGet(ctx context.Context, client *api.Client, opts *options.QuizzesGetOptions) error {
+	logger := logging.NewCommandLogger(verbose)
 
-	client, err := getAPIClient()
-	if err != nil {
-		return err
-	}
+	logger.LogCommandStart(ctx, "quizzes.get", map[string]interface{}{
+		"course_id": opts.CourseID,
+		"quiz_id":   opts.QuizID,
+	})
 
 	service := api.NewQuizzesService(client)
 
-	ctx := context.Background()
-	quiz, err := service.Get(ctx, quizzesCourseID, quizID)
+	quiz, err := service.Get(ctx, opts.CourseID, opts.QuizID)
 	if err != nil {
+		logger.LogCommandError(ctx, "quizzes.get", err, map[string]interface{}{
+			"course_id": opts.CourseID,
+			"quiz_id":   opts.QuizID,
+		})
 		return fmt.Errorf("failed to get quiz: %w", err)
 	}
 
-	return formatOutput(quiz, nil)
+	if err := formatOutput(quiz, nil); err != nil {
+		return fmt.Errorf("failed to print results: %w", err)
+	}
+
+	logger.LogCommandComplete(ctx, "quizzes.get", 1)
+	return nil
 }
 
-func runQuizzesCreate(cmd *cobra.Command, args []string) error {
-	client, err := getAPIClient()
-	if err != nil {
-		return err
-	}
+func runQuizzesCreate(ctx context.Context, client *api.Client, opts *options.QuizzesCreateOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+
+	logger.LogCommandStart(ctx, "quizzes.create", map[string]interface{}{
+		"course_id": opts.CourseID,
+		"title":     opts.Title,
+		"quiz_type": opts.QuizType,
+	})
 
 	service := api.NewQuizzesService(client)
 
 	params := &api.CreateQuizParams{
-		Title:                quizzesTitle,
-		Description:          quizzesDescription,
-		QuizType:             quizzesQuizType,
-		AssignmentGroupID:    quizzesAssignmentGroupID,
-		TimeLimit:            quizzesTimeLimit,
-		ShuffleAnswers:       quizzesShuffleAnswers,
-		HideResults:          quizzesHideResults,
-		ShowCorrectAnswers:   quizzesShowCorrectAnswers,
-		ScoringPolicy:        quizzesScoringPolicy,
-		AllowedAttempts:      quizzesAllowedAttempts,
-		OneQuestionAtATime:   quizzesOneQuestionAtATime,
-		CantGoBack:           quizzesCantGoBack,
-		AccessCode:           quizzesAccessCode,
-		IPFilter:             quizzesIPFilter,
-		DueAt:                quizzesDueAt,
-		LockAt:               quizzesLockAt,
-		UnlockAt:             quizzesUnlockAt,
-		Published:            quizzesPublished,
-		AnonymousSubmissions: quizzesAnonymousSubmissions,
+		Title:                opts.Title,
+		Description:          opts.Description,
+		QuizType:             opts.QuizType,
+		AssignmentGroupID:    opts.AssignmentGroupID,
+		TimeLimit:            opts.TimeLimit,
+		ShuffleAnswers:       opts.ShuffleAnswers,
+		HideResults:          opts.HideResults,
+		ShowCorrectAnswers:   opts.ShowCorrectAnswers,
+		ScoringPolicy:        opts.ScoringPolicy,
+		AllowedAttempts:      opts.AllowedAttempts,
+		OneQuestionAtATime:   opts.OneQuestionAtATime,
+		CantGoBack:           opts.CantGoBack,
+		AccessCode:           opts.AccessCode,
+		IPFilter:             opts.IPFilter,
+		DueAt:                opts.DueAt,
+		LockAt:               opts.LockAt,
+		UnlockAt:             opts.UnlockAt,
+		Published:            opts.Published,
+		AnonymousSubmissions: opts.AnonymousSubmissions,
 	}
 
-	ctx := context.Background()
-	quiz, err := service.Create(ctx, quizzesCourseID, params)
+	quiz, err := service.Create(ctx, opts.CourseID, params)
 	if err != nil {
+		logger.LogCommandError(ctx, "quizzes.create", err, map[string]interface{}{
+			"course_id": opts.CourseID,
+			"title":     opts.Title,
+		})
 		return fmt.Errorf("failed to create quiz: %w", err)
 	}
 
 	fmt.Printf("Quiz created successfully (ID: %d)\n", quiz.ID)
-	return formatOutput(quiz, nil)
+	if err := formatOutput(quiz, nil); err != nil {
+		return fmt.Errorf("failed to print results: %w", err)
+	}
+
+	logger.LogCommandComplete(ctx, "quizzes.create", 1)
+	return nil
 }
 
-func runQuizzesUpdate(cmd *cobra.Command, args []string) error {
-	quizID, err := strconv.ParseInt(args[0], 10, 64)
-	if err != nil {
-		return fmt.Errorf("invalid quiz ID: %w", err)
-	}
+func runQuizzesUpdate(ctx context.Context, client *api.Client, opts *options.QuizzesUpdateOptions) error {
+	logger := logging.NewCommandLogger(verbose)
 
-	client, err := getAPIClient()
-	if err != nil {
-		return err
-	}
+	logger.LogCommandStart(ctx, "quizzes.update", map[string]interface{}{
+		"course_id": opts.CourseID,
+		"quiz_id":   opts.QuizID,
+	})
 
 	service := api.NewQuizzesService(client)
 
 	params := &api.UpdateQuizParams{}
 
-	if cmd.Flags().Changed("title") {
-		params.Title = &quizzesTitle
+	if opts.TitleSet {
+		params.Title = &opts.Title
 	}
-	if cmd.Flags().Changed("description") {
-		params.Description = &quizzesDescription
+	if opts.DescriptionSet {
+		params.Description = &opts.Description
 	}
-	if cmd.Flags().Changed("quiz-type") {
-		params.QuizType = &quizzesQuizType
+	if opts.QuizTypeSet {
+		params.QuizType = &opts.QuizType
 	}
-	if cmd.Flags().Changed("assignment-group-id") {
-		params.AssignmentGroupID = &quizzesAssignmentGroupID
+	if opts.AssignmentGroupIDSet {
+		params.AssignmentGroupID = &opts.AssignmentGroupID
 	}
-	if cmd.Flags().Changed("time-limit") {
-		params.TimeLimit = &quizzesTimeLimit
+	if opts.TimeLimitSet {
+		params.TimeLimit = &opts.TimeLimit
 	}
-	if cmd.Flags().Changed("shuffle-answers") {
-		params.ShuffleAnswers = &quizzesShuffleAnswers
+	if opts.ShuffleAnswersSet {
+		params.ShuffleAnswers = &opts.ShuffleAnswers
 	}
-	if cmd.Flags().Changed("hide-results") {
-		params.HideResults = &quizzesHideResults
+	if opts.HideResultsSet {
+		params.HideResults = &opts.HideResults
 	}
-	if cmd.Flags().Changed("show-correct") {
-		params.ShowCorrectAnswers = &quizzesShowCorrectAnswers
+	if opts.ShowCorrectAnswersSet {
+		params.ShowCorrectAnswers = &opts.ShowCorrectAnswers
 	}
-	if cmd.Flags().Changed("scoring-policy") {
-		params.ScoringPolicy = &quizzesScoringPolicy
+	if opts.ScoringPolicySet {
+		params.ScoringPolicy = &opts.ScoringPolicy
 	}
-	if cmd.Flags().Changed("attempts") {
-		params.AllowedAttempts = &quizzesAllowedAttempts
+	if opts.AllowedAttemptsSet {
+		params.AllowedAttempts = &opts.AllowedAttempts
 	}
-	if cmd.Flags().Changed("one-at-a-time") {
-		params.OneQuestionAtATime = &quizzesOneQuestionAtATime
+	if opts.OneQuestionAtATimeSet {
+		params.OneQuestionAtATime = &opts.OneQuestionAtATime
 	}
-	if cmd.Flags().Changed("cant-go-back") {
-		params.CantGoBack = &quizzesCantGoBack
+	if opts.CantGoBackSet {
+		params.CantGoBack = &opts.CantGoBack
 	}
-	if cmd.Flags().Changed("access-code") {
-		params.AccessCode = &quizzesAccessCode
+	if opts.AccessCodeSet {
+		params.AccessCode = &opts.AccessCode
 	}
-	if cmd.Flags().Changed("ip-filter") {
-		params.IPFilter = &quizzesIPFilter
+	if opts.IPFilterSet {
+		params.IPFilter = &opts.IPFilter
 	}
-	if cmd.Flags().Changed("due-at") {
-		params.DueAt = &quizzesDueAt
+	if opts.DueAtSet {
+		params.DueAt = &opts.DueAt
 	}
-	if cmd.Flags().Changed("lock-at") {
-		params.LockAt = &quizzesLockAt
+	if opts.LockAtSet {
+		params.LockAt = &opts.LockAt
 	}
-	if cmd.Flags().Changed("unlock-at") {
-		params.UnlockAt = &quizzesUnlockAt
+	if opts.UnlockAtSet {
+		params.UnlockAt = &opts.UnlockAt
 	}
-	if cmd.Flags().Changed("published") {
-		params.Published = &quizzesPublished
+	if opts.PublishedSet {
+		params.Published = &opts.Published
 	}
-	if cmd.Flags().Changed("anonymous") {
-		params.AnonymousSubmissions = &quizzesAnonymousSubmissions
+	if opts.AnonymousSubmissionsSet {
+		params.AnonymousSubmissions = &opts.AnonymousSubmissions
 	}
 
-	ctx := context.Background()
-	quiz, err := service.Update(ctx, quizzesCourseID, quizID, params)
+	quiz, err := service.Update(ctx, opts.CourseID, opts.QuizID, params)
 	if err != nil {
+		logger.LogCommandError(ctx, "quizzes.update", err, map[string]interface{}{
+			"course_id": opts.CourseID,
+			"quiz_id":   opts.QuizID,
+		})
 		return fmt.Errorf("failed to update quiz: %w", err)
 	}
 
 	fmt.Printf("Quiz updated successfully (ID: %d)\n", quiz.ID)
-	return formatOutput(quiz, nil)
-}
-
-func runQuizzesDelete(cmd *cobra.Command, args []string) error {
-	quizID, err := strconv.ParseInt(args[0], 10, 64)
-	if err != nil {
-		return fmt.Errorf("invalid quiz ID: %w", err)
+	if err := formatOutput(quiz, nil); err != nil {
+		return fmt.Errorf("failed to print results: %w", err)
 	}
 
-	if !quizzesForce {
-		fmt.Printf("WARNING: This will delete quiz %d.\n", quizID)
+	logger.LogCommandComplete(ctx, "quizzes.update", 1)
+	return nil
+}
+
+func runQuizzesDelete(ctx context.Context, client *api.Client, opts *options.QuizzesDeleteOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+
+	logger.LogCommandStart(ctx, "quizzes.delete", map[string]interface{}{
+		"course_id": opts.CourseID,
+		"quiz_id":   opts.QuizID,
+	})
+
+	if !opts.Force {
+		fmt.Printf("WARNING: This will delete quiz %d.\n", opts.QuizID)
 		fmt.Print("Type 'yes' to confirm: ")
 		var confirm string
 		fmt.Scanln(&confirm)
@@ -534,105 +749,130 @@ func runQuizzesDelete(cmd *cobra.Command, args []string) error {
 			fmt.Println("Delete cancelled")
 			return nil
 		}
-	}
-
-	client, err := getAPIClient()
-	if err != nil {
-		return err
 	}
 
 	service := api.NewQuizzesService(client)
 
-	ctx := context.Background()
-	quiz, err := service.Delete(ctx, quizzesCourseID, quizID)
+	quiz, err := service.Delete(ctx, opts.CourseID, opts.QuizID)
 	if err != nil {
+		logger.LogCommandError(ctx, "quizzes.delete", err, map[string]interface{}{
+			"course_id": opts.CourseID,
+			"quiz_id":   opts.QuizID,
+		})
 		return fmt.Errorf("failed to delete quiz: %w", err)
 	}
 
 	fmt.Printf("Quiz %d deleted\n", quiz.ID)
+
+	logger.LogCommandComplete(ctx, "quizzes.delete", 1)
 	return nil
 }
 
-func runQuizzesQuestionsList(cmd *cobra.Command, args []string) error {
-	client, err := getAPIClient()
-	if err != nil {
-		return err
-	}
+func runQuizzesQuestionsList(ctx context.Context, client *api.Client, opts *options.QuizzesQuestionsListOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+
+	logger.LogCommandStart(ctx, "quizzes.questions.list", map[string]interface{}{
+		"course_id": opts.CourseID,
+		"quiz_id":   opts.QuizID,
+	})
 
 	service := api.NewQuizQuestionsService(client)
 
-	ctx := context.Background()
-	questions, err := service.List(ctx, quizzesCourseID, quizzesQuizID, nil)
+	questions, err := service.List(ctx, opts.CourseID, opts.QuizID, nil)
 	if err != nil {
+		logger.LogCommandError(ctx, "quizzes.questions.list", err, map[string]interface{}{
+			"course_id": opts.CourseID,
+			"quiz_id":   opts.QuizID,
+		})
 		return fmt.Errorf("failed to list questions: %w", err)
 	}
 
-	if len(questions) == 0 {
-		fmt.Printf("No questions found in quiz %d\n", quizzesQuizID)
-		return nil
+	if err := formatEmptyOrOutput(questions, "No questions found"); err != nil {
+		return fmt.Errorf("failed to print results: %w", err)
 	}
 
-	printVerbose("Found %d questions in quiz %d:\n\n", len(questions), quizzesQuizID)
-	return formatOutput(questions, nil)
+	logger.LogCommandComplete(ctx, "quizzes.questions.list", len(questions))
+	return nil
 }
 
-func runQuizzesQuestionsGet(cmd *cobra.Command, args []string) error {
-	questionID, err := strconv.ParseInt(args[0], 10, 64)
-	if err != nil {
-		return fmt.Errorf("invalid question ID: %w", err)
-	}
+func runQuizzesQuestionsGet(ctx context.Context, client *api.Client, opts *options.QuizzesQuestionsGetOptions) error {
+	logger := logging.NewCommandLogger(verbose)
 
-	client, err := getAPIClient()
-	if err != nil {
-		return err
-	}
+	logger.LogCommandStart(ctx, "quizzes.questions.get", map[string]interface{}{
+		"course_id":   opts.CourseID,
+		"quiz_id":     opts.QuizID,
+		"question_id": opts.QuestionID,
+	})
 
 	service := api.NewQuizQuestionsService(client)
 
-	ctx := context.Background()
-	question, err := service.Get(ctx, quizzesCourseID, quizzesQuizID, questionID)
+	question, err := service.Get(ctx, opts.CourseID, opts.QuizID, opts.QuestionID)
 	if err != nil {
+		logger.LogCommandError(ctx, "quizzes.questions.get", err, map[string]interface{}{
+			"course_id":   opts.CourseID,
+			"quiz_id":     opts.QuizID,
+			"question_id": opts.QuestionID,
+		})
 		return fmt.Errorf("failed to get question: %w", err)
 	}
 
-	return formatOutput(question, nil)
+	if err := formatOutput(question, nil); err != nil {
+		return fmt.Errorf("failed to print results: %w", err)
+	}
+
+	logger.LogCommandComplete(ctx, "quizzes.questions.get", 1)
+	return nil
 }
 
-func runQuizzesQuestionsCreate(cmd *cobra.Command, args []string) error {
-	client, err := getAPIClient()
-	if err != nil {
-		return err
-	}
+func runQuizzesQuestionsCreate(ctx context.Context, client *api.Client, opts *options.QuizzesQuestionsCreateOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+
+	logger.LogCommandStart(ctx, "quizzes.questions.create", map[string]interface{}{
+		"course_id":     opts.CourseID,
+		"quiz_id":       opts.QuizID,
+		"question_type": opts.QuestionType,
+	})
 
 	service := api.NewQuizQuestionsService(client)
 
 	params := &api.CreateQuizQuestionParams{
-		QuestionName:      quizzesQuestionName,
-		QuestionText:      quizzesQuestionText,
-		QuestionType:      quizzesQuestionType,
-		PointsPossible:    quizzesPointsPossible,
-		CorrectComments:   quizzesCorrectComments,
-		IncorrectComments: quizzesIncorrectComments,
+		QuestionName:      opts.QuestionName,
+		QuestionText:      opts.QuestionText,
+		QuestionType:      opts.QuestionType,
+		PointsPossible:    opts.PointsPossible,
+		CorrectComments:   opts.CorrectComments,
+		IncorrectComments: opts.IncorrectComments,
 	}
 
-	ctx := context.Background()
-	question, err := service.Create(ctx, quizzesCourseID, quizzesQuizID, params)
+	question, err := service.Create(ctx, opts.CourseID, opts.QuizID, params)
 	if err != nil {
+		logger.LogCommandError(ctx, "quizzes.questions.create", err, map[string]interface{}{
+			"course_id": opts.CourseID,
+			"quiz_id":   opts.QuizID,
+		})
 		return fmt.Errorf("failed to create question: %w", err)
 	}
 
 	fmt.Printf("Question created successfully (ID: %d)\n", question.ID)
-	return formatOutput(question, nil)
-}
-
-func runQuizzesQuestionsDelete(cmd *cobra.Command, args []string) error {
-	questionID, err := strconv.ParseInt(args[0], 10, 64)
-	if err != nil {
-		return fmt.Errorf("invalid question ID: %w", err)
+	if err := formatOutput(question, nil); err != nil {
+		return fmt.Errorf("failed to print results: %w", err)
 	}
 
-	if !quizzesForce {
-		fmt.Printf("WARNING: This will delete question %d from quiz %d.\n", questionID, quizzesQuizID)
+	logger.LogCommandComplete(ctx, "quizzes.questions.create", 1)
+	return nil
+}
+
+func runQuizzesQuestionsDelete(ctx context.Context, client *api.Client, opts *options.QuizzesQuestionsDeleteOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+
+	logger.LogCommandStart(ctx, "quizzes.questions.delete", map[string]interface{}{
+		"course_id":   opts.CourseID,
+		"quiz_id":     opts.QuizID,
+		"question_id": opts.QuestionID,
+	})
+
+	if !opts.Force {
+		fmt.Printf("WARNING: This will delete question %d from quiz %d.\n", opts.QuestionID, opts.QuizID)
 		fmt.Print("Type 'yes' to confirm: ")
 		var confirm string
 		fmt.Scanln(&confirm)
@@ -642,63 +882,75 @@ func runQuizzesQuestionsDelete(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	client, err := getAPIClient()
-	if err != nil {
-		return err
-	}
-
 	service := api.NewQuizQuestionsService(client)
 
-	ctx := context.Background()
-	if err := service.Delete(ctx, quizzesCourseID, quizzesQuizID, questionID); err != nil {
+	if err := service.Delete(ctx, opts.CourseID, opts.QuizID, opts.QuestionID); err != nil {
+		logger.LogCommandError(ctx, "quizzes.questions.delete", err, map[string]interface{}{
+			"course_id":   opts.CourseID,
+			"quiz_id":     opts.QuizID,
+			"question_id": opts.QuestionID,
+		})
 		return fmt.Errorf("failed to delete question: %w", err)
 	}
 
-	fmt.Printf("Question %d deleted\n", questionID)
+	fmt.Printf("Question %d deleted\n", opts.QuestionID)
+
+	logger.LogCommandComplete(ctx, "quizzes.questions.delete", 1)
 	return nil
 }
 
-func runQuizzesSubmissionsList(cmd *cobra.Command, args []string) error {
-	client, err := getAPIClient()
-	if err != nil {
-		return err
-	}
+func runQuizzesSubmissionsList(ctx context.Context, client *api.Client, opts *options.QuizzesSubmissionsListOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+
+	logger.LogCommandStart(ctx, "quizzes.submissions.list", map[string]interface{}{
+		"course_id": opts.CourseID,
+		"quiz_id":   opts.QuizID,
+	})
 
 	service := api.NewQuizSubmissionsService(client)
 
-	ctx := context.Background()
-	submissions, err := service.List(ctx, quizzesCourseID, quizzesQuizID, nil)
+	submissions, err := service.List(ctx, opts.CourseID, opts.QuizID, nil)
 	if err != nil {
+		logger.LogCommandError(ctx, "quizzes.submissions.list", err, map[string]interface{}{
+			"course_id": opts.CourseID,
+			"quiz_id":   opts.QuizID,
+		})
 		return fmt.Errorf("failed to list submissions: %w", err)
 	}
 
-	if len(submissions) == 0 {
-		fmt.Printf("No submissions found for quiz %d\n", quizzesQuizID)
-		return nil
+	if err := formatEmptyOrOutput(submissions, "No submissions found"); err != nil {
+		return fmt.Errorf("failed to print results: %w", err)
 	}
 
-	printVerbose("Found %d submissions for quiz %d:\n\n", len(submissions), quizzesQuizID)
-	return formatOutput(submissions, nil)
+	logger.LogCommandComplete(ctx, "quizzes.submissions.list", len(submissions))
+	return nil
 }
 
-func runQuizzesSubmissionsGet(cmd *cobra.Command, args []string) error {
-	submissionID, err := strconv.ParseInt(args[0], 10, 64)
-	if err != nil {
-		return fmt.Errorf("invalid submission ID: %w", err)
-	}
+func runQuizzesSubmissionsGet(ctx context.Context, client *api.Client, opts *options.QuizzesSubmissionsGetOptions) error {
+	logger := logging.NewCommandLogger(verbose)
 
-	client, err := getAPIClient()
-	if err != nil {
-		return err
-	}
+	logger.LogCommandStart(ctx, "quizzes.submissions.get", map[string]interface{}{
+		"course_id":     opts.CourseID,
+		"quiz_id":       opts.QuizID,
+		"submission_id": opts.SubmissionID,
+	})
 
 	service := api.NewQuizSubmissionsService(client)
 
-	ctx := context.Background()
-	submission, err := service.Get(ctx, quizzesCourseID, quizzesQuizID, submissionID, nil)
+	submission, err := service.Get(ctx, opts.CourseID, opts.QuizID, opts.SubmissionID, nil)
 	if err != nil {
+		logger.LogCommandError(ctx, "quizzes.submissions.get", err, map[string]interface{}{
+			"course_id":     opts.CourseID,
+			"quiz_id":       opts.QuizID,
+			"submission_id": opts.SubmissionID,
+		})
 		return fmt.Errorf("failed to get submission: %w", err)
 	}
 
-	return formatOutput(submission, nil)
+	if err := formatOutput(submission, nil); err != nil {
+		return fmt.Errorf("failed to print results: %w", err)
+	}
+
+	logger.LogCommandComplete(ctx, "quizzes.submissions.get", 1)
+	return nil
 }

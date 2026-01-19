@@ -214,56 +214,56 @@ func (f *TableFormatter) Format(data interface{}) (string, error) {
 	var builder strings.Builder
 
 	// Header row
-	builder.WriteString("┌")
+	_, _ = builder.WriteString("┌")
 	for i, width := range widths {
-		builder.WriteString(strings.Repeat("─", width+2))
+		_, _ = builder.WriteString(strings.Repeat("─", width+2))
 		if i < len(widths)-1 {
-			builder.WriteString("┬")
+			_, _ = builder.WriteString("┬")
 		}
 	}
-	builder.WriteString("┐\n")
+	_, _ = builder.WriteString("┐\n")
 
 	// Header content
-	builder.WriteString("│")
+	_, _ = builder.WriteString("│")
 	for i, header := range headers {
-		builder.WriteString(" ")
-		builder.WriteString(header)
-		builder.WriteString(strings.Repeat(" ", widths[i]-len(header)))
-		builder.WriteString(" │")
+		_, _ = builder.WriteString(" ")
+		_, _ = builder.WriteString(header)
+		_, _ = builder.WriteString(strings.Repeat(" ", widths[i]-len(header)))
+		_, _ = builder.WriteString(" │")
 	}
-	builder.WriteString("\n")
+	_, _ = builder.WriteString("\n")
 
 	// Separator
-	builder.WriteString("├")
+	_, _ = builder.WriteString("├")
 	for i, width := range widths {
-		builder.WriteString(strings.Repeat("─", width+2))
+		_, _ = builder.WriteString(strings.Repeat("─", width+2))
 		if i < len(widths)-1 {
-			builder.WriteString("┼")
+			_, _ = builder.WriteString("┼")
 		}
 	}
-	builder.WriteString("┤\n")
+	_, _ = builder.WriteString("┤\n")
 
 	// Data rows
 	for _, row := range rows {
-		builder.WriteString("│")
+		_, _ = builder.WriteString("│")
 		for i, cell := range row {
-			builder.WriteString(" ")
-			builder.WriteString(cell)
-			builder.WriteString(strings.Repeat(" ", widths[i]-len(cell)))
-			builder.WriteString(" │")
+			_, _ = builder.WriteString(" ")
+			_, _ = builder.WriteString(cell)
+			_, _ = builder.WriteString(strings.Repeat(" ", widths[i]-len(cell)))
+			_, _ = builder.WriteString(" │")
 		}
-		builder.WriteString("\n")
+		_, _ = builder.WriteString("\n")
 	}
 
 	// Footer
-	builder.WriteString("└")
+	_, _ = builder.WriteString("└")
 	for i, width := range widths {
-		builder.WriteString(strings.Repeat("─", width+2))
+		_, _ = builder.WriteString(strings.Repeat("─", width+2))
 		if i < len(widths)-1 {
-			builder.WriteString("┴")
+			_, _ = builder.WriteString("┴")
 		}
 	}
-	builder.WriteString("┘\n")
+	_, _ = builder.WriteString("┘\n")
 
 	return builder.String(), nil
 }

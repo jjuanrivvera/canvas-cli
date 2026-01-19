@@ -2,6 +2,8 @@ package api
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
@@ -592,5 +594,170 @@ func TestClient_UserAgent_Custom(t *testing.T) {
 	// Verify custom User-Agent is set
 	if receivedUserAgent != customUserAgent {
 		t.Errorf("Expected User-Agent '%s', got '%s'", customUserAgent, receivedUserAgent)
+	}
+}
+
+// BenchmarkGetAllPages_Reflection benchmarks the old reflection-based GetAllPages method
+func BenchmarkGetAllPages_Reflection(b *testing.B) {
+	// Create test server with paginated data
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		page := r.URL.Query().Get("page")
+		if page == "" || page == "1" {
+			w.Header().Set("Link", `<`+r.URL.String()+`?page=2>; rel="next"`)
+			w.Write([]byte(`[{"id":1,"name":"Item 1"},{"id":2,"name":"Item 2"}]`))
+		} else if page == "2" {
+			w.Write([]byte(`[{"id":3,"name":"Item 3"},{"id":4,"name":"Item 4"}]`))
+		}
+	}))
+	defer server.Close()
+
+	client, _ := NewClient(ClientConfig{
+		BaseURL:        server.URL,
+		Token:          "test-token",
+		RequestsPerSec: 1000, // High rate to avoid throttling in benchmarks
+	})
+
+	type Item struct {
+		ID   int    `json:"id"`
+		Name string `json:"name"`
+	}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		var items []Item
+		if err := client.GetAllPages(context.Background(), "/items", &items); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+// BenchmarkGetAllPages_Generics benchmarks the new generic GetAllPages method
+func BenchmarkGetAllPages_Generics(b *testing.B) {
+	// Create test server with paginated data
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		page := r.URL.Query().Get("page")
+		if page == "" || page == "1" {
+			w.Header().Set("Link", `<`+r.URL.String()+`?page=2>; rel="next"`)
+			w.Write([]byte(`[{"id":1,"name":"Item 1"},{"id":2,"name":"Item 2"}]`))
+		} else if page == "2" {
+			w.Write([]byte(`[{"id":3,"name":"Item 3"},{"id":4,"name":"Item 4"}]`))
+		}
+	}))
+	defer server.Close()
+
+	client, _ := NewClient(ClientConfig{
+		BaseURL:        server.URL,
+		Token:          "test-token",
+		RequestsPerSec: 1000, // High rate to avoid throttling in benchmarks
+	})
+
+	type Item struct {
+		ID   int    `json:"id"`
+		Name string `json:"name"`
+	}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		if _, err := GetAllPagesGeneric[Item](client, context.Background(), "/items"); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+// BenchmarkGetAllPages_LargeDataset_Reflection benchmarks reflection with larger dataset
+func BenchmarkGetAllPages_LargeDataset_Reflection(b *testing.B) {
+	// Create test server with 10 pages of 100 items each (1000 total)
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		page := r.URL.Query().Get("page")
+		pageNum := 1
+		if page != "" {
+			_, _ = fmt.Sscanf(page, "%d", &pageNum)
+		}
+
+		if pageNum < 10 {
+			w.Header().Set("Link", fmt.Sprintf(`<%s?page=%d>; rel="next"`, r.URL.String(), pageNum+1))
+		}
+
+		// Generate 100 items per page
+		items := make([]map[string]interface{}, 100)
+		for i := 0; i < 100; i++ {
+			items[i] = map[string]interface{}{
+				"id":   (pageNum-1)*100 + i + 1,
+				"name": fmt.Sprintf("Item %d", (pageNum-1)*100+i+1),
+			}
+		}
+		json.NewEncoder(w).Encode(items)
+	}))
+	defer server.Close()
+
+	client, _ := NewClient(ClientConfig{
+		BaseURL:        server.URL,
+		Token:          "test-token",
+		RequestsPerSec: 1000,
+	})
+
+	type Item struct {
+		ID   int    `json:"id"`
+		Name string `json:"name"`
+	}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		var items []Item
+		if err := client.GetAllPages(context.Background(), "/items", &items); err != nil {
+			b.Fatal(err)
+		}
+		if len(items) != 1000 {
+			b.Fatalf("Expected 1000 items, got %d", len(items))
+		}
+	}
+}
+
+// BenchmarkGetAllPages_LargeDataset_Generics benchmarks generics with larger dataset
+func BenchmarkGetAllPages_LargeDataset_Generics(b *testing.B) {
+	// Create test server with 10 pages of 100 items each (1000 total)
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		page := r.URL.Query().Get("page")
+		pageNum := 1
+		if page != "" {
+			_, _ = fmt.Sscanf(page, "%d", &pageNum)
+		}
+
+		if pageNum < 10 {
+			w.Header().Set("Link", fmt.Sprintf(`<%s?page=%d>; rel="next"`, r.URL.String(), pageNum+1))
+		}
+
+		// Generate 100 items per page
+		items := make([]map[string]interface{}, 100)
+		for i := 0; i < 100; i++ {
+			items[i] = map[string]interface{}{
+				"id":   (pageNum-1)*100 + i + 1,
+				"name": fmt.Sprintf("Item %d", (pageNum-1)*100+i+1),
+			}
+		}
+		json.NewEncoder(w).Encode(items)
+	}))
+	defer server.Close()
+
+	client, _ := NewClient(ClientConfig{
+		BaseURL:        server.URL,
+		Token:          "test-token",
+		RequestsPerSec: 1000,
+	})
+
+	type Item struct {
+		ID   int    `json:"id"`
+		Name string `json:"name"`
+	}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		items, err := GetAllPagesGeneric[Item](client, context.Background(), "/items")
+		if err != nil {
+			b.Fatal(err)
+		}
+		if len(items) != 1000 {
+			b.Fatalf("Expected 1000 items, got %d", len(items))
+		}
 	}
 }

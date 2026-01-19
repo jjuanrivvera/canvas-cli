@@ -12,6 +12,8 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/jjuanrivvera/canvas-cli/commands/internal/logging"
+	"github.com/jjuanrivvera/canvas-cli/commands/internal/options"
 	"github.com/jjuanrivvera/canvas-cli/internal/api"
 	"github.com/jjuanrivvera/canvas-cli/internal/auth"
 	"github.com/jjuanrivvera/canvas-cli/internal/config"
@@ -30,60 +32,139 @@ Examples:
   canvas config remove staging                    # Remove an instance`,
 }
 
-var configListCmd = &cobra.Command{
-	Use:   "list",
-	Short: "List all configured Canvas instances",
-	Long:  `List all configured Canvas instances with their URLs and status.`,
-	RunE:  runConfigList,
+func init() {
+	rootCmd.AddCommand(configCmd)
+
+	configCmd.AddCommand(newConfigListCmd())
+	configCmd.AddCommand(newConfigAddCmd())
+	configCmd.AddCommand(newConfigUseCmd())
+	configCmd.AddCommand(newConfigRemoveCmd())
+	configCmd.AddCommand(newConfigShowCmd())
+	configCmd.AddCommand(newConfigAccountCmd())
 }
 
-var configAddCmd = &cobra.Command{
-	Use:   "add [name]",
-	Short: "Add a new Canvas instance",
-	Long: `Add a new Canvas instance to the configuration.
+func newConfigListCmd() *cobra.Command {
+	opts := &options.ConfigListOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "list",
+		Short: "List all configured Canvas instances",
+		Long:  `List all configured Canvas instances with their URLs and status.`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+			return runConfigList(cmd.Context(), opts)
+		},
+	}
+
+	return cmd
+}
+
+func newConfigAddCmd() *cobra.Command {
+	opts := &options.ConfigAddOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "add [name]",
+		Short: "Add a new Canvas instance",
+		Long: `Add a new Canvas instance to the configuration.
 
 Examples:
   canvas config add production --url https://canvas.example.com
   canvas config add staging --url https://canvas-staging.example.com --description "Staging environment"`,
-	Args: ExactArgsWithUsage(1, "name"),
-	RunE: runConfigAdd,
+		Args: ExactArgsWithUsage(1, "name"),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			opts.Name = args[0]
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+			return runConfigAdd(cmd.Context(), opts)
+		},
+	}
+
+	cmd.Flags().StringVar(&opts.URL, "url", "", "Canvas instance URL (required)")
+	cmd.Flags().StringVar(&opts.Description, "description", "", "Instance description")
+	cmd.Flags().StringVar(&opts.ClientID, "client-id", "", "OAuth client ID")
+	cmd.MarkFlagRequired("url")
+
+	return cmd
 }
 
-var configUseCmd = &cobra.Command{
-	Use:   "use [instance-name]",
-	Short: "Switch to a different Canvas instance",
-	Long: `Set the default Canvas instance to use for all commands.
+func newConfigUseCmd() *cobra.Command {
+	opts := &options.ConfigUseOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "use [instance-name]",
+		Short: "Switch to a different Canvas instance",
+		Long: `Set the default Canvas instance to use for all commands.
 
 Examples:
   canvas config use production
   canvas config use staging`,
-	Args: ExactArgsWithUsage(1, "instance-name"),
-	RunE: runConfigUse,
+		Args: ExactArgsWithUsage(1, "instance-name"),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			opts.InstanceName = args[0]
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+			return runConfigUse(cmd.Context(), opts)
+		},
+	}
+
+	return cmd
 }
 
-var configRemoveCmd = &cobra.Command{
-	Use:   "remove [instance-name]",
-	Short: "Remove a Canvas instance from configuration",
-	Long: `Remove a configured Canvas instance. This will not delete any data from Canvas,
+func newConfigRemoveCmd() *cobra.Command {
+	opts := &options.ConfigRemoveOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "remove [instance-name]",
+		Short: "Remove a Canvas instance from configuration",
+		Long: `Remove a configured Canvas instance. This will not delete any data from Canvas,
 only remove the instance from your local configuration.
 
 Examples:
   canvas config remove staging`,
-	Args: ExactArgsWithUsage(1, "instance-name"),
-	RunE: runConfigRemove,
+		Args: ExactArgsWithUsage(1, "instance-name"),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			opts.InstanceName = args[0]
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+			return runConfigRemove(cmd.Context(), opts)
+		},
+	}
+
+	cmd.Flags().BoolVarP(&opts.Force, "force", "f", false, "Skip confirmation prompt")
+
+	return cmd
 }
 
-var configShowCmd = &cobra.Command{
-	Use:   "show",
-	Short: "Show current configuration details",
-	Long:  `Display the current configuration including default instance and settings.`,
-	RunE:  runConfigShow,
+func newConfigShowCmd() *cobra.Command {
+	opts := &options.ConfigShowOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "show",
+		Short: "Show current configuration details",
+		Long:  `Display the current configuration including default instance and settings.`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+			return runConfigShow(cmd.Context(), opts)
+		},
+	}
+
+	return cmd
 }
 
-var configAccountCmd = &cobra.Command{
-	Use:   "account [instance-name] [account-id]",
-	Short: "Set the default account ID for an instance",
-	Long: `Set or auto-detect the default account ID for a Canvas instance.
+func newConfigAccountCmd() *cobra.Command {
+	opts := &options.ConfigAccountOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "account [instance-name] [account-id]",
+		Short: "Set the default account ID for an instance",
+		Long: `Set or auto-detect the default account ID for a Canvas instance.
 
 The default account ID is used when API calls require an account ID but none is specified.
 
@@ -95,51 +176,43 @@ Examples:
   # Auto-detect account ID (fetches accounts from API)
   canvas config account production --detect
   canvas config account --detect              # Uses default instance`,
-	Args: cobra.MaximumNArgs(2),
-	RunE: runConfigAccount,
+		Args: cobra.MaximumNArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) >= 1 {
+				opts.InstanceName = args[0]
+			}
+			if len(args) >= 2 {
+				accountID, err := strconv.ParseInt(args[1], 10, 64)
+				if err != nil {
+					return fmt.Errorf("invalid account ID: %s", args[1])
+				}
+				opts.AccountID = accountID
+			}
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+			return runConfigAccount(cmd.Context(), opts)
+		},
+	}
+
+	cmd.Flags().BoolVar(&opts.Detect, "detect", false, "Auto-detect account ID from Canvas API")
+
+	return cmd
 }
 
-// Config command flags
-var (
-	configURL         string
-	configDescription string
-	configClientID    string
-	configForce       bool
-	configDetect      bool
-)
+func runConfigList(ctx context.Context, opts *options.ConfigListOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+	logger.LogCommandStart(ctx, "config.list", map[string]interface{}{})
 
-func init() {
-	rootCmd.AddCommand(configCmd)
-
-	// Add subcommands
-	configCmd.AddCommand(configListCmd)
-	configCmd.AddCommand(configAddCmd)
-	configCmd.AddCommand(configUseCmd)
-	configCmd.AddCommand(configRemoveCmd)
-	configCmd.AddCommand(configShowCmd)
-	configCmd.AddCommand(configAccountCmd)
-
-	// Flags for add command
-	configAddCmd.Flags().StringVar(&configURL, "url", "", "Canvas instance URL (required)")
-	configAddCmd.Flags().StringVar(&configDescription, "description", "", "Instance description")
-	configAddCmd.Flags().StringVar(&configClientID, "client-id", "", "OAuth client ID")
-	configAddCmd.MarkFlagRequired("url")
-
-	// Flags for remove command
-	configRemoveCmd.Flags().BoolVarP(&configForce, "force", "f", false, "Skip confirmation prompt")
-
-	// Flags for account command
-	configAccountCmd.Flags().BoolVar(&configDetect, "detect", false, "Auto-detect account ID from Canvas API")
-}
-
-func runConfigList(_ *cobra.Command, _ []string) error {
 	cfg, err := config.Load()
 	if err != nil {
+		logger.LogCommandError(ctx, "config.list", err, map[string]interface{}{})
 		return fmt.Errorf("failed to load config: %w", err)
 	}
 
 	instances := cfg.ListInstances()
 	if len(instances) == 0 {
+		logger.LogCommandComplete(ctx, "config.list", 0)
 		fmt.Println("No instances configured.")
 		fmt.Println("\nTo add an instance:")
 		fmt.Println("  canvas config add <name> --url <canvas-url>")
@@ -171,119 +244,163 @@ func runConfigList(_ *cobra.Command, _ []string) error {
 	}
 
 	fmt.Printf("\nTotal: %d instance(s)\n", len(instances))
+	logger.LogCommandComplete(ctx, "config.list", len(instances))
 	return nil
 }
 
-func runConfigAdd(_ *cobra.Command, args []string) error {
-	instanceName := args[0]
+func runConfigAdd(ctx context.Context, opts *options.ConfigAddOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+	logger.LogCommandStart(ctx, "config.add", map[string]interface{}{
+		"instance_name": opts.Name,
+		"url":           opts.URL,
+	})
 
 	// Validate URL
-	parsedURL, err := url.Parse(configURL)
+	parsedURL, err := url.Parse(opts.URL)
 	if err != nil {
+		logger.LogCommandError(ctx, "config.add", err, map[string]interface{}{
+			"url": opts.URL,
+		})
 		return fmt.Errorf("invalid URL: %w", err)
 	}
 
 	if parsedURL.Scheme == "" {
-		configURL = "https://" + configURL
-		parsedURL, _ = url.Parse(configURL)
+		opts.URL = "https://" + opts.URL
+		parsedURL, _ = url.Parse(opts.URL)
 	}
 
 	if parsedURL.Scheme != "http" && parsedURL.Scheme != "https" {
-		return fmt.Errorf("URL must use http or https scheme")
+		err := fmt.Errorf("URL must use http or https scheme")
+		logger.LogCommandError(ctx, "config.add", err, map[string]interface{}{
+			"url":    opts.URL,
+			"scheme": parsedURL.Scheme,
+		})
+		return err
 	}
 
 	// Remove trailing slash
-	configURL = strings.TrimSuffix(configURL, "/")
+	opts.URL = strings.TrimSuffix(opts.URL, "/")
 
 	cfg, err := config.Load()
 	if err != nil {
+		logger.LogCommandError(ctx, "config.add", err, map[string]interface{}{})
 		return fmt.Errorf("failed to load config: %w", err)
 	}
 
 	instance := &config.Instance{
-		Name:        instanceName,
-		URL:         configURL,
-		Description: configDescription,
-		ClientID:    configClientID,
+		Name:        opts.Name,
+		URL:         opts.URL,
+		Description: opts.Description,
+		ClientID:    opts.ClientID,
 	}
 
 	if err := cfg.AddInstance(instance); err != nil {
+		logger.LogCommandError(ctx, "config.add", err, map[string]interface{}{
+			"instance_name": opts.Name,
+		})
 		return fmt.Errorf("failed to add instance: %w", err)
 	}
 
-	fmt.Printf("Instance %q added successfully.\n", instanceName)
+	fmt.Printf("Instance %q added successfully.\n", opts.Name)
 
-	if cfg.DefaultInstance == instanceName {
+	if cfg.DefaultInstance == opts.Name {
 		fmt.Printf("Set as default instance.\n")
 	}
 
 	fmt.Println("\nNext step: Authenticate with this instance:")
-	fmt.Printf("  canvas auth login --instance %s\n", instanceName)
+	fmt.Printf("  canvas auth login --instance %s\n", opts.Name)
 
+	logger.LogCommandComplete(ctx, "config.add", 1)
 	return nil
 }
 
-func runConfigUse(_ *cobra.Command, args []string) error {
-	instanceName := args[0]
+func runConfigUse(ctx context.Context, opts *options.ConfigUseOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+	logger.LogCommandStart(ctx, "config.use", map[string]interface{}{
+		"instance_name": opts.InstanceName,
+	})
 
 	cfg, err := config.Load()
 	if err != nil {
+		logger.LogCommandError(ctx, "config.use", err, map[string]interface{}{})
 		return fmt.Errorf("failed to load config: %w", err)
 	}
 
-	if err := cfg.SetDefaultInstance(instanceName); err != nil {
+	if err := cfg.SetDefaultInstance(opts.InstanceName); err != nil {
+		logger.LogCommandError(ctx, "config.use", err, map[string]interface{}{
+			"instance_name": opts.InstanceName,
+		})
 		return fmt.Errorf("failed to set default instance: %w", err)
 	}
 
-	fmt.Printf("Switched to instance %q.\n", instanceName)
+	fmt.Printf("Switched to instance %q.\n", opts.InstanceName)
+	logger.LogCommandComplete(ctx, "config.use", 1)
 	return nil
 }
 
-func runConfigRemove(_ *cobra.Command, args []string) error {
-	instanceName := args[0]
+func runConfigRemove(ctx context.Context, opts *options.ConfigRemoveOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+	logger.LogCommandStart(ctx, "config.remove", map[string]interface{}{
+		"instance_name": opts.InstanceName,
+		"force":         opts.Force,
+	})
 
 	cfg, err := config.Load()
 	if err != nil {
+		logger.LogCommandError(ctx, "config.remove", err, map[string]interface{}{})
 		return fmt.Errorf("failed to load config: %w", err)
 	}
 
 	// Check if instance exists
-	if _, err := cfg.GetInstance(instanceName); err != nil {
-		return fmt.Errorf("instance %q not found", instanceName)
+	if _, err := cfg.GetInstance(opts.InstanceName); err != nil {
+		logger.LogCommandError(ctx, "config.remove", err, map[string]interface{}{
+			"instance_name": opts.InstanceName,
+		})
+		return fmt.Errorf("instance %q not found", opts.InstanceName)
 	}
 
 	// Confirm removal unless --force is used
-	if !configForce {
-		fmt.Printf("Are you sure you want to remove instance %q? [y/N]: ", instanceName)
+	if !opts.Force {
+		fmt.Printf("Are you sure you want to remove instance %q? [y/N]: ", opts.InstanceName)
 		reader := bufio.NewReader(os.Stdin)
 		response, err := reader.ReadString('\n')
 		if err != nil {
+			logger.LogCommandError(ctx, "config.remove", err, map[string]interface{}{})
 			return fmt.Errorf("failed to read response: %w", err)
 		}
 
 		response = strings.TrimSpace(strings.ToLower(response))
 		if response != "y" && response != "yes" {
+			logger.LogCommandComplete(ctx, "config.remove", 0)
 			fmt.Println("Cancelled.")
 			return nil
 		}
 	}
 
-	if err := cfg.RemoveInstance(instanceName); err != nil {
+	if err := cfg.RemoveInstance(opts.InstanceName); err != nil {
+		logger.LogCommandError(ctx, "config.remove", err, map[string]interface{}{
+			"instance_name": opts.InstanceName,
+		})
 		return fmt.Errorf("failed to remove instance: %w", err)
 	}
 
-	fmt.Printf("Instance %q removed.\n", instanceName)
+	fmt.Printf("Instance %q removed.\n", opts.InstanceName)
 
 	if cfg.DefaultInstance != "" {
 		fmt.Printf("New default instance: %s\n", cfg.DefaultInstance)
 	}
 
+	logger.LogCommandComplete(ctx, "config.remove", 1)
 	return nil
 }
 
-func runConfigShow(_ *cobra.Command, _ []string) error {
+func runConfigShow(ctx context.Context, opts *options.ConfigShowOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+	logger.LogCommandStart(ctx, "config.show", map[string]interface{}{})
+
 	cfg, err := config.Load()
 	if err != nil {
+		logger.LogCommandError(ctx, "config.show", err, map[string]interface{}{})
 		return fmt.Errorf("failed to load config: %w", err)
 	}
 
@@ -327,6 +444,7 @@ func runConfigShow(_ *cobra.Command, _ []string) error {
 		fmt.Printf("  Log level: %s\n", cfg.Settings.LogLevel)
 	}
 
+	logger.LogCommandComplete(ctx, "config.show", 1)
 	return nil
 }
 
@@ -337,20 +455,28 @@ func valueOrNone(s string) string {
 	return s
 }
 
-func runConfigAccount(_ *cobra.Command, args []string) error {
+func runConfigAccount(ctx context.Context, opts *options.ConfigAccountOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+	logger.LogCommandStart(ctx, "config.account", map[string]interface{}{
+		"instance_name": opts.InstanceName,
+		"account_id":    opts.AccountID,
+		"detect":        opts.Detect,
+	})
+
 	cfg, err := config.Load()
 	if err != nil {
+		logger.LogCommandError(ctx, "config.account", err, map[string]interface{}{})
 		return fmt.Errorf("failed to load config: %w", err)
 	}
 
 	// Determine instance name
-	var instanceName string
-	if len(args) >= 1 {
-		instanceName = args[0]
-	} else {
+	instanceName := opts.InstanceName
+	if instanceName == "" {
 		// Use default instance
 		if cfg.DefaultInstance == "" {
-			return fmt.Errorf("no instance specified and no default instance configured")
+			err := fmt.Errorf("no instance specified and no default instance configured")
+			logger.LogCommandError(ctx, "config.account", err, map[string]interface{}{})
+			return err
 		}
 		instanceName = cfg.DefaultInstance
 	}
@@ -358,16 +484,19 @@ func runConfigAccount(_ *cobra.Command, args []string) error {
 	// Verify instance exists
 	instance, err := cfg.GetInstance(instanceName)
 	if err != nil {
+		logger.LogCommandError(ctx, "config.account", err, map[string]interface{}{
+			"instance_name": instanceName,
+		})
 		return fmt.Errorf("instance %q not found", instanceName)
 	}
 
 	// Check for detect mode
-	if configDetect {
-		return runConfigAccountDetect(cfg, instance)
+	if opts.Detect {
+		return runConfigAccountDetect(ctx, logger, cfg, instance)
 	}
 
-	// Manual mode - requires account ID argument
-	if len(args) < 2 {
+	// Manual mode - requires account ID
+	if opts.AccountID == 0 {
 		// Show current setting if no account ID provided
 		if instance.HasDefaultAccountID() {
 			fmt.Printf("Instance %q default account ID: %d\n", instanceName, instance.DefaultAccountID)
@@ -377,49 +506,63 @@ func runConfigAccount(_ *cobra.Command, args []string) error {
 			fmt.Printf("  canvas config account %s <account-id>\n", instanceName)
 			fmt.Printf("  canvas config account %s --detect\n", instanceName)
 		}
+		logger.LogCommandComplete(ctx, "config.account", 0)
 		return nil
 	}
 
-	// Parse account ID
-	accountID, err := strconv.ParseInt(args[1], 10, 64)
-	if err != nil {
-		return fmt.Errorf("invalid account ID: %s", args[1])
-	}
-
-	if accountID <= 0 {
-		return fmt.Errorf("account ID must be a positive number")
+	if opts.AccountID <= 0 {
+		err := fmt.Errorf("account ID must be a positive number")
+		logger.LogCommandError(ctx, "config.account", err, map[string]interface{}{
+			"account_id": opts.AccountID,
+		})
+		return err
 	}
 
 	// Set the account ID
-	if err := cfg.SetDefaultAccountID(instanceName, accountID); err != nil {
+	if err := cfg.SetDefaultAccountID(instanceName, opts.AccountID); err != nil {
+		logger.LogCommandError(ctx, "config.account", err, map[string]interface{}{
+			"instance_name": instanceName,
+			"account_id":    opts.AccountID,
+		})
 		return fmt.Errorf("failed to set default account ID: %w", err)
 	}
 
-	fmt.Printf("Default account ID for %q set to %d.\n", instanceName, accountID)
+	fmt.Printf("Default account ID for %q set to %d.\n", instanceName, opts.AccountID)
+	logger.LogCommandComplete(ctx, "config.account", 1)
 	return nil
 }
 
-func runConfigAccountDetect(cfg *config.Config, instance *config.Instance) error {
+func runConfigAccountDetect(ctx context.Context, logger *logging.CommandLogger, cfg *config.Config, instance *config.Instance) error {
 	fmt.Printf("Detecting accounts for instance %q...\n", instance.Name)
 
 	// Create API client for this instance
 	client, err := getAPIClientForInstanceByName(instance.Name)
 	if err != nil {
+		logger.LogCommandError(ctx, "config.account", err, map[string]interface{}{
+			"instance_name": instance.Name,
+		})
 		return fmt.Errorf("failed to create API client: %w", err)
 	}
 
 	// Fetch accounts with a longer timeout for slow connections
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	detectCtx, cancel := context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
 
 	accountsService := api.NewAccountsService(client)
-	accounts, err := accountsService.List(ctx, nil)
+	accounts, err := accountsService.List(detectCtx, nil)
 	if err != nil {
+		logger.LogCommandError(ctx, "config.account", err, map[string]interface{}{
+			"instance_name": instance.Name,
+		})
 		return fmt.Errorf("failed to fetch accounts: %w", err)
 	}
 
 	if len(accounts) == 0 {
-		return fmt.Errorf("no accounts found. You may not have permission to view any accounts")
+		err := fmt.Errorf("no accounts found. You may not have permission to view any accounts")
+		logger.LogCommandError(ctx, "config.account", err, map[string]interface{}{
+			"instance_name": instance.Name,
+		})
+		return err
 	}
 
 	var selectedAccountID int64
@@ -446,13 +589,18 @@ func runConfigAccountDetect(cfg *config.Config, instance *config.Instance) error
 		reader := bufio.NewReader(os.Stdin)
 		response, err := reader.ReadString('\n')
 		if err != nil {
+			logger.LogCommandError(ctx, "config.account", err, map[string]interface{}{})
 			return fmt.Errorf("failed to read response: %w", err)
 		}
 
 		response = strings.TrimSpace(response)
 		selection, err := strconv.Atoi(response)
 		if err != nil || selection < 1 || selection > len(accounts) {
-			return fmt.Errorf("invalid selection: %s", response)
+			err := fmt.Errorf("invalid selection: %s", response)
+			logger.LogCommandError(ctx, "config.account", err, map[string]interface{}{
+				"selection": response,
+			})
+			return err
 		}
 
 		selectedAccountID = accounts[selection-1].ID
@@ -460,10 +608,15 @@ func runConfigAccountDetect(cfg *config.Config, instance *config.Instance) error
 
 	// Save the selected account ID
 	if err := cfg.SetDefaultAccountID(instance.Name, selectedAccountID); err != nil {
+		logger.LogCommandError(ctx, "config.account", err, map[string]interface{}{
+			"instance_name": instance.Name,
+			"account_id":    selectedAccountID,
+		})
 		return fmt.Errorf("failed to save account ID: %w", err)
 	}
 
 	fmt.Printf("\nDefault account ID for %q set to %d.\n", instance.Name, selectedAccountID)
+	logger.LogCommandComplete(ctx, "config.account", 1)
 	return nil
 }
 

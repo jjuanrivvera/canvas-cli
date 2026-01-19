@@ -90,7 +90,10 @@ func getVersionCachePath(baseURL string) string {
 	if err := os.MkdirAll(cacheDir, 0700); err != nil {
 		// If we can't create the cache directory, just return the path anyway
 		// The write will fail later but that's acceptable for caching
-		slog.Debug("Failed to create cache directory", "error", err)
+		slog.Warn("Failed to create version cache directory, caching disabled",
+			"path", cacheDir,
+			"error", err,
+			"suggestion", "Check directory permissions or disk space")
 	}
 
 	// Hash the baseURL to create a unique cache file name
@@ -135,11 +138,15 @@ func saveCachedVersion(baseURL string, version *CanvasVersion, unknown bool) {
 
 	data, err := json.Marshal(item)
 	if err != nil {
+		slog.Warn("Failed to marshal version cache data", "error", err)
 		return
 	}
 
 	if err := os.WriteFile(cachePath, data, 0600); err != nil {
-		slog.Debug("Failed to write version cache", "error", err)
+		slog.Warn("Failed to write version cache file",
+			"path", cachePath,
+			"error", err,
+			"suggestion", "Check directory permissions or disk space")
 	}
 }
 

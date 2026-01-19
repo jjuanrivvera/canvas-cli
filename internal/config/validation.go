@@ -70,6 +70,69 @@ func ValidateInstance(instance *Instance) error {
 		return fmt.Errorf("URL must have a host")
 	}
 
+	// Validate authentication if configured
+	if instance.Token != "" {
+		if err := ValidateToken(instance.Token); err != nil {
+			return fmt.Errorf("invalid token: %w", err)
+		}
+	}
+
+	// Validate OAuth credentials if configured
+	if instance.ClientID != "" && instance.ClientSecret == "" {
+		return fmt.Errorf("client_secret is required when client_id is set")
+	}
+	if instance.ClientSecret != "" && instance.ClientID == "" {
+		return fmt.Errorf("client_id is required when client_secret is set")
+	}
+
+	if instance.ClientID != "" && len(instance.ClientID) < 10 {
+		return fmt.Errorf("client_id seems too short (minimum 10 characters)")
+	}
+
+	if instance.ClientSecret != "" && len(instance.ClientSecret) < 10 {
+		return fmt.Errorf("client_secret seems too short (minimum 10 characters)")
+	}
+
+	// Validate default account ID
+	if instance.DefaultAccountID < 0 {
+		return fmt.Errorf("default_account_id cannot be negative")
+	}
+
+	return nil
+}
+
+// ValidateToken validates an API token format
+func ValidateToken(token string) error {
+	if token == "" {
+		return fmt.Errorf("token cannot be empty")
+	}
+
+	// Trim whitespace for validation
+	trimmed := strings.TrimSpace(token)
+	if trimmed == "" {
+		return fmt.Errorf("token cannot be only whitespace")
+	}
+
+	// Canvas tokens are typically long alphanumeric strings
+	// Minimum reasonable length is 20 characters
+	if len(trimmed) < 20 {
+		return fmt.Errorf("token seems too short (minimum 20 characters), got %d", len(trimmed))
+	}
+
+	// Maximum reasonable length (Canvas tokens are usually < 100 chars)
+	if len(trimmed) > 500 {
+		return fmt.Errorf("token seems too long (maximum 500 characters), got %d", len(trimmed))
+	}
+
+	// Check for common placeholder values
+	lowerToken := strings.ToLower(trimmed)
+	placeholders := []string{"your-token-here", "your_token_here", "replace-me", "changeme", "example", "token"}
+	for _, placeholder := range placeholders {
+		if lowerToken == placeholder {
+			return fmt.Errorf("token appears to be a placeholder value: %q", placeholder)
+		}
+	}
+
 	return nil
 }
 
