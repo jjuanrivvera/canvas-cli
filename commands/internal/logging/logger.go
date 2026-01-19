@@ -38,7 +38,7 @@ func NewCommandLogger(debug bool) *CommandLogger {
 
 // LogCommandStart logs command execution start
 func (l *CommandLogger) LogCommandStart(ctx context.Context, cmd string, args map[string]interface{}) {
-	l.logger.InfoContext(ctx, "Command started",
+	l.logger.DebugContext(ctx, "Command started",
 		"command", cmd,
 		"args", args,
 	)
@@ -46,7 +46,7 @@ func (l *CommandLogger) LogCommandStart(ctx context.Context, cmd string, args ma
 
 // LogAPICall logs an API request
 func (l *CommandLogger) LogAPICall(ctx context.Context, method, path string, statusCode int, duration time.Duration) {
-	l.logger.InfoContext(ctx, "API call",
+	l.logger.DebugContext(ctx, "API call",
 		"method", method,
 		"path", path,
 		"status_code", statusCode,
@@ -56,7 +56,7 @@ func (l *CommandLogger) LogAPICall(ctx context.Context, method, path string, sta
 
 // LogCommandComplete logs successful command completion
 func (l *CommandLogger) LogCommandComplete(ctx context.Context, cmd string, recordsProcessed int) {
-	l.logger.InfoContext(ctx, "Command completed",
+	l.logger.DebugContext(ctx, "Command completed",
 		"command", cmd,
 		"records_processed", recordsProcessed,
 	)
