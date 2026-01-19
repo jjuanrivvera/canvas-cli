@@ -610,9 +610,9 @@ func TestClient_TrackError_FlushChannelFull(t *testing.T) {
 }
 
 func TestClient_Flush_WriteError(t *testing.T) {
-	// Skip on Windows as chmod doesn't prevent writing
-	if runtime.GOOS == "windows" {
-		t.Skip("Skipping write error test on Windows (chmod doesn't work the same way)")
+	// Skip on Windows and macOS as chmod doesn't prevent writing
+	if runtime.GOOS == "windows" || runtime.GOOS == "darwin" {
+		t.Skip("Skipping write error test on Windows and macOS (chmod behavior differs from Linux)")
 	}
 
 	tempDir := t.TempDir()
@@ -641,9 +641,9 @@ func TestClient_Flush_WriteError(t *testing.T) {
 }
 
 func TestClient_Close_FlushError(t *testing.T) {
-	// Skip on Windows as chmod doesn't prevent writing
-	if runtime.GOOS == "windows" {
-		t.Skip("Skipping flush error test on Windows (chmod doesn't work the same way)")
+	// Skip on Windows and macOS as chmod doesn't prevent writing
+	if runtime.GOOS == "windows" || runtime.GOOS == "darwin" {
+		t.Skip("Skipping flush error test on Windows and macOS (chmod behavior differs from Linux)")
 	}
 
 	tempDir := t.TempDir()

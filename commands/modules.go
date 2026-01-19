@@ -7,36 +7,9 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/jjuanrivvera/canvas-cli/commands/internal/logging"
+	"github.com/jjuanrivvera/canvas-cli/commands/internal/options"
 	"github.com/jjuanrivvera/canvas-cli/internal/api"
-)
-
-var (
-	modulesCourseID   int64
-	modulesInclude    []string
-	modulesSearchTerm string
-	modulesStudentID  string
-	modulesForce      bool
-	// Create/Update flags
-	modulesName                      string
-	modulesUnlockAt                  string
-	modulesPosition                  int
-	modulesRequireSequentialProgress bool
-	modulesPrerequisiteModuleIDs     []int64
-	modulesPublishFinalGrade         bool
-	modulesPublished                 bool
-	// Module items flags
-	modulesModuleID           int64
-	modulesItemType           string
-	modulesItemTitle          string
-	modulesItemContentID      int64
-	modulesItemPageURL        string
-	modulesItemExternalURL    string
-	modulesItemNewTab         bool
-	modulesItemIndent         int
-	modulesItemCompletionType string
-	modulesItemMinScore       float64
-	modulesItemMoveToModule   int64
-	modulesItemPublished      bool
 )
 
 // modulesCmd represents the modules command group
@@ -56,78 +29,227 @@ Examples:
   canvas modules items list --course-id 123 --module-id 456`,
 }
 
-// modulesListCmd represents the modules list command
-var modulesListCmd = &cobra.Command{
-	Use:   "list",
-	Short: "List modules in a course",
-	Long: `List all modules in a Canvas course.
+// newModulesListCmd creates the modules list command
+func newModulesListCmd() *cobra.Command {
+	opts := &options.ModulesListOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "list",
+		Short: "List modules in a course",
+		Long: `List all modules in a Canvas course.
 
 Examples:
   canvas modules list --course-id 123
   canvas modules list --course-id 123 --include items
   canvas modules list --course-id 123 --search "Week"
   canvas modules list --course-id 123 --student-id 789`,
-	RunE: runModulesList,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+
+			return runModulesList(cmd.Context(), client, opts)
+		},
+	}
+
+	cmd.Flags().Int64Var(&opts.CourseID, "course-id", 0, "Course ID (required)")
+	cmd.Flags().StringSliceVar(&opts.Include, "include", []string{}, "Additional data to include (items, content_details)")
+	cmd.Flags().StringVar(&opts.SearchTerm, "search", "", "Search by module name")
+	cmd.Flags().StringVar(&opts.StudentID, "student-id", "", "Get completion info for this student")
+	cmd.MarkFlagRequired("course-id")
+
+	return cmd
 }
 
-// modulesGetCmd represents the modules get command
-var modulesGetCmd = &cobra.Command{
-	Use:   "get <module-id>",
-	Short: "Get details of a specific module",
-	Long: `Get details of a specific module by ID.
+// newModulesGetCmd creates the modules get command
+func newModulesGetCmd() *cobra.Command {
+	opts := &options.ModulesGetOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "get <module-id>",
+		Short: "Get details of a specific module",
+		Long: `Get details of a specific module by ID.
 
 Examples:
   canvas modules get --course-id 123 456
   canvas modules get --course-id 123 456 --include items,content_details`,
-	Args: ExactArgsWithUsage(1, "module-id"),
-	RunE: runModulesGet,
+		Args: ExactArgsWithUsage(1, "module-id"),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			moduleID, err := strconv.ParseInt(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid module ID: %s", args[0])
+			}
+			opts.ModuleID = moduleID
+
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+
+			return runModulesGet(cmd.Context(), client, opts)
+		},
+	}
+
+	cmd.Flags().Int64Var(&opts.CourseID, "course-id", 0, "Course ID (required)")
+	cmd.Flags().StringSliceVar(&opts.Include, "include", []string{}, "Additional data to include (items, content_details)")
+	cmd.MarkFlagRequired("course-id")
+
+	return cmd
 }
 
-// modulesCreateCmd represents the modules create command
-var modulesCreateCmd = &cobra.Command{
-	Use:   "create",
-	Short: "Create a new module",
-	Long: `Create a new module in a course.
+// newModulesCreateCmd creates the modules create command
+func newModulesCreateCmd() *cobra.Command {
+	opts := &options.ModulesCreateOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "create",
+		Short: "Create a new module",
+		Long: `Create a new module in a course.
 
 Examples:
   canvas modules create --course-id 123 --name "Week 1"
   canvas modules create --course-id 123 --name "Week 2" --position 2
   canvas modules create --course-id 123 --name "Unit 2" --prerequisite-modules 1,2
   canvas modules create --course-id 123 --name "Final" --require-sequential-progress`,
-	RunE: runModulesCreate,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+
+			return runModulesCreate(cmd.Context(), client, opts)
+		},
+	}
+
+	cmd.Flags().Int64Var(&opts.CourseID, "course-id", 0, "Course ID (required)")
+	cmd.Flags().StringVar(&opts.Name, "name", "", "Module name (required)")
+	cmd.Flags().StringVar(&opts.UnlockAt, "unlock-at", "", "Date to unlock the module (ISO 8601)")
+	cmd.Flags().IntVar(&opts.Position, "position", 0, "Position in the course (1-based)")
+	cmd.Flags().BoolVar(&opts.RequireSequentialProgress, "require-sequential-progress", false, "Require sequential progress")
+	cmd.Flags().Int64SliceVar(&opts.PrerequisiteModuleIDs, "prerequisite-modules", []int64{}, "IDs of prerequisite modules")
+	cmd.Flags().BoolVar(&opts.PublishFinalGrade, "publish-final-grade", false, "Publish final grade on completion")
+	cmd.MarkFlagRequired("course-id")
+	cmd.MarkFlagRequired("name")
+
+	return cmd
 }
 
-// modulesUpdateCmd represents the modules update command
-var modulesUpdateCmd = &cobra.Command{
-	Use:   "update <module-id>",
-	Short: "Update an existing module",
-	Long: `Update an existing module.
+// newModulesUpdateCmd creates the modules update command
+func newModulesUpdateCmd() *cobra.Command {
+	opts := &options.ModulesUpdateOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "update <module-id>",
+		Short: "Update an existing module",
+		Long: `Update an existing module.
 
 Examples:
   canvas modules update --course-id 123 456 --name "Updated Name"
   canvas modules update --course-id 123 456 --published
   canvas modules update --course-id 123 456 --position 3`,
-	Args: ExactArgsWithUsage(1, "module-id"),
-	RunE: runModulesUpdate,
+		Args: ExactArgsWithUsage(1, "module-id"),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			moduleID, err := strconv.ParseInt(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid module ID: %s", args[0])
+			}
+			opts.ModuleID = moduleID
+
+			// Track which fields were set
+			opts.NameSet = cmd.Flags().Changed("name")
+			opts.UnlockAtSet = cmd.Flags().Changed("unlock-at")
+			opts.PositionSet = cmd.Flags().Changed("position")
+			opts.RequireSequentialProgressSet = cmd.Flags().Changed("require-sequential-progress")
+			opts.PrerequisiteModuleIDsSet = cmd.Flags().Changed("prerequisite-modules")
+			opts.PublishFinalGradeSet = cmd.Flags().Changed("publish-final-grade")
+			opts.PublishedSet = cmd.Flags().Changed("published")
+
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+
+			return runModulesUpdate(cmd.Context(), client, opts)
+		},
+	}
+
+	cmd.Flags().Int64Var(&opts.CourseID, "course-id", 0, "Course ID (required)")
+	cmd.Flags().StringVar(&opts.Name, "name", "", "New module name")
+	cmd.Flags().StringVar(&opts.UnlockAt, "unlock-at", "", "Date to unlock the module (ISO 8601)")
+	cmd.Flags().IntVar(&opts.Position, "position", 0, "New position in the course")
+	cmd.Flags().BoolVar(&opts.RequireSequentialProgress, "require-sequential-progress", false, "Require sequential progress")
+	cmd.Flags().Int64SliceVar(&opts.PrerequisiteModuleIDs, "prerequisite-modules", []int64{}, "IDs of prerequisite modules")
+	cmd.Flags().BoolVar(&opts.PublishFinalGrade, "publish-final-grade", false, "Publish final grade on completion")
+	cmd.Flags().BoolVar(&opts.Published, "published", false, "Publish the module")
+	cmd.MarkFlagRequired("course-id")
+
+	return cmd
 }
 
-// modulesDeleteCmd represents the modules delete command
-var modulesDeleteCmd = &cobra.Command{
-	Use:   "delete <module-id>",
-	Short: "Delete a module",
-	Long: `Delete a module from a course.
+// newModulesDeleteCmd creates the modules delete command
+func newModulesDeleteCmd() *cobra.Command {
+	opts := &options.ModulesDeleteOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "delete <module-id>",
+		Short: "Delete a module",
+		Long: `Delete a module from a course.
 
 Examples:
   canvas modules delete --course-id 123 456`,
-	Args: ExactArgsWithUsage(1, "module-id"),
-	RunE: runModulesDelete,
+		Args: ExactArgsWithUsage(1, "module-id"),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			moduleID, err := strconv.ParseInt(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid module ID: %s", args[0])
+			}
+			opts.ModuleID = moduleID
+
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+
+			return runModulesDelete(cmd.Context(), client, opts)
+		},
+	}
+
+	cmd.Flags().Int64Var(&opts.CourseID, "course-id", 0, "Course ID (required)")
+	cmd.Flags().BoolVarP(&opts.Force, "force", "f", false, "Skip confirmation prompt")
+	cmd.MarkFlagRequired("course-id")
+
+	return cmd
 }
 
-// modulesRelockCmd represents the modules relock command
-var modulesRelockCmd = &cobra.Command{
-	Use:   "relock <module-id>",
-	Short: "Re-lock module progressions",
-	Long: `Re-lock module progressions to their default locked state.
+// newModulesRelockCmd creates the modules relock command
+func newModulesRelockCmd() *cobra.Command {
+	opts := &options.ModulesRelockOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "relock <module-id>",
+		Short: "Re-lock module progressions",
+		Long: `Re-lock module progressions to their default locked state.
 
 This recalculates progressions based on current requirements. Adding progression
 requirements to an active course will not lock students out of modules they have
@@ -135,37 +257,112 @@ already unlocked unless this action is called.
 
 Examples:
   canvas modules relock --course-id 123 456`,
-	Args: ExactArgsWithUsage(1, "module-id"),
-	RunE: runModulesRelock,
+		Args: ExactArgsWithUsage(1, "module-id"),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			moduleID, err := strconv.ParseInt(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid module ID: %s", args[0])
+			}
+			opts.ModuleID = moduleID
+
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+
+			return runModulesRelock(cmd.Context(), client, opts)
+		},
+	}
+
+	cmd.Flags().Int64Var(&opts.CourseID, "course-id", 0, "Course ID (required)")
+	cmd.MarkFlagRequired("course-id")
+
+	return cmd
 }
 
-// modulesPublishCmd represents the modules publish command
-var modulesPublishCmd = &cobra.Command{
-	Use:   "publish <module-id>",
-	Short: "Publish a module",
-	Long: `Publish a module to make it visible to students.
+// newModulesPublishCmd creates the modules publish command
+func newModulesPublishCmd() *cobra.Command {
+	opts := &options.ModulesPublishOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "publish <module-id>",
+		Short: "Publish a module",
+		Long: `Publish a module to make it visible to students.
 
 This is a convenience command equivalent to:
   canvas modules update --course-id 123 456 --published
 
 Examples:
   canvas modules publish --course-id 123 456`,
-	Args: ExactArgsWithUsage(1, "module-id"),
-	RunE: runModulesPublish,
+		Args: ExactArgsWithUsage(1, "module-id"),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			moduleID, err := strconv.ParseInt(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid module ID: %s", args[0])
+			}
+			opts.ModuleID = moduleID
+
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+
+			return runModulesPublish(cmd.Context(), client, opts)
+		},
+	}
+
+	cmd.Flags().Int64Var(&opts.CourseID, "course-id", 0, "Course ID (required)")
+	cmd.MarkFlagRequired("course-id")
+
+	return cmd
 }
 
-// modulesUnpublishCmd represents the modules unpublish command
-var modulesUnpublishCmd = &cobra.Command{
-	Use:   "unpublish <module-id>",
-	Short: "Unpublish a module",
-	Long: `Unpublish a module to hide it from students.
+// newModulesUnpublishCmd creates the modules unpublish command
+func newModulesUnpublishCmd() *cobra.Command {
+	opts := &options.ModulesUnpublishOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "unpublish <module-id>",
+		Short: "Unpublish a module",
+		Long: `Unpublish a module to hide it from students.
 
 This is a convenience command that sets the module's published state to false.
 
 Examples:
   canvas modules unpublish --course-id 123 456`,
-	Args: ExactArgsWithUsage(1, "module-id"),
-	RunE: runModulesUnpublish,
+		Args: ExactArgsWithUsage(1, "module-id"),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			moduleID, err := strconv.ParseInt(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid module ID: %s", args[0])
+			}
+			opts.ModuleID = moduleID
+
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+
+			return runModulesUnpublish(cmd.Context(), client, opts)
+		},
+	}
+
+	cmd.Flags().Int64Var(&opts.CourseID, "course-id", 0, "Course ID (required)")
+	cmd.MarkFlagRequired("course-id")
+
+	return cmd
 }
 
 // modulesItemsCmd represents the module items subcommand group
@@ -183,37 +380,94 @@ Examples:
   canvas modules items create --course-id 123 --module-id 456 --type Assignment --content-id 999`,
 }
 
-// modulesItemsListCmd represents the module items list command
-var modulesItemsListCmd = &cobra.Command{
-	Use:   "list",
-	Short: "List items in a module",
-	Long: `List all items in a module.
+// newModulesItemsListCmd creates the module items list command
+func newModulesItemsListCmd() *cobra.Command {
+	opts := &options.ModulesItemsListOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "list",
+		Short: "List items in a module",
+		Long: `List all items in a module.
 
 Examples:
   canvas modules items list --course-id 123 --module-id 456
   canvas modules items list --course-id 123 --module-id 456 --include content_details
   canvas modules items list --course-id 123 --module-id 456 --search "Quiz"`,
-	RunE: runModulesItemsList,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+
+			return runModulesItemsList(cmd.Context(), client, opts)
+		},
+	}
+
+	cmd.Flags().Int64Var(&opts.CourseID, "course-id", 0, "Course ID (required)")
+	cmd.Flags().Int64Var(&opts.ModuleID, "module-id", 0, "Module ID (required)")
+	cmd.Flags().StringSliceVar(&opts.Include, "include", []string{}, "Additional data to include (content_details)")
+	cmd.Flags().StringVar(&opts.SearchTerm, "search", "", "Search by item title")
+	cmd.Flags().StringVar(&opts.StudentID, "student-id", "", "Get completion info for this student")
+	cmd.MarkFlagRequired("course-id")
+	cmd.MarkFlagRequired("module-id")
+
+	return cmd
 }
 
-// modulesItemsGetCmd represents the module items get command
-var modulesItemsGetCmd = &cobra.Command{
-	Use:   "get <item-id>",
-	Short: "Get details of a module item",
-	Long: `Get details of a specific module item.
+// newModulesItemsGetCmd creates the module items get command
+func newModulesItemsGetCmd() *cobra.Command {
+	opts := &options.ModulesItemsGetOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "get <item-id>",
+		Short: "Get details of a module item",
+		Long: `Get details of a specific module item.
 
 Examples:
   canvas modules items get --course-id 123 --module-id 456 789
   canvas modules items get --course-id 123 --module-id 456 789 --include content_details`,
-	Args: ExactArgsWithUsage(1, "item-id"),
-	RunE: runModulesItemsGet,
+		Args: ExactArgsWithUsage(1, "item-id"),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			itemID, err := strconv.ParseInt(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid item ID: %s", args[0])
+			}
+			opts.ItemID = itemID
+
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+
+			return runModulesItemsGet(cmd.Context(), client, opts)
+		},
+	}
+
+	cmd.Flags().Int64Var(&opts.CourseID, "course-id", 0, "Course ID (required)")
+	cmd.Flags().Int64Var(&opts.ModuleID, "module-id", 0, "Module ID (required)")
+	cmd.Flags().StringSliceVar(&opts.Include, "include", []string{}, "Additional data to include (content_details)")
+	cmd.MarkFlagRequired("course-id")
+	cmd.MarkFlagRequired("module-id")
+
+	return cmd
 }
 
-// modulesItemsCreateCmd represents the module items create command
-var modulesItemsCreateCmd = &cobra.Command{
-	Use:   "create",
-	Short: "Create a new module item",
-	Long: `Create a new item in a module.
+// newModulesItemsCreateCmd creates the module items create command
+func newModulesItemsCreateCmd() *cobra.Command {
+	opts := &options.ModulesItemsCreateOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "create",
+		Short: "Create a new module item",
+		Long: `Create a new item in a module.
 
 Item types:
   - File: Requires --content-id
@@ -238,290 +492,334 @@ Examples:
   canvas modules items create --course-id 123 --module-id 456 --type SubHeader --title "Unit 1"
   canvas modules items create --course-id 123 --module-id 456 --type ExternalUrl --external-url "https://example.com" --title "Resource"
   canvas modules items create --course-id 123 --module-id 456 --type Assignment --content-id 999 --completion-type min_score --min-score 80`,
-	RunE: runModulesItemsCreate,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+
+			return runModulesItemsCreate(cmd.Context(), client, opts)
+		},
+	}
+
+	cmd.Flags().Int64Var(&opts.CourseID, "course-id", 0, "Course ID (required)")
+	cmd.Flags().Int64Var(&opts.ModuleID, "module-id", 0, "Module ID (required)")
+	cmd.Flags().StringVar(&opts.Type, "type", "", "Item type: File, Page, Discussion, Assignment, Quiz, SubHeader, ExternalUrl, ExternalTool (required)")
+	cmd.Flags().StringVar(&opts.Title, "title", "", "Item title")
+	cmd.Flags().Int64Var(&opts.ContentID, "content-id", 0, "Content ID (for File, Discussion, Assignment, Quiz, ExternalTool)")
+	cmd.Flags().StringVar(&opts.PageURL, "page-url", "", "Page URL slug (for Page type)")
+	cmd.Flags().StringVar(&opts.ExternalURL, "external-url", "", "External URL (for ExternalUrl, ExternalTool)")
+	cmd.Flags().BoolVar(&opts.NewTab, "new-tab", false, "Open in new tab (for ExternalTool)")
+	cmd.Flags().IntVar(&opts.Indent, "indent", 0, "Indent level (0-based)")
+	cmd.Flags().StringVar(&opts.CompletionType, "completion-type", "", "Completion requirement: must_view, must_contribute, must_submit, must_mark_done, min_score")
+	cmd.Flags().Float64Var(&opts.MinScore, "min-score", 0, "Minimum score for min_score completion type")
+	cmd.MarkFlagRequired("course-id")
+	cmd.MarkFlagRequired("module-id")
+	cmd.MarkFlagRequired("type")
+
+	return cmd
 }
 
-// modulesItemsUpdateCmd represents the module items update command
-var modulesItemsUpdateCmd = &cobra.Command{
-	Use:   "update <item-id>",
-	Short: "Update a module item",
-	Long: `Update an existing module item.
+// newModulesItemsUpdateCmd creates the module items update command
+func newModulesItemsUpdateCmd() *cobra.Command {
+	opts := &options.ModulesItemsUpdateOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "update <item-id>",
+		Short: "Update a module item",
+		Long: `Update an existing module item.
 
 Examples:
   canvas modules items update --course-id 123 --module-id 456 789 --title "New Title"
   canvas modules items update --course-id 123 --module-id 456 789 --position 2
   canvas modules items update --course-id 123 --module-id 456 789 --published
   canvas modules items update --course-id 123 --module-id 456 789 --move-to-module 555`,
-	Args: ExactArgsWithUsage(1, "item-id"),
-	RunE: runModulesItemsUpdate,
+		Args: ExactArgsWithUsage(1, "item-id"),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			itemID, err := strconv.ParseInt(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid item ID: %s", args[0])
+			}
+			opts.ItemID = itemID
+
+			// Track which fields were set
+			opts.TitleSet = cmd.Flags().Changed("title")
+			opts.PositionSet = cmd.Flags().Changed("position")
+			opts.IndentSet = cmd.Flags().Changed("indent")
+			opts.NewTabSet = cmd.Flags().Changed("new-tab")
+			opts.CompletionTypeSet = cmd.Flags().Changed("completion-type")
+			opts.MinScoreSet = cmd.Flags().Changed("min-score")
+			opts.PublishedSet = cmd.Flags().Changed("published")
+			opts.MoveToModuleSet = cmd.Flags().Changed("move-to-module")
+
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+
+			return runModulesItemsUpdate(cmd.Context(), client, opts)
+		},
+	}
+
+	cmd.Flags().Int64Var(&opts.CourseID, "course-id", 0, "Course ID (required)")
+	cmd.Flags().Int64Var(&opts.ModuleID, "module-id", 0, "Module ID (required)")
+	cmd.Flags().StringVar(&opts.Title, "title", "", "New item title")
+	cmd.Flags().IntVar(&opts.Position, "position", 0, "New position in the module")
+	cmd.Flags().IntVar(&opts.Indent, "indent", 0, "Indent level (0-based)")
+	cmd.Flags().BoolVar(&opts.NewTab, "new-tab", false, "Open in new tab (for ExternalTool)")
+	cmd.Flags().StringVar(&opts.CompletionType, "completion-type", "", "Completion requirement: must_view, must_contribute, must_submit, must_mark_done, min_score")
+	cmd.Flags().Float64Var(&opts.MinScore, "min-score", 0, "Minimum score for min_score completion type")
+	cmd.Flags().BoolVar(&opts.Published, "published", false, "Publish the item")
+	cmd.Flags().Int64Var(&opts.MoveToModule, "move-to-module", 0, "Move item to a different module")
+	cmd.MarkFlagRequired("course-id")
+	cmd.MarkFlagRequired("module-id")
+
+	return cmd
 }
 
-// modulesItemsDeleteCmd represents the module items delete command
-var modulesItemsDeleteCmd = &cobra.Command{
-	Use:   "delete <item-id>",
-	Short: "Delete a module item",
-	Long: `Delete an item from a module.
+// newModulesItemsDeleteCmd creates the module items delete command
+func newModulesItemsDeleteCmd() *cobra.Command {
+	opts := &options.ModulesItemsDeleteOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "delete <item-id>",
+		Short: "Delete a module item",
+		Long: `Delete an item from a module.
 
 Examples:
   canvas modules items delete --course-id 123 --module-id 456 789`,
-	Args: ExactArgsWithUsage(1, "item-id"),
-	RunE: runModulesItemsDelete,
+		Args: ExactArgsWithUsage(1, "item-id"),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			itemID, err := strconv.ParseInt(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid item ID: %s", args[0])
+			}
+			opts.ItemID = itemID
+
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+
+			return runModulesItemsDelete(cmd.Context(), client, opts)
+		},
+	}
+
+	cmd.Flags().Int64Var(&opts.CourseID, "course-id", 0, "Course ID (required)")
+	cmd.Flags().Int64Var(&opts.ModuleID, "module-id", 0, "Module ID (required)")
+	cmd.Flags().BoolVarP(&opts.Force, "force", "f", false, "Skip confirmation prompt")
+	cmd.MarkFlagRequired("course-id")
+	cmd.MarkFlagRequired("module-id")
+
+	return cmd
 }
 
-// modulesItemsDoneCmd represents the module items done command
-var modulesItemsDoneCmd = &cobra.Command{
-	Use:   "done <item-id>",
-	Short: "Mark a module item as done",
-	Long: `Mark a module item as done (for must_mark_done requirement).
+// newModulesItemsDoneCmd creates the module items done command
+func newModulesItemsDoneCmd() *cobra.Command {
+	opts := &options.ModulesItemsDoneOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "done <item-id>",
+		Short: "Mark a module item as done",
+		Long: `Mark a module item as done (for must_mark_done requirement).
 
 Examples:
   canvas modules items done --course-id 123 --module-id 456 789`,
-	Args: ExactArgsWithUsage(1, "item-id"),
-	RunE: runModulesItemsDone,
+		Args: ExactArgsWithUsage(1, "item-id"),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			itemID, err := strconv.ParseInt(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid item ID: %s", args[0])
+			}
+			opts.ItemID = itemID
+
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+
+			return runModulesItemsDone(cmd.Context(), client, opts)
+		},
+	}
+
+	cmd.Flags().Int64Var(&opts.CourseID, "course-id", 0, "Course ID (required)")
+	cmd.Flags().Int64Var(&opts.ModuleID, "module-id", 0, "Module ID (required)")
+	cmd.MarkFlagRequired("course-id")
+	cmd.MarkFlagRequired("module-id")
+
+	return cmd
 }
 
 func init() {
 	rootCmd.AddCommand(modulesCmd)
-	modulesCmd.AddCommand(modulesListCmd)
-	modulesCmd.AddCommand(modulesGetCmd)
-	modulesCmd.AddCommand(modulesCreateCmd)
-	modulesCmd.AddCommand(modulesUpdateCmd)
-	modulesCmd.AddCommand(modulesDeleteCmd)
-	modulesCmd.AddCommand(modulesRelockCmd)
-	modulesCmd.AddCommand(modulesPublishCmd)
-	modulesCmd.AddCommand(modulesUnpublishCmd)
+	modulesCmd.AddCommand(newModulesListCmd())
+	modulesCmd.AddCommand(newModulesGetCmd())
+	modulesCmd.AddCommand(newModulesCreateCmd())
+	modulesCmd.AddCommand(newModulesUpdateCmd())
+	modulesCmd.AddCommand(newModulesDeleteCmd())
+	modulesCmd.AddCommand(newModulesRelockCmd())
+	modulesCmd.AddCommand(newModulesPublishCmd())
+	modulesCmd.AddCommand(newModulesUnpublishCmd())
 	modulesCmd.AddCommand(modulesItemsCmd)
 
 	// Items subcommands
-	modulesItemsCmd.AddCommand(modulesItemsListCmd)
-	modulesItemsCmd.AddCommand(modulesItemsGetCmd)
-	modulesItemsCmd.AddCommand(modulesItemsCreateCmd)
-	modulesItemsCmd.AddCommand(modulesItemsUpdateCmd)
-	modulesItemsCmd.AddCommand(modulesItemsDeleteCmd)
-	modulesItemsCmd.AddCommand(modulesItemsDoneCmd)
-
-	// List flags
-	modulesListCmd.Flags().Int64Var(&modulesCourseID, "course-id", 0, "Course ID (required)")
-	modulesListCmd.Flags().StringSliceVar(&modulesInclude, "include", []string{}, "Additional data to include (items, content_details)")
-	modulesListCmd.Flags().StringVar(&modulesSearchTerm, "search", "", "Search by module name")
-	modulesListCmd.Flags().StringVar(&modulesStudentID, "student-id", "", "Get completion info for this student")
-	modulesListCmd.MarkFlagRequired("course-id")
-
-	// Get flags
-	modulesGetCmd.Flags().Int64Var(&modulesCourseID, "course-id", 0, "Course ID (required)")
-	modulesGetCmd.Flags().StringSliceVar(&modulesInclude, "include", []string{}, "Additional data to include (items, content_details)")
-	modulesGetCmd.Flags().StringVar(&modulesStudentID, "student-id", "", "Get completion info for this student")
-	modulesGetCmd.MarkFlagRequired("course-id")
-
-	// Create flags
-	modulesCreateCmd.Flags().Int64Var(&modulesCourseID, "course-id", 0, "Course ID (required)")
-	modulesCreateCmd.Flags().StringVar(&modulesName, "name", "", "Module name (required)")
-	modulesCreateCmd.Flags().StringVar(&modulesUnlockAt, "unlock-at", "", "Date to unlock the module (ISO 8601)")
-	modulesCreateCmd.Flags().IntVar(&modulesPosition, "position", 0, "Position in the course (1-based)")
-	modulesCreateCmd.Flags().BoolVar(&modulesRequireSequentialProgress, "require-sequential-progress", false, "Require sequential progress")
-	modulesCreateCmd.Flags().Int64SliceVar(&modulesPrerequisiteModuleIDs, "prerequisite-modules", []int64{}, "IDs of prerequisite modules")
-	modulesCreateCmd.Flags().BoolVar(&modulesPublishFinalGrade, "publish-final-grade", false, "Publish final grade on completion")
-	modulesCreateCmd.MarkFlagRequired("course-id")
-	modulesCreateCmd.MarkFlagRequired("name")
-
-	// Update flags
-	modulesUpdateCmd.Flags().Int64Var(&modulesCourseID, "course-id", 0, "Course ID (required)")
-	modulesUpdateCmd.Flags().StringVar(&modulesName, "name", "", "New module name")
-	modulesUpdateCmd.Flags().StringVar(&modulesUnlockAt, "unlock-at", "", "Date to unlock the module (ISO 8601)")
-	modulesUpdateCmd.Flags().IntVar(&modulesPosition, "position", 0, "New position in the course")
-	modulesUpdateCmd.Flags().BoolVar(&modulesRequireSequentialProgress, "require-sequential-progress", false, "Require sequential progress")
-	modulesUpdateCmd.Flags().Int64SliceVar(&modulesPrerequisiteModuleIDs, "prerequisite-modules", []int64{}, "IDs of prerequisite modules")
-	modulesUpdateCmd.Flags().BoolVar(&modulesPublishFinalGrade, "publish-final-grade", false, "Publish final grade on completion")
-	modulesUpdateCmd.Flags().BoolVar(&modulesPublished, "published", false, "Publish the module")
-	modulesUpdateCmd.MarkFlagRequired("course-id")
-
-	// Delete flags
-	modulesDeleteCmd.Flags().Int64Var(&modulesCourseID, "course-id", 0, "Course ID (required)")
-	modulesDeleteCmd.Flags().BoolVarP(&modulesForce, "force", "f", false, "Skip confirmation prompt")
-	modulesDeleteCmd.MarkFlagRequired("course-id")
-
-	// Relock flags
-	modulesRelockCmd.Flags().Int64Var(&modulesCourseID, "course-id", 0, "Course ID (required)")
-	modulesRelockCmd.MarkFlagRequired("course-id")
-
-	// Publish flags
-	modulesPublishCmd.Flags().Int64Var(&modulesCourseID, "course-id", 0, "Course ID (required)")
-	modulesPublishCmd.MarkFlagRequired("course-id")
-
-	// Unpublish flags
-	modulesUnpublishCmd.Flags().Int64Var(&modulesCourseID, "course-id", 0, "Course ID (required)")
-	modulesUnpublishCmd.MarkFlagRequired("course-id")
-
-	// Items list flags
-	modulesItemsListCmd.Flags().Int64Var(&modulesCourseID, "course-id", 0, "Course ID (required)")
-	modulesItemsListCmd.Flags().Int64Var(&modulesModuleID, "module-id", 0, "Module ID (required)")
-	modulesItemsListCmd.Flags().StringSliceVar(&modulesInclude, "include", []string{}, "Additional data to include (content_details)")
-	modulesItemsListCmd.Flags().StringVar(&modulesSearchTerm, "search", "", "Search by item title")
-	modulesItemsListCmd.Flags().StringVar(&modulesStudentID, "student-id", "", "Get completion info for this student")
-	modulesItemsListCmd.MarkFlagRequired("course-id")
-	modulesItemsListCmd.MarkFlagRequired("module-id")
-
-	// Items get flags
-	modulesItemsGetCmd.Flags().Int64Var(&modulesCourseID, "course-id", 0, "Course ID (required)")
-	modulesItemsGetCmd.Flags().Int64Var(&modulesModuleID, "module-id", 0, "Module ID (required)")
-	modulesItemsGetCmd.Flags().StringSliceVar(&modulesInclude, "include", []string{}, "Additional data to include (content_details)")
-	modulesItemsGetCmd.Flags().StringVar(&modulesStudentID, "student-id", "", "Get completion info for this student")
-	modulesItemsGetCmd.MarkFlagRequired("course-id")
-	modulesItemsGetCmd.MarkFlagRequired("module-id")
-
-	// Items create flags
-	modulesItemsCreateCmd.Flags().Int64Var(&modulesCourseID, "course-id", 0, "Course ID (required)")
-	modulesItemsCreateCmd.Flags().Int64Var(&modulesModuleID, "module-id", 0, "Module ID (required)")
-	modulesItemsCreateCmd.Flags().StringVar(&modulesItemType, "type", "", "Item type: File, Page, Discussion, Assignment, Quiz, SubHeader, ExternalUrl, ExternalTool (required)")
-	modulesItemsCreateCmd.Flags().StringVar(&modulesItemTitle, "title", "", "Item title")
-	modulesItemsCreateCmd.Flags().Int64Var(&modulesItemContentID, "content-id", 0, "Content ID (for File, Discussion, Assignment, Quiz, ExternalTool)")
-	modulesItemsCreateCmd.Flags().StringVar(&modulesItemPageURL, "page-url", "", "Page URL slug (for Page type)")
-	modulesItemsCreateCmd.Flags().StringVar(&modulesItemExternalURL, "external-url", "", "External URL (for ExternalUrl, ExternalTool)")
-	modulesItemsCreateCmd.Flags().BoolVar(&modulesItemNewTab, "new-tab", false, "Open in new tab (for ExternalTool)")
-	modulesItemsCreateCmd.Flags().IntVar(&modulesItemIndent, "indent", 0, "Indent level (0-based)")
-	modulesItemsCreateCmd.Flags().IntVar(&modulesPosition, "position", 0, "Position in the module")
-	modulesItemsCreateCmd.Flags().StringVar(&modulesItemCompletionType, "completion-type", "", "Completion requirement: must_view, must_contribute, must_submit, must_mark_done, min_score")
-	modulesItemsCreateCmd.Flags().Float64Var(&modulesItemMinScore, "min-score", 0, "Minimum score for min_score completion type")
-	modulesItemsCreateCmd.MarkFlagRequired("course-id")
-	modulesItemsCreateCmd.MarkFlagRequired("module-id")
-	modulesItemsCreateCmd.MarkFlagRequired("type")
-
-	// Items update flags
-	modulesItemsUpdateCmd.Flags().Int64Var(&modulesCourseID, "course-id", 0, "Course ID (required)")
-	modulesItemsUpdateCmd.Flags().Int64Var(&modulesModuleID, "module-id", 0, "Module ID (required)")
-	modulesItemsUpdateCmd.Flags().StringVar(&modulesItemTitle, "title", "", "New item title")
-	modulesItemsUpdateCmd.Flags().IntVar(&modulesPosition, "position", 0, "New position in the module")
-	modulesItemsUpdateCmd.Flags().IntVar(&modulesItemIndent, "indent", 0, "Indent level (0-based)")
-	modulesItemsUpdateCmd.Flags().StringVar(&modulesItemExternalURL, "external-url", "", "External URL (for ExternalUrl, ExternalTool)")
-	modulesItemsUpdateCmd.Flags().BoolVar(&modulesItemNewTab, "new-tab", false, "Open in new tab (for ExternalTool)")
-	modulesItemsUpdateCmd.Flags().StringVar(&modulesItemCompletionType, "completion-type", "", "Completion requirement: must_view, must_contribute, must_submit, must_mark_done, min_score")
-	modulesItemsUpdateCmd.Flags().Float64Var(&modulesItemMinScore, "min-score", 0, "Minimum score for min_score completion type")
-	modulesItemsUpdateCmd.Flags().BoolVar(&modulesItemPublished, "published", false, "Publish the item")
-	modulesItemsUpdateCmd.Flags().Int64Var(&modulesItemMoveToModule, "move-to-module", 0, "Move item to a different module")
-	modulesItemsUpdateCmd.MarkFlagRequired("course-id")
-	modulesItemsUpdateCmd.MarkFlagRequired("module-id")
-
-	// Items delete flags
-	modulesItemsDeleteCmd.Flags().Int64Var(&modulesCourseID, "course-id", 0, "Course ID (required)")
-	modulesItemsDeleteCmd.Flags().Int64Var(&modulesModuleID, "module-id", 0, "Module ID (required)")
-	modulesItemsDeleteCmd.Flags().BoolVarP(&modulesForce, "force", "f", false, "Skip confirmation prompt")
-	modulesItemsDeleteCmd.MarkFlagRequired("course-id")
-	modulesItemsDeleteCmd.MarkFlagRequired("module-id")
-
-	// Items done flags
-	modulesItemsDoneCmd.Flags().Int64Var(&modulesCourseID, "course-id", 0, "Course ID (required)")
-	modulesItemsDoneCmd.Flags().Int64Var(&modulesModuleID, "module-id", 0, "Module ID (required)")
-	modulesItemsDoneCmd.MarkFlagRequired("course-id")
-	modulesItemsDoneCmd.MarkFlagRequired("module-id")
+	modulesItemsCmd.AddCommand(newModulesItemsListCmd())
+	modulesItemsCmd.AddCommand(newModulesItemsGetCmd())
+	modulesItemsCmd.AddCommand(newModulesItemsCreateCmd())
+	modulesItemsCmd.AddCommand(newModulesItemsUpdateCmd())
+	modulesItemsCmd.AddCommand(newModulesItemsDeleteCmd())
+	modulesItemsCmd.AddCommand(newModulesItemsDoneCmd())
 }
 
-func runModulesList(cmd *cobra.Command, args []string) error {
-	client, err := getAPIClient()
-	if err != nil {
-		return err
-	}
+func runModulesList(ctx context.Context, client *api.Client, opts *options.ModulesListOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+
+	logger.LogCommandStart(ctx, "modules.list", map[string]interface{}{
+		"course_id":   opts.CourseID,
+		"search_term": opts.SearchTerm,
+		"student_id":  opts.StudentID,
+	})
 
 	// Validate course ID exists
-	if _, err := validateCourseID(client, modulesCourseID); err != nil {
+	if _, err := validateCourseID(client, opts.CourseID); err != nil {
+		logger.LogCommandError(ctx, "modules.list", err, map[string]interface{}{
+			"course_id": opts.CourseID,
+		})
 		return err
 	}
 
 	modulesService := api.NewModulesService(client)
 
-	opts := &api.ListModulesOptions{
-		Include:    modulesInclude,
-		SearchTerm: modulesSearchTerm,
-		StudentID:  modulesStudentID,
+	apiOpts := &api.ListModulesOptions{
+		Include:    opts.Include,
+		SearchTerm: opts.SearchTerm,
+		StudentID:  opts.StudentID,
 	}
 
-	ctx := context.Background()
-	modules, err := modulesService.List(ctx, modulesCourseID, opts)
+	modules, err := modulesService.List(ctx, opts.CourseID, apiOpts)
 	if err != nil {
+		logger.LogCommandError(ctx, "modules.list", err, map[string]interface{}{
+			"course_id": opts.CourseID,
+		})
 		return fmt.Errorf("failed to list modules: %w", err)
 	}
 
-	if len(modules) == 0 {
-		fmt.Println("No modules found")
-		return nil
+	if err := formatEmptyOrOutput(modules, "No modules found"); err != nil {
+		return fmt.Errorf("failed to print results: %w", err)
 	}
 
-	// Format and display modules
-	printVerbose("Found %d modules:\n\n", len(modules))
-	return formatOutput(modules, nil)
+	logger.LogCommandComplete(ctx, "modules.list", len(modules))
+	return nil
 }
 
-func runModulesGet(cmd *cobra.Command, args []string) error {
-	moduleID, err := strconv.ParseInt(args[0], 10, 64)
-	if err != nil {
-		return fmt.Errorf("invalid module ID: %s", args[0])
-	}
+func runModulesGet(ctx context.Context, client *api.Client, opts *options.ModulesGetOptions) error {
+	logger := logging.NewCommandLogger(verbose)
 
-	client, err := getAPIClient()
-	if err != nil {
-		return err
-	}
+	logger.LogCommandStart(ctx, "modules.get", map[string]interface{}{
+		"course_id": opts.CourseID,
+		"module_id": opts.ModuleID,
+	})
 
 	// Validate course ID exists
-	if _, err := validateCourseID(client, modulesCourseID); err != nil {
+	if _, err := validateCourseID(client, opts.CourseID); err != nil {
+		logger.LogCommandError(ctx, "modules.get", err, map[string]interface{}{
+			"course_id": opts.CourseID,
+		})
 		return err
 	}
 
 	modulesService := api.NewModulesService(client)
 
-	ctx := context.Background()
-	module, err := modulesService.Get(ctx, modulesCourseID, moduleID, modulesInclude, modulesStudentID)
+	module, err := modulesService.Get(ctx, opts.CourseID, opts.ModuleID, opts.Include, "")
 	if err != nil {
+		logger.LogCommandError(ctx, "modules.get", err, map[string]interface{}{
+			"course_id": opts.CourseID,
+			"module_id": opts.ModuleID,
+		})
 		return fmt.Errorf("failed to get module: %w", err)
 	}
 
-	// Format and display module details
-	return formatOutput(module, nil)
-}
-
-func runModulesCreate(cmd *cobra.Command, args []string) error {
-	client, err := getAPIClient()
-	if err != nil {
-		return err
+	if err := formatOutput(module, nil); err != nil {
+		return fmt.Errorf("failed to print result: %w", err)
 	}
 
+	logger.LogCommandComplete(ctx, "modules.get", 1)
+	return nil
+}
+
+func runModulesCreate(ctx context.Context, client *api.Client, opts *options.ModulesCreateOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+
+	logger.LogCommandStart(ctx, "modules.create", map[string]interface{}{
+		"course_id": opts.CourseID,
+		"name":      opts.Name,
+	})
+
 	// Validate course ID exists
-	if _, err := validateCourseID(client, modulesCourseID); err != nil {
+	if _, err := validateCourseID(client, opts.CourseID); err != nil {
+		logger.LogCommandError(ctx, "modules.create", err, map[string]interface{}{
+			"course_id": opts.CourseID,
+		})
 		return err
 	}
 
 	modulesService := api.NewModulesService(client)
 
 	params := &api.CreateModuleParams{
-		Name:                      modulesName,
-		UnlockAt:                  modulesUnlockAt,
-		Position:                  modulesPosition,
-		RequireSequentialProgress: modulesRequireSequentialProgress,
-		PrerequisiteModuleIDs:     modulesPrerequisiteModuleIDs,
-		PublishFinalGrade:         modulesPublishFinalGrade,
+		Name:                      opts.Name,
+		UnlockAt:                  opts.UnlockAt,
+		Position:                  opts.Position,
+		RequireSequentialProgress: opts.RequireSequentialProgress,
+		PrerequisiteModuleIDs:     opts.PrerequisiteModuleIDs,
+		PublishFinalGrade:         opts.PublishFinalGrade,
 	}
 
-	ctx := context.Background()
-	module, err := modulesService.Create(ctx, modulesCourseID, params)
+	module, err := modulesService.Create(ctx, opts.CourseID, params)
 	if err != nil {
+		logger.LogCommandError(ctx, "modules.create", err, map[string]interface{}{
+			"course_id": opts.CourseID,
+			"name":      opts.Name,
+		})
 		return fmt.Errorf("failed to create module: %w", err)
 	}
 
-	return formatSuccessOutput(module, "Module created successfully!")
-}
-
-func runModulesUpdate(cmd *cobra.Command, args []string) error {
-	moduleID, err := strconv.ParseInt(args[0], 10, 64)
-	if err != nil {
-		return fmt.Errorf("invalid module ID: %s", args[0])
-	}
-
-	client, err := getAPIClient()
-	if err != nil {
+	if err := formatSuccessOutput(module, "Module created successfully!"); err != nil {
 		return err
 	}
 
+	logger.LogCommandComplete(ctx, "modules.create", 1)
+	return nil
+}
+
+func runModulesUpdate(ctx context.Context, client *api.Client, opts *options.ModulesUpdateOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+
+	logger.LogCommandStart(ctx, "modules.update", map[string]interface{}{
+		"course_id": opts.CourseID,
+		"module_id": opts.ModuleID,
+	})
+
 	// Validate course ID exists
-	if _, err := validateCourseID(client, modulesCourseID); err != nil {
+	if _, err := validateCourseID(client, opts.CourseID); err != nil {
+		logger.LogCommandError(ctx, "modules.update", err, map[string]interface{}{
+			"course_id": opts.CourseID,
+		})
 		return err
 	}
 
@@ -530,55 +828,63 @@ func runModulesUpdate(cmd *cobra.Command, args []string) error {
 	params := &api.UpdateModuleParams{}
 
 	// Only set fields that were explicitly provided
-	if cmd.Flags().Changed("name") {
-		params.Name = &modulesName
+	if opts.NameSet {
+		params.Name = &opts.Name
 	}
-	if cmd.Flags().Changed("unlock-at") {
-		params.UnlockAt = &modulesUnlockAt
+	if opts.UnlockAtSet {
+		params.UnlockAt = &opts.UnlockAt
 	}
-	if cmd.Flags().Changed("position") {
-		params.Position = &modulesPosition
+	if opts.PositionSet {
+		params.Position = &opts.Position
 	}
-	if cmd.Flags().Changed("require-sequential-progress") {
-		params.RequireSequentialProgress = &modulesRequireSequentialProgress
+	if opts.RequireSequentialProgressSet {
+		params.RequireSequentialProgress = &opts.RequireSequentialProgress
 	}
-	if cmd.Flags().Changed("prerequisite-modules") {
-		params.PrerequisiteModuleIDs = modulesPrerequisiteModuleIDs
+	if opts.PrerequisiteModuleIDsSet {
+		params.PrerequisiteModuleIDs = opts.PrerequisiteModuleIDs
 	}
-	if cmd.Flags().Changed("publish-final-grade") {
-		params.PublishFinalGrade = &modulesPublishFinalGrade
+	if opts.PublishFinalGradeSet {
+		params.PublishFinalGrade = &opts.PublishFinalGrade
 	}
-	if cmd.Flags().Changed("published") {
-		params.Published = &modulesPublished
+	if opts.PublishedSet {
+		params.Published = &opts.Published
 	}
 
-	ctx := context.Background()
-	module, err := modulesService.Update(ctx, modulesCourseID, moduleID, params)
+	module, err := modulesService.Update(ctx, opts.CourseID, opts.ModuleID, params)
 	if err != nil {
+		logger.LogCommandError(ctx, "modules.update", err, map[string]interface{}{
+			"course_id": opts.CourseID,
+			"module_id": opts.ModuleID,
+		})
 		return fmt.Errorf("failed to update module: %w", err)
 	}
 
-	return formatSuccessOutput(module, "Module updated successfully!")
-}
-
-func runModulesDelete(cmd *cobra.Command, args []string) error {
-	moduleID, err := strconv.ParseInt(args[0], 10, 64)
-	if err != nil {
-		return fmt.Errorf("invalid module ID: %s", args[0])
-	}
-
-	client, err := getAPIClient()
-	if err != nil {
+	if err := formatSuccessOutput(module, "Module updated successfully!"); err != nil {
 		return err
 	}
 
+	logger.LogCommandComplete(ctx, "modules.update", 1)
+	return nil
+}
+
+func runModulesDelete(ctx context.Context, client *api.Client, opts *options.ModulesDeleteOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+
+	logger.LogCommandStart(ctx, "modules.delete", map[string]interface{}{
+		"course_id": opts.CourseID,
+		"module_id": opts.ModuleID,
+	})
+
 	// Validate course ID exists
-	if _, err := validateCourseID(client, modulesCourseID); err != nil {
+	if _, err := validateCourseID(client, opts.CourseID); err != nil {
+		logger.LogCommandError(ctx, "modules.delete", err, map[string]interface{}{
+			"course_id": opts.CourseID,
+		})
 		return err
 	}
 
 	// Confirm deletion
-	confirmed, err := confirmDelete("module", moduleID, modulesForce)
+	confirmed, err := confirmDelete("module", opts.ModuleID, opts.Force)
 	if err != nil {
 		return err
 	}
@@ -589,55 +895,68 @@ func runModulesDelete(cmd *cobra.Command, args []string) error {
 
 	modulesService := api.NewModulesService(client)
 
-	ctx := context.Background()
-	if err := modulesService.Delete(ctx, modulesCourseID, moduleID); err != nil {
+	if err := modulesService.Delete(ctx, opts.CourseID, opts.ModuleID); err != nil {
+		logger.LogCommandError(ctx, "modules.delete", err, map[string]interface{}{
+			"course_id": opts.CourseID,
+			"module_id": opts.ModuleID,
+		})
 		return fmt.Errorf("failed to delete module: %w", err)
 	}
 
-	fmt.Printf("Module %d deleted successfully\n", moduleID)
+	fmt.Printf("Module %d deleted successfully\n", opts.ModuleID)
+
+	logger.LogCommandComplete(ctx, "modules.delete", 1)
 	return nil
 }
 
-func runModulesRelock(cmd *cobra.Command, args []string) error {
-	moduleID, err := strconv.ParseInt(args[0], 10, 64)
-	if err != nil {
-		return fmt.Errorf("invalid module ID: %s", args[0])
-	}
+func runModulesRelock(ctx context.Context, client *api.Client, opts *options.ModulesRelockOptions) error {
+	logger := logging.NewCommandLogger(verbose)
 
-	client, err := getAPIClient()
-	if err != nil {
-		return err
-	}
+	logger.LogCommandStart(ctx, "modules.relock", map[string]interface{}{
+		"course_id": opts.CourseID,
+		"module_id": opts.ModuleID,
+	})
 
 	// Validate course ID exists
-	if _, err := validateCourseID(client, modulesCourseID); err != nil {
+	if _, err := validateCourseID(client, opts.CourseID); err != nil {
+		logger.LogCommandError(ctx, "modules.relock", err, map[string]interface{}{
+			"course_id": opts.CourseID,
+		})
 		return err
 	}
 
 	modulesService := api.NewModulesService(client)
 
-	ctx := context.Background()
-	module, err := modulesService.Relock(ctx, modulesCourseID, moduleID)
+	module, err := modulesService.Relock(ctx, opts.CourseID, opts.ModuleID)
 	if err != nil {
+		logger.LogCommandError(ctx, "modules.relock", err, map[string]interface{}{
+			"course_id": opts.CourseID,
+			"module_id": opts.ModuleID,
+		})
 		return fmt.Errorf("failed to relock module: %w", err)
 	}
 
-	return formatSuccessOutput(module, "Module progressions re-locked successfully!")
-}
-
-func runModulesPublish(cmd *cobra.Command, args []string) error {
-	moduleID, err := strconv.ParseInt(args[0], 10, 64)
-	if err != nil {
-		return fmt.Errorf("invalid module ID: %s", args[0])
-	}
-
-	client, err := getAPIClient()
-	if err != nil {
+	if err := formatSuccessOutput(module, "Module progressions re-locked successfully!"); err != nil {
 		return err
 	}
 
+	logger.LogCommandComplete(ctx, "modules.relock", 1)
+	return nil
+}
+
+func runModulesPublish(ctx context.Context, client *api.Client, opts *options.ModulesPublishOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+
+	logger.LogCommandStart(ctx, "modules.publish", map[string]interface{}{
+		"course_id": opts.CourseID,
+		"module_id": opts.ModuleID,
+	})
+
 	// Validate course ID exists
-	if _, err := validateCourseID(client, modulesCourseID); err != nil {
+	if _, err := validateCourseID(client, opts.CourseID); err != nil {
+		logger.LogCommandError(ctx, "modules.publish", err, map[string]interface{}{
+			"course_id": opts.CourseID,
+		})
 		return err
 	}
 
@@ -648,28 +967,36 @@ func runModulesPublish(cmd *cobra.Command, args []string) error {
 		Published: &published,
 	}
 
-	ctx := context.Background()
-	module, err := modulesService.Update(ctx, modulesCourseID, moduleID, params)
+	module, err := modulesService.Update(ctx, opts.CourseID, opts.ModuleID, params)
 	if err != nil {
+		logger.LogCommandError(ctx, "modules.publish", err, map[string]interface{}{
+			"course_id": opts.CourseID,
+			"module_id": opts.ModuleID,
+		})
 		return fmt.Errorf("failed to publish module: %w", err)
 	}
 
-	return formatSuccessOutput(module, "Module published successfully!")
-}
-
-func runModulesUnpublish(cmd *cobra.Command, args []string) error {
-	moduleID, err := strconv.ParseInt(args[0], 10, 64)
-	if err != nil {
-		return fmt.Errorf("invalid module ID: %s", args[0])
-	}
-
-	client, err := getAPIClient()
-	if err != nil {
+	if err := formatSuccessOutput(module, "Module published successfully!"); err != nil {
 		return err
 	}
 
+	logger.LogCommandComplete(ctx, "modules.publish", 1)
+	return nil
+}
+
+func runModulesUnpublish(ctx context.Context, client *api.Client, opts *options.ModulesUnpublishOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+
+	logger.LogCommandStart(ctx, "modules.unpublish", map[string]interface{}{
+		"course_id": opts.CourseID,
+		"module_id": opts.ModuleID,
+	})
+
 	// Validate course ID exists
-	if _, err := validateCourseID(client, modulesCourseID); err != nil {
+	if _, err := validateCourseID(client, opts.CourseID); err != nil {
+		logger.LogCommandError(ctx, "modules.unpublish", err, map[string]interface{}{
+			"course_id": opts.CourseID,
+		})
 		return err
 	}
 
@@ -680,131 +1007,170 @@ func runModulesUnpublish(cmd *cobra.Command, args []string) error {
 		Published: &published,
 	}
 
-	ctx := context.Background()
-	module, err := modulesService.Update(ctx, modulesCourseID, moduleID, params)
+	module, err := modulesService.Update(ctx, opts.CourseID, opts.ModuleID, params)
 	if err != nil {
+		logger.LogCommandError(ctx, "modules.unpublish", err, map[string]interface{}{
+			"course_id": opts.CourseID,
+			"module_id": opts.ModuleID,
+		})
 		return fmt.Errorf("failed to unpublish module: %w", err)
 	}
 
-	return formatSuccessOutput(module, "Module unpublished successfully!")
-}
-
-func runModulesItemsList(cmd *cobra.Command, args []string) error {
-	client, err := getAPIClient()
-	if err != nil {
+	if err := formatSuccessOutput(module, "Module unpublished successfully!"); err != nil {
 		return err
 	}
 
+	logger.LogCommandComplete(ctx, "modules.unpublish", 1)
+	return nil
+}
+
+func runModulesItemsList(ctx context.Context, client *api.Client, opts *options.ModulesItemsListOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+
+	logger.LogCommandStart(ctx, "modules.items.list", map[string]interface{}{
+		"course_id":   opts.CourseID,
+		"module_id":   opts.ModuleID,
+		"search_term": opts.SearchTerm,
+	})
+
 	// Validate course ID exists
-	if _, err := validateCourseID(client, modulesCourseID); err != nil {
+	if _, err := validateCourseID(client, opts.CourseID); err != nil {
+		logger.LogCommandError(ctx, "modules.items.list", err, map[string]interface{}{
+			"course_id": opts.CourseID,
+		})
 		return err
 	}
 
 	modulesService := api.NewModulesService(client)
 
-	opts := &api.ListModuleItemsOptions{
-		Include:    modulesInclude,
-		SearchTerm: modulesSearchTerm,
-		StudentID:  modulesStudentID,
+	apiOpts := &api.ListModuleItemsOptions{
+		Include:    opts.Include,
+		SearchTerm: opts.SearchTerm,
+		StudentID:  opts.StudentID,
 	}
 
-	ctx := context.Background()
-	items, err := modulesService.ListItems(ctx, modulesCourseID, modulesModuleID, opts)
+	items, err := modulesService.ListItems(ctx, opts.CourseID, opts.ModuleID, apiOpts)
 	if err != nil {
+		logger.LogCommandError(ctx, "modules.items.list", err, map[string]interface{}{
+			"course_id": opts.CourseID,
+			"module_id": opts.ModuleID,
+		})
 		return fmt.Errorf("failed to list module items: %w", err)
 	}
 
-	if len(items) == 0 {
-		fmt.Println("No items found in this module")
-		return nil
+	if err := formatEmptyOrOutput(items, "No items found in this module"); err != nil {
+		return fmt.Errorf("failed to print results: %w", err)
 	}
 
-	// Format and display items
-	printVerbose("Found %d items:\n\n", len(items))
-	return formatOutput(items, nil)
+	logger.LogCommandComplete(ctx, "modules.items.list", len(items))
+	return nil
 }
 
-func runModulesItemsGet(cmd *cobra.Command, args []string) error {
-	itemID, err := strconv.ParseInt(args[0], 10, 64)
-	if err != nil {
-		return fmt.Errorf("invalid item ID: %s", args[0])
-	}
+func runModulesItemsGet(ctx context.Context, client *api.Client, opts *options.ModulesItemsGetOptions) error {
+	logger := logging.NewCommandLogger(verbose)
 
-	client, err := getAPIClient()
-	if err != nil {
-		return err
-	}
+	logger.LogCommandStart(ctx, "modules.items.get", map[string]interface{}{
+		"course_id": opts.CourseID,
+		"module_id": opts.ModuleID,
+		"item_id":   opts.ItemID,
+	})
 
 	// Validate course ID exists
-	if _, err := validateCourseID(client, modulesCourseID); err != nil {
+	if _, err := validateCourseID(client, opts.CourseID); err != nil {
+		logger.LogCommandError(ctx, "modules.items.get", err, map[string]interface{}{
+			"course_id": opts.CourseID,
+		})
 		return err
 	}
 
 	modulesService := api.NewModulesService(client)
 
-	ctx := context.Background()
-	item, err := modulesService.GetItem(ctx, modulesCourseID, modulesModuleID, itemID, modulesInclude, modulesStudentID)
+	item, err := modulesService.GetItem(ctx, opts.CourseID, opts.ModuleID, opts.ItemID, opts.Include, "")
 	if err != nil {
+		logger.LogCommandError(ctx, "modules.items.get", err, map[string]interface{}{
+			"course_id": opts.CourseID,
+			"module_id": opts.ModuleID,
+			"item_id":   opts.ItemID,
+		})
 		return fmt.Errorf("failed to get module item: %w", err)
 	}
 
-	// Format and display item details
-	return formatOutput(item, nil)
-}
-
-func runModulesItemsCreate(cmd *cobra.Command, args []string) error {
-	client, err := getAPIClient()
-	if err != nil {
-		return err
+	if err := formatOutput(item, nil); err != nil {
+		return fmt.Errorf("failed to print result: %w", err)
 	}
 
+	logger.LogCommandComplete(ctx, "modules.items.get", 1)
+	return nil
+}
+
+func runModulesItemsCreate(ctx context.Context, client *api.Client, opts *options.ModulesItemsCreateOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+
+	logger.LogCommandStart(ctx, "modules.items.create", map[string]interface{}{
+		"course_id": opts.CourseID,
+		"module_id": opts.ModuleID,
+		"type":      opts.Type,
+	})
+
 	// Validate course ID exists
-	if _, err := validateCourseID(client, modulesCourseID); err != nil {
+	if _, err := validateCourseID(client, opts.CourseID); err != nil {
+		logger.LogCommandError(ctx, "modules.items.create", err, map[string]interface{}{
+			"course_id": opts.CourseID,
+		})
 		return err
 	}
 
 	modulesService := api.NewModulesService(client)
 
 	params := &api.CreateModuleItemParams{
-		Type:        modulesItemType,
-		Title:       modulesItemTitle,
-		ContentID:   modulesItemContentID,
-		PageURL:     modulesItemPageURL,
-		ExternalURL: modulesItemExternalURL,
-		NewTab:      modulesItemNewTab,
-		Indent:      modulesItemIndent,
-		Position:    modulesPosition,
+		Type:        opts.Type,
+		Title:       opts.Title,
+		ContentID:   opts.ContentID,
+		PageURL:     opts.PageURL,
+		ExternalURL: opts.ExternalURL,
+		NewTab:      opts.NewTab,
+		Indent:      opts.Indent,
 	}
 
-	if modulesItemCompletionType != "" {
+	if opts.CompletionType != "" {
 		params.CompletionRequirement = &api.CompletionRequirementParams{
-			Type:     modulesItemCompletionType,
-			MinScore: modulesItemMinScore,
+			Type:     opts.CompletionType,
+			MinScore: opts.MinScore,
 		}
 	}
 
-	ctx := context.Background()
-	item, err := modulesService.CreateItem(ctx, modulesCourseID, modulesModuleID, params)
+	item, err := modulesService.CreateItem(ctx, opts.CourseID, opts.ModuleID, params)
 	if err != nil {
+		logger.LogCommandError(ctx, "modules.items.create", err, map[string]interface{}{
+			"course_id": opts.CourseID,
+			"module_id": opts.ModuleID,
+			"type":      opts.Type,
+		})
 		return fmt.Errorf("failed to create module item: %w", err)
 	}
 
-	return formatSuccessOutput(item, "Module item created successfully!")
-}
-
-func runModulesItemsUpdate(cmd *cobra.Command, args []string) error {
-	itemID, err := strconv.ParseInt(args[0], 10, 64)
-	if err != nil {
-		return fmt.Errorf("invalid item ID: %s", args[0])
-	}
-
-	client, err := getAPIClient()
-	if err != nil {
+	if err := formatSuccessOutput(item, "Module item created successfully!"); err != nil {
 		return err
 	}
 
+	logger.LogCommandComplete(ctx, "modules.items.create", 1)
+	return nil
+}
+
+func runModulesItemsUpdate(ctx context.Context, client *api.Client, opts *options.ModulesItemsUpdateOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+
+	logger.LogCommandStart(ctx, "modules.items.update", map[string]interface{}{
+		"course_id": opts.CourseID,
+		"module_id": opts.ModuleID,
+		"item_id":   opts.ItemID,
+	})
+
 	// Validate course ID exists
-	if _, err := validateCourseID(client, modulesCourseID); err != nil {
+	if _, err := validateCourseID(client, opts.CourseID); err != nil {
+		logger.LogCommandError(ctx, "modules.items.update", err, map[string]interface{}{
+			"course_id": opts.CourseID,
+		})
 		return err
 	}
 
@@ -813,61 +1179,68 @@ func runModulesItemsUpdate(cmd *cobra.Command, args []string) error {
 	params := &api.UpdateModuleItemParams{}
 
 	// Only set fields that were explicitly provided
-	if cmd.Flags().Changed("title") {
-		params.Title = &modulesItemTitle
+	if opts.TitleSet {
+		params.Title = &opts.Title
 	}
-	if cmd.Flags().Changed("position") {
-		params.Position = &modulesPosition
+	if opts.PositionSet {
+		params.Position = &opts.Position
 	}
-	if cmd.Flags().Changed("indent") {
-		params.Indent = &modulesItemIndent
+	if opts.IndentSet {
+		params.Indent = &opts.Indent
 	}
-	if cmd.Flags().Changed("external-url") {
-		params.ExternalURL = &modulesItemExternalURL
+	if opts.NewTabSet {
+		params.NewTab = &opts.NewTab
 	}
-	if cmd.Flags().Changed("new-tab") {
-		params.NewTab = &modulesItemNewTab
+	if opts.PublishedSet {
+		params.Published = &opts.Published
 	}
-	if cmd.Flags().Changed("published") {
-		params.Published = &modulesItemPublished
+	if opts.MoveToModuleSet {
+		params.MoveToModuleID = &opts.MoveToModule
 	}
-	if cmd.Flags().Changed("move-to-module") {
-		params.MoveToModuleID = &modulesItemMoveToModule
-	}
-	if cmd.Flags().Changed("completion-type") {
+	if opts.CompletionTypeSet {
 		params.CompletionRequirement = &api.CompletionRequirementParams{
-			Type:     modulesItemCompletionType,
-			MinScore: modulesItemMinScore,
+			Type:     opts.CompletionType,
+			MinScore: opts.MinScore,
 		}
 	}
 
-	ctx := context.Background()
-	item, err := modulesService.UpdateItem(ctx, modulesCourseID, modulesModuleID, itemID, params)
+	item, err := modulesService.UpdateItem(ctx, opts.CourseID, opts.ModuleID, opts.ItemID, params)
 	if err != nil {
+		logger.LogCommandError(ctx, "modules.items.update", err, map[string]interface{}{
+			"course_id": opts.CourseID,
+			"module_id": opts.ModuleID,
+			"item_id":   opts.ItemID,
+		})
 		return fmt.Errorf("failed to update module item: %w", err)
 	}
 
-	return formatSuccessOutput(item, "Module item updated successfully!")
-}
-
-func runModulesItemsDelete(cmd *cobra.Command, args []string) error {
-	itemID, err := strconv.ParseInt(args[0], 10, 64)
-	if err != nil {
-		return fmt.Errorf("invalid item ID: %s", args[0])
-	}
-
-	client, err := getAPIClient()
-	if err != nil {
+	if err := formatSuccessOutput(item, "Module item updated successfully!"); err != nil {
 		return err
 	}
 
+	logger.LogCommandComplete(ctx, "modules.items.update", 1)
+	return nil
+}
+
+func runModulesItemsDelete(ctx context.Context, client *api.Client, opts *options.ModulesItemsDeleteOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+
+	logger.LogCommandStart(ctx, "modules.items.delete", map[string]interface{}{
+		"course_id": opts.CourseID,
+		"module_id": opts.ModuleID,
+		"item_id":   opts.ItemID,
+	})
+
 	// Validate course ID exists
-	if _, err := validateCourseID(client, modulesCourseID); err != nil {
+	if _, err := validateCourseID(client, opts.CourseID); err != nil {
+		logger.LogCommandError(ctx, "modules.items.delete", err, map[string]interface{}{
+			"course_id": opts.CourseID,
+		})
 		return err
 	}
 
 	// Confirm deletion
-	confirmed, err := confirmDelete("module item", itemID, modulesForce)
+	confirmed, err := confirmDelete("module item", opts.ItemID, opts.Force)
 	if err != nil {
 		return err
 	}
@@ -878,38 +1251,51 @@ func runModulesItemsDelete(cmd *cobra.Command, args []string) error {
 
 	modulesService := api.NewModulesService(client)
 
-	ctx := context.Background()
-	if err := modulesService.DeleteItem(ctx, modulesCourseID, modulesModuleID, itemID); err != nil {
+	if err := modulesService.DeleteItem(ctx, opts.CourseID, opts.ModuleID, opts.ItemID); err != nil {
+		logger.LogCommandError(ctx, "modules.items.delete", err, map[string]interface{}{
+			"course_id": opts.CourseID,
+			"module_id": opts.ModuleID,
+			"item_id":   opts.ItemID,
+		})
 		return fmt.Errorf("failed to delete module item: %w", err)
 	}
 
-	fmt.Printf("Module item %d deleted successfully\n", itemID)
+	fmt.Printf("Module item %d deleted successfully\n", opts.ItemID)
+
+	logger.LogCommandComplete(ctx, "modules.items.delete", 1)
 	return nil
 }
 
-func runModulesItemsDone(cmd *cobra.Command, args []string) error {
-	itemID, err := strconv.ParseInt(args[0], 10, 64)
-	if err != nil {
-		return fmt.Errorf("invalid item ID: %s", args[0])
-	}
+func runModulesItemsDone(ctx context.Context, client *api.Client, opts *options.ModulesItemsDoneOptions) error {
+	logger := logging.NewCommandLogger(verbose)
 
-	client, err := getAPIClient()
-	if err != nil {
-		return err
-	}
+	logger.LogCommandStart(ctx, "modules.items.done", map[string]interface{}{
+		"course_id": opts.CourseID,
+		"module_id": opts.ModuleID,
+		"item_id":   opts.ItemID,
+	})
 
 	// Validate course ID exists
-	if _, err := validateCourseID(client, modulesCourseID); err != nil {
+	if _, err := validateCourseID(client, opts.CourseID); err != nil {
+		logger.LogCommandError(ctx, "modules.items.done", err, map[string]interface{}{
+			"course_id": opts.CourseID,
+		})
 		return err
 	}
 
 	modulesService := api.NewModulesService(client)
 
-	ctx := context.Background()
-	if err := modulesService.MarkItemDone(ctx, modulesCourseID, modulesModuleID, itemID); err != nil {
+	if err := modulesService.MarkItemDone(ctx, opts.CourseID, opts.ModuleID, opts.ItemID); err != nil {
+		logger.LogCommandError(ctx, "modules.items.done", err, map[string]interface{}{
+			"course_id": opts.CourseID,
+			"module_id": opts.ModuleID,
+			"item_id":   opts.ItemID,
+		})
 		return fmt.Errorf("failed to mark item as done: %w", err)
 	}
 
-	fmt.Printf("Module item %d marked as done\n", itemID)
+	fmt.Printf("Module item %d marked as done\n", opts.ItemID)
+
+	logger.LogCommandComplete(ctx, "modules.items.done", 1)
 	return nil
 }

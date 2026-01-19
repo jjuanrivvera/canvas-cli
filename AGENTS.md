@@ -45,6 +45,9 @@ Canvas CLI is a Go CLI for Canvas LMS API, built with Cobra/Viper.
 ```
 cmd/canvas/     → Entry point (main.go)
 commands/       → Cobra command definitions (one file per resource)
+  internal/
+    options/    → Option structs for commands (eliminates global state)
+    logging/    → Structured logging for commands
 internal/
   api/          → Canvas API client + service layer (Client, *Service structs)
   auth/         → OAuth 2.0 + PKCE, token storage (keyring/encrypted file)
@@ -64,10 +67,52 @@ type ModulesService struct { client *Client }
 func NewModulesService(client *Client) *ModulesService
 ```
 
-**Command Pattern**: Commands in `commands/` follow this structure:
+**Command Pattern (NEW)**: Commands should use options structs instead of global flags:
 ```go
-var resourceCmd = &cobra.Command{...}
-func init() { rootCmd.AddCommand(resourceCmd) }
+// commands/internal/options/resource.go
+type ResourceListOptions struct {
+    CourseID int64
+    Include  []string
+}
+
+func (o *ResourceListOptions) Validate() error {
+    return ValidateRequired("course-id", o.CourseID)
+}
+
+// commands/resource.go
+func newResourceListCmd() *cobra.Command {
+    opts := &options.ResourceListOptions{}
+    cmd := &cobra.Command{
+        Use: "list",
+        RunE: func(cmd *cobra.Command, args []string) error {
+            if err := opts.Validate(); err != nil {
+                return err
+            }
+            client, _ := getAPIClient()
+            return runResourceList(cmd.Context(), client, opts)
+        },
+    }
+    cmd.Flags().Int64Var(&opts.CourseID, "course-id", 0, "Course ID")
+    return cmd
+}
+```
+
+**Structured Logging (NEW)**: Commands should use structured logging:
+```go
+import "github.com/jjuanrivvera/canvas-cli/commands/internal/logging"
+
+func runCommand(ctx context.Context, client *api.Client, opts *Options) error {
+    logger := logging.NewCommandLogger(globalDebugFlag)
+
+    logger.LogCommandStart(ctx, "resource.list", map[string]interface{}{
+        "course_id": opts.CourseID,
+    })
+
+    // ... perform operation ...
+
+    logger.LogCommandComplete(ctx, "resource.list", len(results))
+    return nil
+}
 ```
 
 **API Client**: `internal/api/client.go` provides `HTTPClient` interface with:
@@ -208,3 +253,58 @@ GoReleaser automatically:
 The formula is at: https://github.com/jjuanrivvera/homebrew-canvas-cli
 
 **Required secret**: `HOMEBREW_TAP_TOKEN` - a PAT with `repo` scope for the tap repository
+
+## Technical Debt & Remediation
+
+See [TECHNICAL_DEBT.md](TECHNICAL_DEBT.md) for tracked technical debt items.
+
+All critical and important technical debt has been resolved. Remaining items are nice-to-have improvements tracked in TECHNICAL_DEBT.md.
+
+### Adding New Commands
+
+When adding new commands, follow these patterns:
+
+1. **Create option struct** in `commands/internal/options/`
+2. **Use structured logging** from `commands/internal/logging`
+3. **Avoid global flag variables**
+4. **Add tests** for command logic
+5. **Validate options** before execution
+
+Example:
+```go
+// 1. Define options
+type NewResourceOptions struct {
+    RequiredField string
+    OptionalField int
+}
+
+func (o *NewResourceOptions) Validate() error {
+    return ValidateRequired("required-field", o.RequiredField)
+}
+
+// 2. Create command with logging
+func newNewResourceCmd() *cobra.Command {
+    opts := &options.NewResourceOptions{}
+    cmd := &cobra.Command{
+        Use: "new-resource",
+        RunE: func(cmd *cobra.Command, args []string) error {
+            logger := logging.NewCommandLogger(globalDebugFlag)
+
+            if err := opts.Validate(); err != nil {
+                return err
+            }
+
+            logger.LogCommandStart(cmd.Context(), "new.resource", map[string]interface{}{
+                "required_field": opts.RequiredField,
+            })
+
+            // Implementation
+
+            logger.LogCommandComplete(cmd.Context(), "new.resource", recordCount)
+            return nil
+        },
+    }
+    cmd.Flags().StringVar(&opts.RequiredField, "required-field", "", "Required field")
+    return cmd
+}
+```

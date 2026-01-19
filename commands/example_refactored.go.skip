@@ -1,0 +1,185 @@
+// Package commands - Example Refactored Command
+// This file demonstrates the new command pattern with:
+// - Options structs instead of global flags
+// - Structured logging
+// - Testable design
+// - Clean separation of concerns
+
+package commands
+
+import (
+	"context"
+	"fmt"
+	"strconv"
+
+	"github.com/spf13/cobra"
+
+	"github.com/jjuanrivvera/canvas-cli/commands/internal/logging"
+	"github.com/jjuanrivvera/canvas-cli/commands/internal/options"
+	"github.com/jjuanrivvera/canvas-cli/internal/api"
+)
+
+// Example: List courses command using new pattern
+// This demonstrates how to refactor existing commands
+
+// newCoursesListCmdRefactored creates a courses list command using the new pattern
+// This is an example - the actual command still uses the old pattern
+func newCoursesListCmdRefactored() *cobra.Command {
+	opts := &options.CoursesListOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "list",
+		Short: "List courses (refactored example)",
+		Long: `List courses using the new refactored pattern.
+
+This command demonstrates:
+- Options struct instead of global flags
+- Structured logging
+- Testable design
+- Clean validation
+
+Examples:
+  canvas courses list
+  canvas courses list --enrollment-type teacher
+  canvas courses list --state available`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			// Validate options
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+
+			// Get API client
+			client, err := getAPIClient()
+			if err != nil {
+				return fmt.Errorf("failed to get API client: %w", err)
+			}
+
+			// Run command with options
+			return runCoursesListRefactored(cmd.Context(), client, opts)
+		},
+	}
+
+	// Bind flags to option struct fields
+	cmd.Flags().StringSliceVar(&opts.Include, "include", nil, "Include additional data")
+	cmd.Flags().StringSliceVar(&opts.State, "state", nil, "Filter by course state")
+	cmd.Flags().StringVar(&opts.EnrollmentType, "enrollment-type", "", "Filter by enrollment type")
+	cmd.Flags().StringVar(&opts.EnrollmentState, "enrollment-state", "", "Filter by enrollment state")
+	cmd.Flags().StringVar(&opts.SearchTerm, "search", "", "Search term")
+	cmd.Flags().IntVar(&opts.PerPage, "per-page", 100, "Items per page")
+
+	return cmd
+}
+
+// runCoursesListRefactored executes the courses list command with structured logging
+func runCoursesListRefactored(ctx context.Context, client *api.Client, opts *options.CoursesListOptions) error {
+	// Create logger
+	logger := logging.NewCommandLogger(verbose)
+
+	// Log command start
+	logger.LogCommandStart(ctx, "courses.list", map[string]interface{}{
+		"enrollment_type":  opts.EnrollmentType,
+		"enrollment_state": opts.EnrollmentState,
+		"search_term":      opts.SearchTerm,
+	})
+
+	// Build request options
+	reqOpts := &api.ListCoursesOptions{
+		EnrollmentType:  opts.EnrollmentType,
+		EnrollmentState: opts.EnrollmentState,
+		Include:         opts.Include,
+		State:           opts.State,
+		PerPage:         opts.PerPage,
+	}
+
+	// Create courses service
+	coursesService := api.NewCoursesService(client)
+
+	// Call API
+	courses, err := coursesService.List(ctx, reqOpts)
+	if err != nil {
+		logger.LogCommandError(ctx, "courses.list", err, map[string]interface{}{
+			"enrollment_type": opts.EnrollmentType,
+		})
+		return fmt.Errorf("failed to list courses: %w", err)
+	}
+
+	// Display results using formatEmptyOrOutput
+	if err := formatEmptyOrOutput(courses, "No courses found"); err != nil {
+		return fmt.Errorf("failed to print results: %w", err)
+	}
+
+	// Log completion
+	logger.LogCommandComplete(ctx, "courses.list", len(courses))
+
+	return nil
+}
+
+// Example: Get course command using new pattern
+
+// newCoursesGetCmdRefactored creates a courses get command using the new pattern
+func newCoursesGetCmdRefactored() *cobra.Command {
+	opts := &options.CoursesGetOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "get <course-id>",
+		Short: "Get course details (refactored example)",
+		Args:  ExactArgsWithUsage(1, "course-id"),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			// Parse course ID from args
+			courseID, err := strconv.ParseInt(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid course ID: %w", err)
+			}
+			opts.CourseID = courseID
+
+			// Validate options
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+
+			// Get API client
+			client, err := getAPIClient()
+			if err != nil {
+				return fmt.Errorf("failed to get API client: %w", err)
+			}
+
+			// Run command
+			return runCoursesGetRefactored(cmd.Context(), client, opts)
+		},
+	}
+
+	// Bind flags
+	cmd.Flags().StringSliceVar(&opts.Include, "include", nil, "Include additional data")
+
+	return cmd
+}
+
+// runCoursesGetRefactored executes the courses get command
+func runCoursesGetRefactored(ctx context.Context, client *api.Client, opts *options.CoursesGetOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+
+	logger.LogCommandStart(ctx, "courses.get", map[string]interface{}{
+		"course_id": opts.CourseID,
+	})
+
+	// Create courses service
+	coursesService := api.NewCoursesService(client)
+
+	// Call API
+	course, err := coursesService.Get(ctx, opts.CourseID, opts.Include)
+	if err != nil {
+		logger.LogCommandError(ctx, "courses.get", err, map[string]interface{}{
+			"course_id": opts.CourseID,
+		})
+		return fmt.Errorf("failed to get course: %w", err)
+	}
+
+	// Display result using formatOutput
+	if err := formatOutput(course, nil); err != nil {
+		return fmt.Errorf("failed to print result: %w", err)
+	}
+
+	logger.LogCommandComplete(ctx, "courses.get", 1)
+
+	return nil
+}

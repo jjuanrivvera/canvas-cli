@@ -9,36 +9,9 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/jjuanrivvera/canvas-cli/commands/internal/logging"
+	"github.com/jjuanrivvera/canvas-cli/commands/internal/options"
 	"github.com/jjuanrivvera/canvas-cli/internal/api"
-)
-
-var (
-	extToolsCourseID      int64
-	extToolsAccountID     int64
-	extToolsSearch        string
-	extToolsSelectable    bool
-	extToolsIncludeParent bool
-
-	// Create/Update flags
-	extToolsName         string
-	extToolsURL          string
-	extToolsDomain       string
-	extToolsConsumerKey  string
-	extToolsSharedSecret string
-	extToolsPrivacyLevel string
-	extToolsDescription  string
-	extToolsConfigType   string
-	extToolsConfigURL    string
-	extToolsConfigXML    string
-	extToolsJSONFile     string
-
-	// Launch flags
-	extToolsLaunchType   string
-	extToolsAssignmentID int64
-	extToolsModuleItemID int64
-
-	// Delete flags
-	extToolsForce bool
 )
 
 var externalToolsCmd = &cobra.Command{
@@ -55,10 +28,23 @@ Examples:
   canvas external-tools create --course-id 123 --name "My Tool" --url https://tool.example.com`,
 }
 
-var extToolsListCmd = &cobra.Command{
-	Use:   "list",
-	Short: "List external tools",
-	Long: `List external tools for a course or account.
+func init() {
+	rootCmd.AddCommand(externalToolsCmd)
+	externalToolsCmd.AddCommand(newExtToolsListCmd())
+	externalToolsCmd.AddCommand(newExtToolsGetCmd())
+	externalToolsCmd.AddCommand(newExtToolsCreateCmd())
+	externalToolsCmd.AddCommand(newExtToolsUpdateCmd())
+	externalToolsCmd.AddCommand(newExtToolsDeleteCmd())
+	externalToolsCmd.AddCommand(newExtToolsLaunchCmd())
+}
+
+func newExtToolsListCmd() *cobra.Command {
+	opts := &options.ExternalToolsListOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "list",
+		Short: "List external tools",
+		Long: `List external tools for a course or account.
 
 If neither --account-id nor --course-id is specified, uses default account.
 
@@ -68,61 +54,220 @@ Examples:
   canvas external-tools list --account-id 1
   canvas external-tools list --course-id 123 --search "quiz"
   canvas external-tools list --course-id 123 --selectable --include-parents`,
-	RunE: runExtToolsList,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			// Use default account ID if neither course nor account is specified
+			if opts.CourseID == 0 && opts.AccountID == 0 {
+				defaultID, err := getDefaultAccountID()
+				if err != nil || defaultID == 0 {
+					return fmt.Errorf("must specify --course-id or --account-id (no default account configured). Use 'canvas config account --detect' to set one")
+				}
+				opts.AccountID = defaultID
+				printVerbose("Using default account ID: %d\n", defaultID)
+			}
+
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+
+			return runExtToolsList(cmd.Context(), client, cmd, opts)
+		},
+	}
+
+	cmd.Flags().Int64Var(&opts.CourseID, "course-id", 0, "Course ID")
+	cmd.Flags().Int64Var(&opts.AccountID, "account-id", 0, "Account ID")
+	cmd.Flags().StringVar(&opts.Search, "search", "", "Search term")
+	cmd.Flags().BoolVar(&opts.Selectable, "selectable", false, "Only show selectable tools")
+	cmd.Flags().BoolVar(&opts.IncludeParent, "include-parents", false, "Include tools from parent contexts")
+
+	return cmd
 }
 
-var extToolsGetCmd = &cobra.Command{
-	Use:   "get <tool-id>",
-	Short: "Get an external tool",
-	Long: `Get details of a specific external tool.
+func newExtToolsGetCmd() *cobra.Command {
+	opts := &options.ExternalToolsGetOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "get <tool-id>",
+		Short: "Get an external tool",
+		Long: `Get details of a specific external tool.
 
 Examples:
   canvas external-tools get 456 --course-id 123
   canvas external-tools get 456 --account-id 1`,
-	Args: ExactArgsWithUsage(1, "tool-id"),
-	RunE: runExtToolsGet,
+		Args: ExactArgsWithUsage(1, "tool-id"),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			toolID, err := strconv.ParseInt(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid tool ID: %w", err)
+			}
+			opts.ToolID = toolID
+
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+
+			return runExtToolsGet(cmd.Context(), client, opts)
+		},
+	}
+
+	cmd.Flags().Int64Var(&opts.CourseID, "course-id", 0, "Course ID")
+	cmd.Flags().Int64Var(&opts.AccountID, "account-id", 0, "Account ID")
+
+	return cmd
 }
 
-var extToolsCreateCmd = &cobra.Command{
-	Use:   "create",
-	Short: "Create an external tool",
-	Long: `Create a new external tool in a course or account.
+func newExtToolsCreateCmd() *cobra.Command {
+	opts := &options.ExternalToolsCreateOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "create",
+		Short: "Create an external tool",
+		Long: `Create a new external tool in a course or account.
 
 Examples:
   canvas external-tools create --course-id 123 --name "My Tool" --url https://tool.example.com
   canvas external-tools create --course-id 123 --name "LTI Tool" --consumer-key key123 --shared-secret secret123
   canvas external-tools create --course-id 123 --json tool-config.json`,
-	RunE: runExtToolsCreate,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+
+			return runExtToolsCreate(cmd.Context(), client, opts)
+		},
+	}
+
+	cmd.Flags().Int64Var(&opts.CourseID, "course-id", 0, "Course ID")
+	cmd.Flags().Int64Var(&opts.AccountID, "account-id", 0, "Account ID")
+	cmd.Flags().StringVar(&opts.Name, "name", "", "Tool name (required)")
+	cmd.Flags().StringVar(&opts.URL, "url", "", "Tool URL")
+	cmd.Flags().StringVar(&opts.Domain, "domain", "", "Tool domain")
+	cmd.Flags().StringVar(&opts.ConsumerKey, "consumer-key", "", "OAuth consumer key")
+	cmd.Flags().StringVar(&opts.SharedSecret, "shared-secret", "", "OAuth shared secret")
+	cmd.Flags().StringVar(&opts.PrivacyLevel, "privacy-level", "", "Privacy level: anonymous, name_only, email_only, public")
+	cmd.Flags().StringVar(&opts.Description, "description", "", "Tool description")
+	cmd.Flags().StringVar(&opts.ConfigType, "config-type", "", "Config type: url, xml")
+	cmd.Flags().StringVar(&opts.ConfigURL, "config-url", "", "Configuration URL")
+	cmd.Flags().StringVar(&opts.ConfigXML, "config-xml", "", "Configuration XML")
+	cmd.Flags().StringVar(&opts.JSONFile, "json", "", "JSON file with full tool configuration")
+
+	return cmd
 }
 
-var extToolsUpdateCmd = &cobra.Command{
-	Use:   "update <tool-id>",
-	Short: "Update an external tool",
-	Long: `Update an existing external tool.
+func newExtToolsUpdateCmd() *cobra.Command {
+	opts := &options.ExternalToolsUpdateOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "update <tool-id>",
+		Short: "Update an external tool",
+		Long: `Update an existing external tool.
 
 Examples:
   canvas external-tools update 456 --course-id 123 --name "Updated Name"
   canvas external-tools update 456 --course-id 123 --url https://new-url.example.com`,
-	Args: ExactArgsWithUsage(1, "tool-id"),
-	RunE: runExtToolsUpdate,
+		Args: ExactArgsWithUsage(1, "tool-id"),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			toolID, err := strconv.ParseInt(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid tool ID: %w", err)
+			}
+			opts.ToolID = toolID
+
+			// Track which fields were set
+			opts.NameSet = cmd.Flags().Changed("name")
+			opts.URLSet = cmd.Flags().Changed("url")
+			opts.DomainSet = cmd.Flags().Changed("domain")
+			opts.ConsumerKeySet = cmd.Flags().Changed("consumer-key")
+			opts.SharedSecretSet = cmd.Flags().Changed("shared-secret")
+			opts.PrivacyLevelSet = cmd.Flags().Changed("privacy-level")
+			opts.DescriptionSet = cmd.Flags().Changed("description")
+
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+
+			return runExtToolsUpdate(cmd.Context(), client, opts)
+		},
+	}
+
+	cmd.Flags().Int64Var(&opts.CourseID, "course-id", 0, "Course ID")
+	cmd.Flags().Int64Var(&opts.AccountID, "account-id", 0, "Account ID")
+	cmd.Flags().StringVar(&opts.Name, "name", "", "Tool name")
+	cmd.Flags().StringVar(&opts.URL, "url", "", "Tool URL")
+	cmd.Flags().StringVar(&opts.Domain, "domain", "", "Tool domain")
+	cmd.Flags().StringVar(&opts.ConsumerKey, "consumer-key", "", "OAuth consumer key")
+	cmd.Flags().StringVar(&opts.SharedSecret, "shared-secret", "", "OAuth shared secret")
+	cmd.Flags().StringVar(&opts.PrivacyLevel, "privacy-level", "", "Privacy level")
+	cmd.Flags().StringVar(&opts.Description, "description", "", "Tool description")
+
+	return cmd
 }
 
-var extToolsDeleteCmd = &cobra.Command{
-	Use:   "delete <tool-id>",
-	Short: "Delete an external tool",
-	Long: `Delete an external tool from a course or account.
+func newExtToolsDeleteCmd() *cobra.Command {
+	opts := &options.ExternalToolsDeleteOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "delete <tool-id>",
+		Short: "Delete an external tool",
+		Long: `Delete an external tool from a course or account.
 
 Examples:
   canvas external-tools delete 456 --course-id 123
   canvas external-tools delete 456 --account-id 1`,
-	Args: ExactArgsWithUsage(1, "tool-id"),
-	RunE: runExtToolsDelete,
+		Args: ExactArgsWithUsage(1, "tool-id"),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			toolID, err := strconv.ParseInt(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid tool ID: %w", err)
+			}
+			opts.ToolID = toolID
+
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+
+			return runExtToolsDelete(cmd.Context(), client, opts)
+		},
+	}
+
+	cmd.Flags().Int64Var(&opts.CourseID, "course-id", 0, "Course ID")
+	cmd.Flags().Int64Var(&opts.AccountID, "account-id", 0, "Account ID")
+	cmd.Flags().BoolVarP(&opts.Force, "force", "f", false, "Skip confirmation prompt")
+
+	return cmd
 }
 
-var extToolsLaunchCmd = &cobra.Command{
-	Use:   "launch <tool-id>",
-	Short: "Get sessionless launch URL",
-	Long: `Get a sessionless launch URL for an external tool.
+func newExtToolsLaunchCmd() *cobra.Command {
+	opts := &options.ExternalToolsLaunchOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "launch <tool-id>",
+		Short: "Get sessionless launch URL",
+		Long: `Get a sessionless launch URL for an external tool.
 
 Launch Types:
   - course_navigation: Launch from course navigation
@@ -133,283 +278,260 @@ Launch Types:
 Examples:
   canvas external-tools launch 456 --course-id 123
   canvas external-tools launch 456 --course-id 123 --launch-type assessment --assignment-id 789`,
-	Args: ExactArgsWithUsage(1, "tool-id"),
-	RunE: runExtToolsLaunch,
-}
+		Args: ExactArgsWithUsage(1, "tool-id"),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			toolID, err := strconv.ParseInt(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid tool ID: %w", err)
+			}
+			opts.ToolID = toolID
 
-func init() {
-	rootCmd.AddCommand(externalToolsCmd)
-	externalToolsCmd.AddCommand(extToolsListCmd)
-	externalToolsCmd.AddCommand(extToolsGetCmd)
-	externalToolsCmd.AddCommand(extToolsCreateCmd)
-	externalToolsCmd.AddCommand(extToolsUpdateCmd)
-	externalToolsCmd.AddCommand(extToolsDeleteCmd)
-	externalToolsCmd.AddCommand(extToolsLaunchCmd)
+			if err := opts.Validate(); err != nil {
+				return err
+			}
 
-	// List flags
-	extToolsListCmd.Flags().Int64Var(&extToolsCourseID, "course-id", 0, "Course ID")
-	extToolsListCmd.Flags().Int64Var(&extToolsAccountID, "account-id", 0, "Account ID")
-	extToolsListCmd.Flags().StringVar(&extToolsSearch, "search", "", "Search term")
-	extToolsListCmd.Flags().BoolVar(&extToolsSelectable, "selectable", false, "Only show selectable tools")
-	extToolsListCmd.Flags().BoolVar(&extToolsIncludeParent, "include-parents", false, "Include tools from parent contexts")
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
 
-	// Get flags
-	extToolsGetCmd.Flags().Int64Var(&extToolsCourseID, "course-id", 0, "Course ID")
-	extToolsGetCmd.Flags().Int64Var(&extToolsAccountID, "account-id", 0, "Account ID")
-
-	// Create flags
-	extToolsCreateCmd.Flags().Int64Var(&extToolsCourseID, "course-id", 0, "Course ID")
-	extToolsCreateCmd.Flags().Int64Var(&extToolsAccountID, "account-id", 0, "Account ID")
-	extToolsCreateCmd.Flags().StringVar(&extToolsName, "name", "", "Tool name (required)")
-	extToolsCreateCmd.Flags().StringVar(&extToolsURL, "url", "", "Tool URL")
-	extToolsCreateCmd.Flags().StringVar(&extToolsDomain, "domain", "", "Tool domain")
-	extToolsCreateCmd.Flags().StringVar(&extToolsConsumerKey, "consumer-key", "", "OAuth consumer key")
-	extToolsCreateCmd.Flags().StringVar(&extToolsSharedSecret, "shared-secret", "", "OAuth shared secret")
-	extToolsCreateCmd.Flags().StringVar(&extToolsPrivacyLevel, "privacy-level", "", "Privacy level: anonymous, name_only, email_only, public")
-	extToolsCreateCmd.Flags().StringVar(&extToolsDescription, "description", "", "Tool description")
-	extToolsCreateCmd.Flags().StringVar(&extToolsConfigType, "config-type", "", "Config type: url, xml")
-	extToolsCreateCmd.Flags().StringVar(&extToolsConfigURL, "config-url", "", "Configuration URL")
-	extToolsCreateCmd.Flags().StringVar(&extToolsConfigXML, "config-xml", "", "Configuration XML")
-	extToolsCreateCmd.Flags().StringVar(&extToolsJSONFile, "json", "", "JSON file with full tool configuration")
-
-	// Update flags
-	extToolsUpdateCmd.Flags().Int64Var(&extToolsCourseID, "course-id", 0, "Course ID")
-	extToolsUpdateCmd.Flags().Int64Var(&extToolsAccountID, "account-id", 0, "Account ID")
-	extToolsUpdateCmd.Flags().StringVar(&extToolsName, "name", "", "Tool name")
-	extToolsUpdateCmd.Flags().StringVar(&extToolsURL, "url", "", "Tool URL")
-	extToolsUpdateCmd.Flags().StringVar(&extToolsDomain, "domain", "", "Tool domain")
-	extToolsUpdateCmd.Flags().StringVar(&extToolsConsumerKey, "consumer-key", "", "OAuth consumer key")
-	extToolsUpdateCmd.Flags().StringVar(&extToolsSharedSecret, "shared-secret", "", "OAuth shared secret")
-	extToolsUpdateCmd.Flags().StringVar(&extToolsPrivacyLevel, "privacy-level", "", "Privacy level")
-	extToolsUpdateCmd.Flags().StringVar(&extToolsDescription, "description", "", "Tool description")
-
-	// Delete flags
-	extToolsDeleteCmd.Flags().Int64Var(&extToolsCourseID, "course-id", 0, "Course ID")
-	extToolsDeleteCmd.Flags().Int64Var(&extToolsAccountID, "account-id", 0, "Account ID")
-	extToolsDeleteCmd.Flags().BoolVarP(&extToolsForce, "force", "f", false, "Skip confirmation prompt")
-
-	// Launch flags
-	extToolsLaunchCmd.Flags().Int64Var(&extToolsCourseID, "course-id", 0, "Course ID")
-	extToolsLaunchCmd.Flags().Int64Var(&extToolsAccountID, "account-id", 0, "Account ID")
-	extToolsLaunchCmd.Flags().StringVar(&extToolsLaunchType, "launch-type", "", "Launch type: course_navigation, account_navigation, assessment, module_item")
-	extToolsLaunchCmd.Flags().Int64Var(&extToolsAssignmentID, "assignment-id", 0, "Assignment ID (for assessment launch)")
-	extToolsLaunchCmd.Flags().Int64Var(&extToolsModuleItemID, "module-item-id", 0, "Module item ID (for module_item launch)")
-}
-
-func runExtToolsList(cmd *cobra.Command, args []string) error {
-	// Use default account ID if neither course nor account is specified
-	if extToolsCourseID == 0 && extToolsAccountID == 0 {
-		defaultID, err := getDefaultAccountID()
-		if err != nil || defaultID == 0 {
-			return fmt.Errorf("must specify --course-id or --account-id (no default account configured). Use 'canvas config account --detect' to set one")
-		}
-		extToolsAccountID = defaultID
-		printVerbose("Using default account ID: %d\n", defaultID)
+			return runExtToolsLaunch(cmd.Context(), client, opts)
+		},
 	}
 
-	client, err := getAPIClient()
-	if err != nil {
-		return err
-	}
+	cmd.Flags().Int64Var(&opts.CourseID, "course-id", 0, "Course ID (required)")
+	cmd.MarkFlagRequired("course-id")
+	cmd.Flags().StringVar(&opts.LaunchType, "launch-type", "", "Launch type: course_navigation, account_navigation, assessment, module_item")
+	cmd.Flags().Int64Var(&opts.AssignmentID, "assignment-id", 0, "Assignment ID (for assessment launch)")
+	cmd.Flags().Int64Var(&opts.ModuleItemID, "module-item-id", 0, "Module item ID (for module_item launch)")
+
+	return cmd
+}
+
+func runExtToolsList(ctx context.Context, client *api.Client, cmd *cobra.Command, opts *options.ExternalToolsListOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+	logger.LogCommandStart(ctx, "external_tools.list", map[string]interface{}{
+		"course_id":      opts.CourseID,
+		"account_id":     opts.AccountID,
+		"search":         opts.Search,
+		"selectable":     opts.Selectable,
+		"include_parent": opts.IncludeParent,
+	})
 
 	service := api.NewExternalToolsService(client)
 
 	var selectable *bool
 	if cmd.Flags().Changed("selectable") {
-		selectable = &extToolsSelectable
+		selectable = &opts.Selectable
 	}
 
-	opts := &api.ListExternalToolsOptions{
-		Search:         extToolsSearch,
+	apiOpts := &api.ListExternalToolsOptions{
+		Search:         opts.Search,
 		Selectable:     selectable,
-		IncludeParents: extToolsIncludeParent,
+		IncludeParents: opts.IncludeParent,
 	}
 
-	ctx := context.Background()
 	var tools []api.ExternalTool
+	var err error
 
-	if extToolsCourseID > 0 {
-		tools, err = service.ListByCourse(ctx, extToolsCourseID, opts)
+	if opts.CourseID > 0 {
+		tools, err = service.ListByCourse(ctx, opts.CourseID, apiOpts)
 	} else {
-		tools, err = service.ListByAccount(ctx, extToolsAccountID, opts)
+		tools, err = service.ListByAccount(ctx, opts.AccountID, apiOpts)
 	}
 
 	if err != nil {
+		logger.LogCommandError(ctx, "external_tools.list", err, map[string]interface{}{
+			"course_id":  opts.CourseID,
+			"account_id": opts.AccountID,
+		})
 		return fmt.Errorf("failed to list external tools: %w", err)
 	}
 
 	if len(tools) == 0 {
 		fmt.Println("No external tools found")
+		logger.LogCommandComplete(ctx, "external_tools.list", 0)
 		return nil
 	}
 
 	printVerbose("Found %d external tools:\n\n", len(tools))
+	logger.LogCommandComplete(ctx, "external_tools.list", len(tools))
 	return formatOutput(tools, nil)
 }
 
-func runExtToolsGet(cmd *cobra.Command, args []string) error {
-	if extToolsCourseID == 0 && extToolsAccountID == 0 {
-		return fmt.Errorf("either --course-id or --account-id is required")
-	}
-
-	toolID, err := strconv.ParseInt(args[0], 10, 64)
-	if err != nil {
-		return fmt.Errorf("invalid tool ID: %w", err)
-	}
-
-	client, err := getAPIClient()
-	if err != nil {
-		return err
-	}
+func runExtToolsGet(ctx context.Context, client *api.Client, opts *options.ExternalToolsGetOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+	logger.LogCommandStart(ctx, "external_tools.get", map[string]interface{}{
+		"course_id":  opts.CourseID,
+		"account_id": opts.AccountID,
+		"tool_id":    opts.ToolID,
+	})
 
 	service := api.NewExternalToolsService(client)
 
-	ctx := context.Background()
 	var tool *api.ExternalTool
+	var err error
 
-	if extToolsCourseID > 0 {
-		tool, err = service.GetByCourse(ctx, extToolsCourseID, toolID)
+	if opts.CourseID > 0 {
+		tool, err = service.GetByCourse(ctx, opts.CourseID, opts.ToolID)
 	} else {
-		tool, err = service.GetByAccount(ctx, extToolsAccountID, toolID)
+		tool, err = service.GetByAccount(ctx, opts.AccountID, opts.ToolID)
 	}
 
 	if err != nil {
+		logger.LogCommandError(ctx, "external_tools.get", err, map[string]interface{}{
+			"course_id":  opts.CourseID,
+			"account_id": opts.AccountID,
+			"tool_id":    opts.ToolID,
+		})
 		return fmt.Errorf("failed to get external tool: %w", err)
 	}
 
+	logger.LogCommandComplete(ctx, "external_tools.get", 1)
 	return formatOutput(tool, nil)
 }
 
-func runExtToolsCreate(cmd *cobra.Command, args []string) error {
-	if extToolsCourseID == 0 && extToolsAccountID == 0 {
-		return fmt.Errorf("either --course-id or --account-id is required")
-	}
-
-	client, err := getAPIClient()
-	if err != nil {
-		return err
-	}
+func runExtToolsCreate(ctx context.Context, client *api.Client, opts *options.ExternalToolsCreateOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+	logger.LogCommandStart(ctx, "external_tools.create", map[string]interface{}{
+		"course_id":  opts.CourseID,
+		"account_id": opts.AccountID,
+		"name":       opts.Name,
+		"json_file":  opts.JSONFile,
+	})
 
 	service := api.NewExternalToolsService(client)
 
 	var params *api.CreateExternalToolParams
 
-	if extToolsJSONFile != "" {
-		data, err := os.ReadFile(extToolsJSONFile)
+	if opts.JSONFile != "" {
+		data, err := os.ReadFile(opts.JSONFile)
 		if err != nil {
+			logger.LogCommandError(ctx, "external_tools.create", err, map[string]interface{}{
+				"json_file": opts.JSONFile,
+			})
 			return fmt.Errorf("failed to read JSON file: %w", err)
 		}
 		params = &api.CreateExternalToolParams{}
 		if err := json.Unmarshal(data, params); err != nil {
+			logger.LogCommandError(ctx, "external_tools.create", err, map[string]interface{}{
+				"json_file": opts.JSONFile,
+			})
 			return fmt.Errorf("failed to parse JSON file: %w", err)
 		}
 	} else {
-		if extToolsName == "" {
+		if opts.Name == "" {
 			return fmt.Errorf("--name is required when not using --json")
 		}
 
 		params = &api.CreateExternalToolParams{
-			Name:         extToolsName,
-			URL:          extToolsURL,
-			Domain:       extToolsDomain,
-			ConsumerKey:  extToolsConsumerKey,
-			SharedSecret: extToolsSharedSecret,
-			PrivacyLevel: extToolsPrivacyLevel,
-			Description:  extToolsDescription,
-			ConfigType:   extToolsConfigType,
-			ConfigURL:    extToolsConfigURL,
-			ConfigXML:    extToolsConfigXML,
+			Name:         opts.Name,
+			URL:          opts.URL,
+			Domain:       opts.Domain,
+			ConsumerKey:  opts.ConsumerKey,
+			SharedSecret: opts.SharedSecret,
+			PrivacyLevel: opts.PrivacyLevel,
+			Description:  opts.Description,
+			ConfigType:   opts.ConfigType,
+			ConfigURL:    opts.ConfigURL,
+			ConfigXML:    opts.ConfigXML,
 		}
 	}
 
-	ctx := context.Background()
 	var tool *api.ExternalTool
+	var err error
 
-	if extToolsCourseID > 0 {
-		tool, err = service.CreateInCourse(ctx, extToolsCourseID, params)
+	if opts.CourseID > 0 {
+		tool, err = service.CreateInCourse(ctx, opts.CourseID, params)
 	} else {
-		tool, err = service.CreateInAccount(ctx, extToolsAccountID, params)
+		tool, err = service.CreateInAccount(ctx, opts.AccountID, params)
 	}
 
 	if err != nil {
+		logger.LogCommandError(ctx, "external_tools.create", err, map[string]interface{}{
+			"course_id":  opts.CourseID,
+			"account_id": opts.AccountID,
+		})
 		return fmt.Errorf("failed to create external tool: %w", err)
 	}
 
 	fmt.Printf("External tool created successfully (ID: %d)\n", tool.ID)
+	logger.LogCommandComplete(ctx, "external_tools.create", 1)
 	return formatOutput(tool, nil)
 }
 
-func runExtToolsUpdate(cmd *cobra.Command, args []string) error {
-	if extToolsCourseID == 0 && extToolsAccountID == 0 {
-		return fmt.Errorf("either --course-id or --account-id is required")
-	}
-
-	toolID, err := strconv.ParseInt(args[0], 10, 64)
-	if err != nil {
-		return fmt.Errorf("invalid tool ID: %w", err)
-	}
-
-	client, err := getAPIClient()
-	if err != nil {
-		return err
-	}
+func runExtToolsUpdate(ctx context.Context, client *api.Client, opts *options.ExternalToolsUpdateOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+	logger.LogCommandStart(ctx, "external_tools.update", map[string]interface{}{
+		"course_id":  opts.CourseID,
+		"account_id": opts.AccountID,
+		"tool_id":    opts.ToolID,
+	})
 
 	service := api.NewExternalToolsService(client)
 
 	params := &api.UpdateExternalToolParams{}
 
-	if cmd.Flags().Changed("name") {
-		params.Name = &extToolsName
+	if opts.NameSet {
+		params.Name = &opts.Name
 	}
-	if cmd.Flags().Changed("url") {
-		params.URL = &extToolsURL
+	if opts.URLSet {
+		params.URL = &opts.URL
 	}
-	if cmd.Flags().Changed("domain") {
-		params.Domain = &extToolsDomain
+	if opts.DomainSet {
+		params.Domain = &opts.Domain
 	}
-	if cmd.Flags().Changed("consumer-key") {
-		params.ConsumerKey = &extToolsConsumerKey
+	if opts.ConsumerKeySet {
+		params.ConsumerKey = &opts.ConsumerKey
 	}
-	if cmd.Flags().Changed("shared-secret") {
-		params.SharedSecret = &extToolsSharedSecret
+	if opts.SharedSecretSet {
+		params.SharedSecret = &opts.SharedSecret
 	}
-	if cmd.Flags().Changed("privacy-level") {
-		params.PrivacyLevel = &extToolsPrivacyLevel
+	if opts.PrivacyLevelSet {
+		params.PrivacyLevel = &opts.PrivacyLevel
 	}
-	if cmd.Flags().Changed("description") {
-		params.Description = &extToolsDescription
+	if opts.DescriptionSet {
+		params.Description = &opts.Description
 	}
 
-	ctx := context.Background()
 	var tool *api.ExternalTool
+	var err error
 
-	if extToolsCourseID > 0 {
-		tool, err = service.UpdateInCourse(ctx, extToolsCourseID, toolID, params)
+	if opts.CourseID > 0 {
+		tool, err = service.UpdateInCourse(ctx, opts.CourseID, opts.ToolID, params)
 	} else {
-		tool, err = service.UpdateInAccount(ctx, extToolsAccountID, toolID, params)
+		tool, err = service.UpdateInAccount(ctx, opts.AccountID, opts.ToolID, params)
 	}
 
 	if err != nil {
+		logger.LogCommandError(ctx, "external_tools.update", err, map[string]interface{}{
+			"course_id":  opts.CourseID,
+			"account_id": opts.AccountID,
+			"tool_id":    opts.ToolID,
+		})
 		return fmt.Errorf("failed to update external tool: %w", err)
 	}
 
 	fmt.Printf("External tool updated successfully (ID: %d)\n", tool.ID)
+	logger.LogCommandComplete(ctx, "external_tools.update", 1)
 	return formatOutput(tool, nil)
 }
 
-func runExtToolsDelete(cmd *cobra.Command, args []string) error {
-	if extToolsCourseID == 0 && extToolsAccountID == 0 {
-		return fmt.Errorf("either --course-id or --account-id is required")
-	}
-
-	toolID, err := strconv.ParseInt(args[0], 10, 64)
-	if err != nil {
-		return fmt.Errorf("invalid tool ID: %w", err)
-	}
+func runExtToolsDelete(ctx context.Context, client *api.Client, opts *options.ExternalToolsDeleteOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+	logger.LogCommandStart(ctx, "external_tools.delete", map[string]interface{}{
+		"course_id":  opts.CourseID,
+		"account_id": opts.AccountID,
+		"tool_id":    opts.ToolID,
+		"force":      opts.Force,
+	})
 
 	// Confirm deletion
-	confirmed, err := confirmDelete("external tool", toolID, extToolsForce)
+	confirmed, err := confirmDelete("external tool", opts.ToolID, opts.Force)
 	if err != nil {
+		logger.LogCommandError(ctx, "external_tools.delete", err, map[string]interface{}{
+			"tool_id": opts.ToolID,
+		})
 		return err
 	}
 	if !confirmed {
@@ -417,66 +539,57 @@ func runExtToolsDelete(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	client, err := getAPIClient()
-	if err != nil {
-		return err
-	}
-
 	service := api.NewExternalToolsService(client)
 
-	ctx := context.Background()
-
-	if extToolsCourseID > 0 {
-		_, err = service.DeleteFromCourse(ctx, extToolsCourseID, toolID)
+	if opts.CourseID > 0 {
+		_, err = service.DeleteFromCourse(ctx, opts.CourseID, opts.ToolID)
 	} else {
-		_, err = service.DeleteFromAccount(ctx, extToolsAccountID, toolID)
+		_, err = service.DeleteFromAccount(ctx, opts.AccountID, opts.ToolID)
 	}
 
 	if err != nil {
+		logger.LogCommandError(ctx, "external_tools.delete", err, map[string]interface{}{
+			"course_id":  opts.CourseID,
+			"account_id": opts.AccountID,
+			"tool_id":    opts.ToolID,
+		})
 		return fmt.Errorf("failed to delete external tool: %w", err)
 	}
 
-	fmt.Printf("External tool %d deleted successfully\n", toolID)
+	fmt.Printf("External tool %d deleted successfully\n", opts.ToolID)
+	logger.LogCommandComplete(ctx, "external_tools.delete", 1)
 	return nil
 }
 
-func runExtToolsLaunch(cmd *cobra.Command, args []string) error {
-	if extToolsCourseID == 0 && extToolsAccountID == 0 {
-		return fmt.Errorf("either --course-id or --account-id is required")
-	}
-
-	toolID, err := strconv.ParseInt(args[0], 10, 64)
-	if err != nil {
-		return fmt.Errorf("invalid tool ID: %w", err)
-	}
-
-	client, err := getAPIClient()
-	if err != nil {
-		return err
-	}
+func runExtToolsLaunch(ctx context.Context, client *api.Client, opts *options.ExternalToolsLaunchOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+	logger.LogCommandStart(ctx, "external_tools.launch", map[string]interface{}{
+		"course_id":      opts.CourseID,
+		"tool_id":        opts.ToolID,
+		"launch_type":    opts.LaunchType,
+		"assignment_id":  opts.AssignmentID,
+		"module_item_id": opts.ModuleItemID,
+	})
 
 	service := api.NewExternalToolsService(client)
 
 	params := &api.SessionlessLaunchParams{
-		ID:           toolID,
-		LaunchType:   extToolsLaunchType,
-		AssignmentID: extToolsAssignmentID,
-		ModuleItemID: extToolsModuleItemID,
+		ID:           opts.ToolID,
+		LaunchType:   opts.LaunchType,
+		AssignmentID: opts.AssignmentID,
+		ModuleItemID: opts.ModuleItemID,
 	}
 
-	ctx := context.Background()
-	var result *api.SessionlessLaunchURL
-
-	if extToolsCourseID > 0 {
-		result, err = service.GetSessionlessLaunchURLForCourse(ctx, extToolsCourseID, params)
-	} else {
-		result, err = service.GetSessionlessLaunchURLForAccount(ctx, extToolsAccountID, params)
-	}
-
+	result, err := service.GetSessionlessLaunchURLForCourse(ctx, opts.CourseID, params)
 	if err != nil {
+		logger.LogCommandError(ctx, "external_tools.launch", err, map[string]interface{}{
+			"course_id": opts.CourseID,
+			"tool_id":   opts.ToolID,
+		})
 		return fmt.Errorf("failed to get launch URL: %w", err)
 	}
 
 	fmt.Printf("Launch URL for %s:\n%s\n", result.Name, result.URL)
+	logger.LogCommandComplete(ctx, "external_tools.launch", 1)
 	return nil
 }

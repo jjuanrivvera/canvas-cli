@@ -6,35 +6,9 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/jjuanrivvera/canvas-cli/commands/internal/logging"
+	"github.com/jjuanrivvera/canvas-cli/commands/internal/options"
 	"github.com/jjuanrivvera/canvas-cli/internal/api"
-)
-
-var (
-	coursesEnrollmentType  string
-	coursesEnrollmentState string
-	coursesInclude         []string
-	coursesState           []string
-	// Account context flags
-	coursesAccountID  int64
-	coursesSearchTerm string
-	coursesSort       string
-	coursesOrder      string
-
-	// Create/Update flags
-	coursesName        string
-	coursesCode        string
-	coursesStartAt     string
-	coursesEndAt       string
-	coursesTermID      int64
-	coursesLicense     string
-	coursesPublic      bool
-	coursesSISCourseID string
-	coursesDefaultView string
-	coursesOffer       bool
-
-	// Delete flags
-	coursesDeleteEvent string
-	coursesForce       bool
 )
 
 // coursesCmd represents the courses command group
@@ -50,11 +24,14 @@ Examples:
   canvas courses list --state available`,
 }
 
-// coursesListCmd represents the courses list command
-var coursesListCmd = &cobra.Command{
-	Use:   "list",
-	Short: "List courses",
-	Long: `List courses for the authenticated user or for an account (admin).
+// newCoursesListCmd creates the courses list command
+func newCoursesListCmd() *cobra.Command {
+	opts := &options.CoursesListOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "list",
+		Short: "List courses",
+		Long: `List courses for the authenticated user or for an account (admin).
 
 By default, lists courses you are enrolled in. Use --account-id to list all courses
 in an account (requires admin permissions).
@@ -75,56 +52,366 @@ Examples:
   canvas courses list --state available
   canvas courses list --include syllabus_body,term
   canvas courses list --account-id 1 --search "2024"`,
-	RunE: runCoursesList,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+
+			return runCoursesList(cmd.Context(), client, opts)
+		},
+	}
+
+	// User context flags
+	cmd.Flags().StringVar(&opts.EnrollmentType, "enrollment-type", "", "Filter by enrollment type (student, teacher, ta, observer, designer)")
+	cmd.Flags().StringVar(&opts.EnrollmentState, "enrollment-state", "", "Filter by enrollment state (active, invited_or_pending, completed)")
+	cmd.Flags().StringSliceVar(&opts.Include, "include", []string{}, "Additional data to include (comma-separated)")
+	cmd.Flags().StringSliceVar(&opts.State, "state", []string{}, "Filter by course state (comma-separated: available, completed, unpublished, deleted)")
+
+	// Account context flags (admin)
+	cmd.Flags().Int64Var(&opts.AccountID, "account-id", 0, "Account ID to list courses from (admin mode)")
+	cmd.Flags().Int64Var(&opts.AccountID, "account", 0, "Alias for --account-id")
+	_ = cmd.Flags().MarkHidden("account")
+	cmd.Flags().StringVar(&opts.SearchTerm, "search", "", "Search by course name or code (account context only)")
+	cmd.Flags().StringVar(&opts.Sort, "sort", "", "Sort by: course_name, sis_course_id, teacher, account_name (account context only)")
+	cmd.Flags().StringVar(&opts.Order, "order", "", "Sort order: asc, desc (account context only)")
+
+	return cmd
 }
 
-// coursesGetCmd represents the courses get command
-var coursesGetCmd = &cobra.Command{
-	Use:   "get <course-id>",
-	Short: "Get details of a specific course",
-	Long: `Get details of a specific course by ID.
+func runCoursesList(ctx context.Context, client *api.Client, opts *options.CoursesListOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+
+	logger.LogCommandStart(ctx, "courses.list", map[string]interface{}{
+		"enrollment_type":  opts.EnrollmentType,
+		"enrollment_state": opts.EnrollmentState,
+		"account_id":       opts.AccountID,
+		"search_term":      opts.SearchTerm,
+	})
+
+	var courses []api.Course
+	var err error
+
+	// Check if account context is being used
+	if opts.AccountID > 0 {
+		// Account context - list all courses in the account (admin mode)
+		accountsService := api.NewAccountsService(client)
+
+		reqOpts := &api.ListAccountCoursesOptions{
+			SearchTerm: opts.SearchTerm,
+			State:      opts.State,
+			Include:    opts.Include,
+			Sort:       opts.Sort,
+			Order:      opts.Order,
+		}
+
+		courses, err = accountsService.ListCourses(ctx, opts.AccountID, reqOpts)
+		if err != nil {
+			logger.LogCommandError(ctx, "courses.list", err, map[string]interface{}{
+				"account_id": opts.AccountID,
+			})
+			return fmt.Errorf("failed to list account courses: %w", err)
+		}
+
+		printVerbose("Found %d courses in account %d:\n\n", len(courses), opts.AccountID)
+	} else {
+		// User context (default) - list enrolled courses
+		coursesService := api.NewCoursesService(client)
+
+		reqOpts := &api.ListCoursesOptions{
+			EnrollmentType:  opts.EnrollmentType,
+			EnrollmentState: opts.EnrollmentState,
+			Include:         opts.Include,
+			State:           opts.State,
+		}
+
+		courses, err = coursesService.List(ctx, reqOpts)
+		if err != nil {
+			logger.LogCommandError(ctx, "courses.list", err, map[string]interface{}{
+				"enrollment_type": opts.EnrollmentType,
+			})
+			return fmt.Errorf("failed to list courses: %w", err)
+		}
+
+		printVerbose("Found %d enrolled courses:\n\n", len(courses))
+	}
+
+	// Format and display courses
+	if err := formatEmptyOrOutput(courses, "No courses found"); err != nil {
+		return fmt.Errorf("failed to print results: %w", err)
+	}
+
+	logger.LogCommandComplete(ctx, "courses.list", len(courses))
+	return nil
+}
+
+// newCoursesGetCmd creates the courses get command
+func newCoursesGetCmd() *cobra.Command {
+	opts := &options.CoursesGetOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "get <course-id>",
+		Short: "Get details of a specific course",
+		Long: `Get details of a specific course by ID.
 
 Examples:
   canvas courses get 123
   canvas courses get 123 --include syllabus_body,term`,
-	Args: ExactArgsWithUsage(1, "course-id"),
-	RunE: runCoursesGet,
+		Args: ExactArgsWithUsage(1, "course-id"),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			// Parse course ID
+			var courseID int64
+			if _, err := fmt.Sscanf(args[0], "%d", &courseID); err != nil {
+				return fmt.Errorf("invalid course ID: %s", args[0])
+			}
+			opts.CourseID = courseID
+
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+
+			return runCoursesGet(cmd.Context(), client, opts)
+		},
+	}
+
+	cmd.Flags().StringSliceVar(&opts.Include, "include", []string{}, "Additional data to include (comma-separated)")
+
+	return cmd
 }
 
-// coursesCreateCmd represents the courses create command
-var coursesCreateCmd = &cobra.Command{
-	Use:   "create",
-	Short: "Create a new course",
-	Long: `Create a new course in an account.
+func runCoursesGet(ctx context.Context, client *api.Client, opts *options.CoursesGetOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+
+	logger.LogCommandStart(ctx, "courses.get", map[string]interface{}{
+		"course_id": opts.CourseID,
+	})
+
+	// Create courses service
+	coursesService := api.NewCoursesService(client)
+
+	// Get course
+	course, err := coursesService.Get(ctx, opts.CourseID, opts.Include)
+	if err != nil {
+		logger.LogCommandError(ctx, "courses.get", err, map[string]interface{}{
+			"course_id": opts.CourseID,
+		})
+		return fmt.Errorf("failed to get course: %w", err)
+	}
+
+	// Format and display course details
+	if err := formatOutput(course, nil); err != nil {
+		return fmt.Errorf("failed to print result: %w", err)
+	}
+
+	logger.LogCommandComplete(ctx, "courses.get", 1)
+	return nil
+}
+
+// newCoursesCreateCmd creates the courses create command
+func newCoursesCreateCmd() *cobra.Command {
+	opts := &options.CoursesCreateOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "create",
+		Short: "Create a new course",
+		Long: `Create a new course in an account.
 
 Examples:
   canvas courses create --account-id 1 --name "Introduction to Programming"
   canvas courses create --account-id 1 --name "Biology 101" --code "BIO101" --term 5
   canvas courses create --account-id 1 --name "Math 201" --start-at "2024-09-01" --end-at "2024-12-15"
   canvas courses create --account-id 1 --name "Public Course" --public --offer`,
-	RunE: runCoursesCreate,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+
+			return runCoursesCreate(cmd.Context(), client, opts)
+		},
+	}
+
+	cmd.Flags().Int64Var(&opts.AccountID, "account-id", 0, "Account ID to create course in (required)")
+	cmd.Flags().Int64Var(&opts.AccountID, "account", 0, "Alias for --account-id")
+	_ = cmd.Flags().MarkHidden("account")
+	cmd.Flags().StringVar(&opts.Name, "name", "", "Course name (required)")
+	cmd.Flags().StringVar(&opts.CourseCode, "code", "", "Course code")
+	cmd.Flags().StringVar(&opts.StartAt, "start-at", "", "Start date (ISO 8601)")
+	cmd.Flags().StringVar(&opts.EndAt, "end-at", "", "End date (ISO 8601)")
+	cmd.Flags().Int64Var(&opts.TermID, "term", 0, "Enrollment term ID")
+	cmd.Flags().StringVar(&opts.License, "license", "", "Course license")
+	cmd.Flags().BoolVar(&opts.IsPublic, "public", false, "Make course public")
+	cmd.Flags().StringVar(&opts.SISCourseID, "sis-course-id", "", "SIS course ID")
+	cmd.Flags().StringVar(&opts.DefaultView, "default-view", "", "Default view (feed, wiki, modules, syllabus, assignments)")
+	cmd.Flags().BoolVar(&opts.Offer, "offer", false, "Publish course immediately")
+
+	cmd.MarkFlagRequired("account-id")
+	cmd.MarkFlagRequired("name")
+
+	return cmd
 }
 
-// coursesUpdateCmd represents the courses update command
-var coursesUpdateCmd = &cobra.Command{
-	Use:   "update <course-id>",
-	Short: "Update a course",
-	Long: `Update an existing course.
+func runCoursesCreate(ctx context.Context, client *api.Client, opts *options.CoursesCreateOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+
+	logger.LogCommandStart(ctx, "courses.create", map[string]interface{}{
+		"account_id":  opts.AccountID,
+		"name":        opts.Name,
+		"course_code": opts.CourseCode,
+	})
+
+	// Create courses service
+	coursesService := api.NewCoursesService(client)
+
+	// Build params
+	params := &api.CreateCourseParams{
+		AccountID:   opts.AccountID,
+		Name:        opts.Name,
+		CourseCode:  opts.CourseCode,
+		StartAt:     opts.StartAt,
+		EndAt:       opts.EndAt,
+		TermID:      opts.TermID,
+		License:     opts.License,
+		IsPublic:    opts.IsPublic,
+		SISCourseID: opts.SISCourseID,
+		DefaultView: opts.DefaultView,
+		Offer:       opts.Offer,
+	}
+
+	// Create course
+	course, err := coursesService.Create(ctx, params)
+	if err != nil {
+		logger.LogCommandError(ctx, "courses.create", err, map[string]interface{}{
+			"account_id": opts.AccountID,
+			"name":       opts.Name,
+		})
+		return fmt.Errorf("failed to create course: %w", err)
+	}
+
+	fmt.Printf("Course created successfully (ID: %d)\n", course.ID)
+	if err := formatOutput(course, nil); err != nil {
+		return fmt.Errorf("failed to print result: %w", err)
+	}
+
+	logger.LogCommandComplete(ctx, "courses.create", 1)
+	return nil
+}
+
+// newCoursesUpdateCmd creates the courses update command
+func newCoursesUpdateCmd() *cobra.Command {
+	opts := &options.CoursesUpdateOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "update <course-id>",
+		Short: "Update a course",
+		Long: `Update an existing course.
 
 Examples:
   canvas courses update 123 --name "Updated Course Name"
   canvas courses update 123 --code "NEW101" --start-at "2024-10-01"
   canvas courses update 123 --public
   canvas courses update 123 --offer`,
-	Args: ExactArgsWithUsage(1, "course-id"),
-	RunE: runCoursesUpdate,
+		Args: ExactArgsWithUsage(1, "course-id"),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			// Parse course ID
+			var courseID int64
+			if _, err := fmt.Sscanf(args[0], "%d", &courseID); err != nil {
+				return fmt.Errorf("invalid course ID: %s", args[0])
+			}
+			opts.CourseID = courseID
+
+			// Handle boolean flags that were explicitly set
+			if cmd.Flags().Changed("public") {
+				public := cmd.Flags().Lookup("public").Value.String() == "true"
+				opts.IsPublic = &public
+			}
+
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+
+			return runCoursesUpdate(cmd.Context(), client, opts)
+		},
+	}
+
+	cmd.Flags().StringVar(&opts.Name, "name", "", "Course name")
+	cmd.Flags().StringVar(&opts.CourseCode, "code", "", "Course code")
+	cmd.Flags().StringVar(&opts.StartAt, "start-at", "", "Start date (ISO 8601)")
+	cmd.Flags().StringVar(&opts.EndAt, "end-at", "", "End date (ISO 8601)")
+	cmd.Flags().StringVar(&opts.License, "license", "", "Course license")
+	cmd.Flags().Bool("public", false, "Make course public")
+	cmd.Flags().StringVar(&opts.DefaultView, "default-view", "", "Default view (feed, wiki, modules, syllabus, assignments)")
+
+	return cmd
 }
 
-// coursesDeleteCmd represents the courses delete command
-var coursesDeleteCmd = &cobra.Command{
-	Use:   "delete <course-id>",
-	Short: "Delete a course",
-	Long: `Delete (conclude or completely remove) a course.
+func runCoursesUpdate(ctx context.Context, client *api.Client, opts *options.CoursesUpdateOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+
+	logger.LogCommandStart(ctx, "courses.update", map[string]interface{}{
+		"course_id": opts.CourseID,
+	})
+
+	// Create courses service
+	coursesService := api.NewCoursesService(client)
+
+	// Build params - only include changed values
+	params := &api.UpdateCourseParams{
+		Name:        opts.Name,
+		CourseCode:  opts.CourseCode,
+		StartAt:     opts.StartAt,
+		EndAt:       opts.EndAt,
+		License:     opts.License,
+		DefaultView: opts.DefaultView,
+		IsPublic:    opts.IsPublic,
+	}
+
+	// Update course
+	course, err := coursesService.Update(ctx, opts.CourseID, params)
+	if err != nil {
+		logger.LogCommandError(ctx, "courses.update", err, map[string]interface{}{
+			"course_id": opts.CourseID,
+		})
+		return fmt.Errorf("failed to update course: %w", err)
+	}
+
+	fmt.Printf("Course updated successfully (ID: %d)\n", course.ID)
+	if err := formatOutput(course, nil); err != nil {
+		return fmt.Errorf("failed to print result: %w", err)
+	}
+
+	logger.LogCommandComplete(ctx, "courses.update", 1)
+	return nil
+}
+
+// newCoursesDeleteCmd creates the courses delete command
+func newCoursesDeleteCmd() *cobra.Command {
+	opts := &options.CoursesDeleteOptions{
+		Event: "conclude", // Default value
+	}
+
+	cmd := &cobra.Command{
+		Use:   "delete <course-id>",
+		Short: "Delete a course",
+		Long: `Delete (conclude or completely remove) a course.
 
 By default, courses are concluded (soft delete). Use --event to specify the action.
 
@@ -137,241 +424,45 @@ Examples:
   canvas courses delete 123 --event conclude  # Same as above
   canvas courses delete 123 --event delete    # Permanently deletes
   canvas courses delete 123 --event delete --force  # Skip confirmation`,
-	Args: ExactArgsWithUsage(1, "course-id"),
-	RunE: runCoursesDelete,
+		Args: ExactArgsWithUsage(1, "course-id"),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			// Parse course ID
+			var courseID int64
+			if _, err := fmt.Sscanf(args[0], "%d", &courseID); err != nil {
+				return fmt.Errorf("invalid course ID: %s", args[0])
+			}
+			opts.CourseID = courseID
+
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+
+			return runCoursesDelete(cmd.Context(), client, opts)
+		},
+	}
+
+	cmd.Flags().StringVar(&opts.Event, "event", "conclude", "Delete event: conclude, delete")
+	cmd.Flags().BoolVar(&opts.Force, "force", false, "Skip confirmation prompt")
+
+	return cmd
 }
 
-func init() {
-	rootCmd.AddCommand(coursesCmd)
-	coursesCmd.AddCommand(coursesListCmd)
-	coursesCmd.AddCommand(coursesGetCmd)
-	coursesCmd.AddCommand(coursesCreateCmd)
-	coursesCmd.AddCommand(coursesUpdateCmd)
-	coursesCmd.AddCommand(coursesDeleteCmd)
+func runCoursesDelete(ctx context.Context, client *api.Client, opts *options.CoursesDeleteOptions) error {
+	logger := logging.NewCommandLogger(verbose)
 
-	// List flags - User context
-	coursesListCmd.Flags().StringVar(&coursesEnrollmentType, "enrollment-type", "", "Filter by enrollment type (student, teacher, ta, observer, designer)")
-	coursesListCmd.Flags().StringVar(&coursesEnrollmentState, "enrollment-state", "", "Filter by enrollment state (active, invited_or_pending, completed)")
-	coursesListCmd.Flags().StringSliceVar(&coursesInclude, "include", []string{}, "Additional data to include (comma-separated)")
-	coursesListCmd.Flags().StringSliceVar(&coursesState, "state", []string{}, "Filter by course state (comma-separated: available, completed, unpublished, deleted)")
-
-	// List flags - Account context (admin)
-	coursesListCmd.Flags().Int64Var(&coursesAccountID, "account-id", 0, "Account ID to list courses from (admin mode)")
-	coursesListCmd.Flags().Int64Var(&coursesAccountID, "account", 0, "Alias for --account-id")
-	_ = coursesListCmd.Flags().MarkHidden("account")
-	coursesListCmd.Flags().StringVar(&coursesSearchTerm, "search", "", "Search by course name or code (account context only)")
-	coursesListCmd.Flags().StringVar(&coursesSort, "sort", "", "Sort by: course_name, sis_course_id, teacher, account_name (account context only)")
-	coursesListCmd.Flags().StringVar(&coursesOrder, "order", "", "Sort order: asc, desc (account context only)")
-
-	// Get flags
-	coursesGetCmd.Flags().StringSliceVar(&coursesInclude, "include", []string{}, "Additional data to include (comma-separated)")
-
-	// Create flags
-	coursesCreateCmd.Flags().Int64Var(&coursesAccountID, "account-id", 0, "Account ID to create course in (required)")
-	coursesCreateCmd.Flags().Int64Var(&coursesAccountID, "account", 0, "Alias for --account-id")
-	_ = coursesCreateCmd.Flags().MarkHidden("account")
-	coursesCreateCmd.Flags().StringVar(&coursesName, "name", "", "Course name (required)")
-	coursesCreateCmd.Flags().StringVar(&coursesCode, "code", "", "Course code")
-	coursesCreateCmd.Flags().StringVar(&coursesStartAt, "start-at", "", "Start date (ISO 8601)")
-	coursesCreateCmd.Flags().StringVar(&coursesEndAt, "end-at", "", "End date (ISO 8601)")
-	coursesCreateCmd.Flags().Int64Var(&coursesTermID, "term", 0, "Enrollment term ID")
-	coursesCreateCmd.Flags().StringVar(&coursesLicense, "license", "", "Course license")
-	coursesCreateCmd.Flags().BoolVar(&coursesPublic, "public", false, "Make course public")
-	coursesCreateCmd.Flags().StringVar(&coursesSISCourseID, "sis-course-id", "", "SIS course ID")
-	coursesCreateCmd.Flags().StringVar(&coursesDefaultView, "default-view", "", "Default view (feed, wiki, modules, syllabus, assignments)")
-	coursesCreateCmd.Flags().BoolVar(&coursesOffer, "offer", false, "Publish course immediately")
-	coursesCreateCmd.MarkFlagRequired("account-id")
-	coursesCreateCmd.MarkFlagRequired("name")
-
-	// Update flags
-	coursesUpdateCmd.Flags().StringVar(&coursesName, "name", "", "Course name")
-	coursesUpdateCmd.Flags().StringVar(&coursesCode, "code", "", "Course code")
-	coursesUpdateCmd.Flags().StringVar(&coursesStartAt, "start-at", "", "Start date (ISO 8601)")
-	coursesUpdateCmd.Flags().StringVar(&coursesEndAt, "end-at", "", "End date (ISO 8601)")
-	coursesUpdateCmd.Flags().StringVar(&coursesLicense, "license", "", "Course license")
-	coursesUpdateCmd.Flags().BoolVar(&coursesPublic, "public", false, "Make course public")
-	coursesUpdateCmd.Flags().StringVar(&coursesDefaultView, "default-view", "", "Default view (feed, wiki, modules, syllabus, assignments)")
-
-	// Delete flags
-	coursesDeleteCmd.Flags().StringVar(&coursesDeleteEvent, "event", "conclude", "Delete event: conclude, delete")
-	coursesDeleteCmd.Flags().BoolVar(&coursesForce, "force", false, "Skip confirmation prompt")
-}
-
-func runCoursesList(cmd *cobra.Command, args []string) error {
-	// Get API client
-	client, err := getAPIClient()
-	if err != nil {
-		return err
-	}
-
-	ctx := context.Background()
-	var courses []api.Course
-
-	// Check if account context is being used
-	if coursesAccountID > 0 {
-		// Account context - list all courses in the account (admin mode)
-		accountsService := api.NewAccountsService(client)
-
-		opts := &api.ListAccountCoursesOptions{
-			SearchTerm: coursesSearchTerm,
-			State:      coursesState,
-			Include:    coursesInclude,
-			Sort:       coursesSort,
-			Order:      coursesOrder,
-		}
-
-		courses, err = accountsService.ListCourses(ctx, coursesAccountID, opts)
-		if err != nil {
-			return fmt.Errorf("failed to list account courses: %w", err)
-		}
-
-		printVerbose("Found %d courses in account %d:\n\n", len(courses), coursesAccountID)
-	} else {
-		// User context (default) - list enrolled courses
-		coursesService := api.NewCoursesService(client)
-
-		opts := &api.ListCoursesOptions{
-			EnrollmentType:  coursesEnrollmentType,
-			EnrollmentState: coursesEnrollmentState,
-			Include:         coursesInclude,
-			State:           coursesState,
-		}
-
-		courses, err = coursesService.List(ctx, opts)
-		if err != nil {
-			return fmt.Errorf("failed to list courses: %w", err)
-		}
-
-		printVerbose("Found %d enrolled courses:\n\n", len(courses))
-	}
-
-	// Format and display courses
-	return formatEmptyOrOutput(courses, "No courses found")
-}
-
-func runCoursesGet(cmd *cobra.Command, args []string) error {
-	// Parse course ID
-	var courseID int64
-	if _, err := fmt.Sscanf(args[0], "%d", &courseID); err != nil {
-		return fmt.Errorf("invalid course ID: %s", args[0])
-	}
-
-	// Get API client
-	client, err := getAPIClient()
-	if err != nil {
-		return err
-	}
-
-	// Create courses service
-	coursesService := api.NewCoursesService(client)
-
-	// Get course
-	ctx := context.Background()
-	course, err := coursesService.Get(ctx, courseID, coursesInclude)
-	if err != nil {
-		return fmt.Errorf("failed to get course: %w", err)
-	}
-
-	// Format and display course details
-	return formatOutput(course, nil)
-}
-
-func runCoursesCreate(cmd *cobra.Command, args []string) error {
-	// Get API client
-	client, err := getAPIClient()
-	if err != nil {
-		return err
-	}
-
-	// Create courses service
-	coursesService := api.NewCoursesService(client)
-
-	// Build params
-	params := &api.CreateCourseParams{
-		AccountID:   coursesAccountID,
-		Name:        coursesName,
-		CourseCode:  coursesCode,
-		StartAt:     coursesStartAt,
-		EndAt:       coursesEndAt,
-		TermID:      coursesTermID,
-		License:     coursesLicense,
-		IsPublic:    coursesPublic,
-		SISCourseID: coursesSISCourseID,
-		DefaultView: coursesDefaultView,
-		Offer:       coursesOffer,
-	}
-
-	// Create course
-	ctx := context.Background()
-	course, err := coursesService.Create(ctx, params)
-	if err != nil {
-		return fmt.Errorf("failed to create course: %w", err)
-	}
-
-	fmt.Printf("Course created successfully (ID: %d)\n", course.ID)
-	return formatOutput(course, nil)
-}
-
-func runCoursesUpdate(cmd *cobra.Command, args []string) error {
-	// Parse course ID
-	var courseID int64
-	if _, err := fmt.Sscanf(args[0], "%d", &courseID); err != nil {
-		return fmt.Errorf("invalid course ID: %s", args[0])
-	}
-
-	// Get API client
-	client, err := getAPIClient()
-	if err != nil {
-		return err
-	}
-
-	// Create courses service
-	coursesService := api.NewCoursesService(client)
-
-	// Build params - only include changed values
-	params := &api.UpdateCourseParams{
-		Name:        coursesName,
-		CourseCode:  coursesCode,
-		StartAt:     coursesStartAt,
-		EndAt:       coursesEndAt,
-		License:     coursesLicense,
-		DefaultView: coursesDefaultView,
-	}
-
-	// Handle boolean flags that were explicitly set
-	if cmd.Flags().Changed("public") {
-		params.IsPublic = &coursesPublic
-	}
-
-	// Update course
-	ctx := context.Background()
-	course, err := coursesService.Update(ctx, courseID, params)
-	if err != nil {
-		return fmt.Errorf("failed to update course: %w", err)
-	}
-
-	fmt.Printf("Course updated successfully (ID: %d)\n", course.ID)
-	return formatOutput(course, nil)
-}
-
-func runCoursesDelete(cmd *cobra.Command, args []string) error {
-	// Parse course ID
-	var courseID int64
-	if _, err := fmt.Sscanf(args[0], "%d", &courseID); err != nil {
-		return fmt.Errorf("invalid course ID: %s", args[0])
-	}
-
-	// Validate event
-	switch coursesDeleteEvent {
-	case "conclude", "delete":
-		// Valid
-	default:
-		return fmt.Errorf("invalid event: %s (use 'conclude' or 'delete')", coursesDeleteEvent)
-	}
+	logger.LogCommandStart(ctx, "courses.delete", map[string]interface{}{
+		"course_id": opts.CourseID,
+		"event":     opts.Event,
+	})
 
 	// Confirmation for delete
-	if coursesDeleteEvent == "delete" && !coursesForce {
-		fmt.Printf("WARNING: This will permanently delete course %d and all its data.\n", courseID)
+	if opts.Event == "delete" && !opts.Force {
+		fmt.Printf("WARNING: This will permanently delete course %d and all its data.\n", opts.CourseID)
 		fmt.Print("Type 'yes' to confirm: ")
 		var confirm string
 		fmt.Scanln(&confirm)
@@ -381,27 +472,34 @@ func runCoursesDelete(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	// Get API client
-	client, err := getAPIClient()
-	if err != nil {
-		return err
-	}
-
 	// Create courses service
 	coursesService := api.NewCoursesService(client)
 
 	// Delete course
-	ctx := context.Background()
-	err = coursesService.Delete(ctx, courseID, coursesDeleteEvent)
+	err := coursesService.Delete(ctx, opts.CourseID, opts.Event)
 	if err != nil {
+		logger.LogCommandError(ctx, "courses.delete", err, map[string]interface{}{
+			"course_id": opts.CourseID,
+			"event":     opts.Event,
+		})
 		return fmt.Errorf("failed to delete course: %w", err)
 	}
 
-	if coursesDeleteEvent == "delete" {
-		fmt.Printf("Course %d permanently deleted\n", courseID)
+	if opts.Event == "delete" {
+		fmt.Printf("Course %d permanently deleted\n", opts.CourseID)
 	} else {
-		fmt.Printf("Course %d concluded\n", courseID)
+		fmt.Printf("Course %d concluded\n", opts.CourseID)
 	}
 
+	logger.LogCommandComplete(ctx, "courses.delete", 1)
 	return nil
+}
+
+func init() {
+	rootCmd.AddCommand(coursesCmd)
+	coursesCmd.AddCommand(newCoursesListCmd())
+	coursesCmd.AddCommand(newCoursesGetCmd())
+	coursesCmd.AddCommand(newCoursesCreateCmd())
+	coursesCmd.AddCommand(newCoursesUpdateCmd())
+	coursesCmd.AddCommand(newCoursesDeleteCmd())
 }

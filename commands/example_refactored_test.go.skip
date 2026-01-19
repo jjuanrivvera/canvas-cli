@@ -1,0 +1,133 @@
+package commands
+
+import (
+	"testing"
+
+	cmdtest "github.com/jjuanrivvera/canvas-cli/commands/testing"
+)
+
+// This file demonstrates how to test commands using the new pattern
+
+func TestCoursesListCmdRefactored(t *testing.T) {
+	tests := []cmdtest.CommandTestCase{
+		{
+			Name: "list courses successfully",
+			Args: []string{},
+			MockResponses: map[string]string{
+				"/courses": cmdtest.MockJSONResponse([]map[string]interface{}{
+					{"id": 1, "name": "Course 1", "course_code": "CS101"},
+					{"id": 2, "name": "Course 2", "course_code": "MATH201"},
+				}),
+			},
+			ExpectError: false,
+		},
+		{
+			Name: "list courses with enrollment type",
+			Args: []string{"--enrollment-type", "teacher"},
+			MockResponses: map[string]string{
+				"/courses": cmdtest.MockJSONResponse([]map[string]interface{}{
+					{"id": 1, "name": "Course 1", "course_code": "CS101"},
+				}),
+			},
+			ExpectError: false,
+		},
+		{
+			Name: "list courses with state filter",
+			Args: []string{"--state", "available"},
+			MockResponses: map[string]string{
+				"/courses": cmdtest.MockJSONResponse([]map[string]interface{}{
+					{"id": 1, "name": "Course 1", "course_code": "CS101"},
+				}),
+			},
+			ExpectError: false,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.Name, func(t *testing.T) {
+			cmd := newCoursesListCmdRefactored()
+			cmdtest.RunCommandTest(t, cmd, tc)
+		})
+	}
+}
+
+func TestCoursesGetCmdRefactored(t *testing.T) {
+	tests := []cmdtest.CommandTestCase{
+		{
+			Name: "get course successfully",
+			Args: []string{"123"},
+			MockResponses: map[string]string{
+				"/courses/123": cmdtest.MockJSONResponse(map[string]interface{}{
+					"id":          123,
+					"name":        "Test Course",
+					"course_code": "TEST101",
+				}),
+			},
+			ExpectError: false,
+		},
+		{
+			Name: "get course with include",
+			Args: []string{"123", "--include", "syllabus_body"},
+			MockResponses: map[string]string{
+				"/courses/123": cmdtest.MockJSONResponse(map[string]interface{}{
+					"id":            123,
+					"name":          "Test Course",
+					"syllabus_body": "Course syllabus",
+				}),
+			},
+			ExpectError: false,
+		},
+		{
+			Name:        "missing course ID",
+			Args:        []string{},
+			ExpectError: true,
+		},
+		{
+			Name:        "invalid course ID",
+			Args:        []string{"invalid"},
+			ExpectError: true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.Name, func(t *testing.T) {
+			cmd := newCoursesGetCmdRefactored()
+			cmdtest.RunCommandTest(t, cmd, tc)
+		})
+	}
+}
+
+// Example of testing error scenarios
+func TestCoursesGetCmdRefactored_ErrorCases(t *testing.T) {
+	tests := []cmdtest.CommandTestCase{
+		{
+			Name: "course not found",
+			Args: []string{"999"},
+			MockResponses: map[string]string{
+				"/courses/999": cmdtest.MockErrorResponse("Course not found"),
+			},
+			MockStatus: map[string]int{
+				"/courses/999": 404,
+			},
+			ExpectError: true,
+		},
+		{
+			Name: "unauthorized",
+			Args: []string{"123"},
+			MockResponses: map[string]string{
+				"/courses/123": cmdtest.MockErrorResponse("Unauthorized"),
+			},
+			MockStatus: map[string]int{
+				"/courses/123": 401,
+			},
+			ExpectError: true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.Name, func(t *testing.T) {
+			cmd := newCoursesGetCmdRefactored()
+			cmdtest.RunCommandTest(t, cmd, tc)
+		})
+	}
+}

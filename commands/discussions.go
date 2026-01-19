@@ -7,28 +7,9 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/jjuanrivvera/canvas-cli/commands/internal/logging"
+	"github.com/jjuanrivvera/canvas-cli/commands/internal/options"
 	"github.com/jjuanrivvera/canvas-cli/internal/api"
-)
-
-var (
-	discussionsCourseID        int64
-	discussionsOrderBy         string
-	discussionsScope           string
-	discussionsOnlyAnnounce    bool
-	discussionsFilterBy        string
-	discussionsSearchTerm      string
-	discussionsInclude         []string
-	discussionsTitle           string
-	discussionsMessage         string
-	discussionsType            string
-	discussionsPublished       bool
-	discussionsDelayedPostAt   string
-	discussionsAllowRating     bool
-	discussionsLockAt          string
-	discussionsRequireInitPost bool
-	discussionsPinned          bool
-	discussionsLocked          bool
-	discussionsForce           bool
 )
 
 // discussionsCmd represents the discussions command group
@@ -47,367 +28,576 @@ Examples:
   canvas discussions entries --course-id 123 456`,
 }
 
-// discussionsListCmd represents the discussions list command
-var discussionsListCmd = &cobra.Command{
-	Use:   "list",
-	Short: "List discussion topics in a course",
-	Long: `List all discussion topics in a Canvas course.
+func init() {
+	rootCmd.AddCommand(discussionsCmd)
+	discussionsCmd.AddCommand(newDiscussionsListCmd())
+	discussionsCmd.AddCommand(newDiscussionsGetCmd())
+	discussionsCmd.AddCommand(newDiscussionsCreateCmd())
+	discussionsCmd.AddCommand(newDiscussionsUpdateCmd())
+	discussionsCmd.AddCommand(newDiscussionsDeleteCmd())
+	discussionsCmd.AddCommand(newDiscussionsEntriesCmd())
+	discussionsCmd.AddCommand(newDiscussionsPostCmd())
+	discussionsCmd.AddCommand(newDiscussionsReplyCmd())
+	discussionsCmd.AddCommand(newDiscussionsSubscribeCmd())
+	discussionsCmd.AddCommand(newDiscussionsUnsubscribeCmd())
+}
+
+func newDiscussionsListCmd() *cobra.Command {
+	opts := &options.DiscussionsListOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "list",
+		Short: "List discussion topics in a course",
+		Long: `List all discussion topics in a Canvas course.
 
 Examples:
   canvas discussions list --course-id 123
   canvas discussions list --course-id 123 --order-by recent_activity
   canvas discussions list --course-id 123 --scope pinned
   canvas discussions list --course-id 123 --filter unread`,
-	RunE: runDiscussionsList,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+			return runDiscussionsList(cmd.Context(), client, opts)
+		},
+	}
+
+	cmd.Flags().Int64Var(&opts.CourseID, "course-id", 0, "Course ID (required)")
+	cmd.Flags().StringVar(&opts.OrderBy, "order-by", "", "Order by: position, recent_activity, title")
+	cmd.Flags().StringVar(&opts.Scope, "scope", "", "Scope: locked, unlocked, pinned, unpinned")
+	cmd.Flags().BoolVar(&opts.OnlyAnnouncements, "announcements", false, "Only show announcements")
+	cmd.Flags().StringVar(&opts.FilterBy, "filter", "", "Filter by: all, unread")
+	cmd.Flags().StringVar(&opts.SearchTerm, "search", "", "Search term")
+	cmd.Flags().StringSliceVar(&opts.Include, "include", []string{}, "Include: all_dates, sections, sections_user_count, overrides")
+	cmd.MarkFlagRequired("course-id")
+
+	return cmd
 }
 
-// discussionsGetCmd represents the discussions get command
-var discussionsGetCmd = &cobra.Command{
-	Use:   "get <topic-id>",
-	Short: "Get a specific discussion topic",
-	Long: `Get details of a specific discussion topic.
+func newDiscussionsGetCmd() *cobra.Command {
+	opts := &options.DiscussionsGetOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "get <topic-id>",
+		Short: "Get a specific discussion topic",
+		Long: `Get details of a specific discussion topic.
 
 Examples:
   canvas discussions get --course-id 123 456`,
-	Args: ExactArgsWithUsage(1, "topic-id"),
-	RunE: runDiscussionsGet,
+		Args: ExactArgsWithUsage(1, "topic-id"),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			topicID, err := strconv.ParseInt(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid topic ID: %s", args[0])
+			}
+			opts.TopicID = topicID
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+			return runDiscussionsGet(cmd.Context(), client, opts)
+		},
+	}
+
+	cmd.Flags().Int64Var(&opts.CourseID, "course-id", 0, "Course ID (required)")
+	cmd.Flags().StringSliceVar(&opts.Include, "include", []string{}, "Include additional data")
+	cmd.MarkFlagRequired("course-id")
+
+	return cmd
 }
 
-// discussionsCreateCmd represents the discussions create command
-var discussionsCreateCmd = &cobra.Command{
-	Use:   "create",
-	Short: "Create a new discussion topic",
-	Long: `Create a new discussion topic in a course.
+func newDiscussionsCreateCmd() *cobra.Command {
+	opts := &options.DiscussionsCreateOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "create",
+		Short: "Create a new discussion topic",
+		Long: `Create a new discussion topic in a course.
 
 Examples:
   canvas discussions create --course-id 123 --title "Week 1 Discussion"
   canvas discussions create --course-id 123 --title "Q&A" --message "<p>Ask questions here</p>" --type threaded
   canvas discussions create --course-id 123 --title "Pinned" --pinned --published`,
-	RunE: runDiscussionsCreate,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+			return runDiscussionsCreate(cmd.Context(), client, opts)
+		},
+	}
+
+	cmd.Flags().Int64Var(&opts.CourseID, "course-id", 0, "Course ID (required)")
+	cmd.Flags().StringVar(&opts.Title, "title", "", "Discussion title (required)")
+	cmd.Flags().StringVar(&opts.Message, "message", "", "Discussion message (HTML)")
+	cmd.Flags().StringVar(&opts.DiscussionType, "type", "", "Discussion type: side_comment, threaded, not_threaded")
+	cmd.Flags().BoolVar(&opts.Published, "published", false, "Publish the discussion")
+	cmd.Flags().StringVar(&opts.DelayedPostAt, "delayed-post-at", "", "Delay posting until (ISO 8601)")
+	cmd.Flags().BoolVar(&opts.AllowRating, "allow-rating", false, "Allow rating of entries")
+	cmd.Flags().StringVar(&opts.LockAt, "lock-at", "", "Lock at date (ISO 8601)")
+	cmd.Flags().BoolVar(&opts.RequireInitialPost, "require-initial-post", false, "Require initial post before viewing")
+	cmd.Flags().BoolVar(&opts.Pinned, "pinned", false, "Pin the discussion")
+	cmd.MarkFlagRequired("course-id")
+	cmd.MarkFlagRequired("title")
+
+	return cmd
 }
 
-// discussionsUpdateCmd represents the discussions update command
-var discussionsUpdateCmd = &cobra.Command{
-	Use:   "update <topic-id>",
-	Short: "Update an existing discussion topic",
-	Long: `Update an existing discussion topic.
+func newDiscussionsUpdateCmd() *cobra.Command {
+	opts := &options.DiscussionsUpdateOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "update <topic-id>",
+		Short: "Update an existing discussion topic",
+		Long: `Update an existing discussion topic.
 
 Examples:
   canvas discussions update --course-id 123 456 --title "New Title"
   canvas discussions update --course-id 123 456 --pinned
   canvas discussions update --course-id 123 456 --locked`,
-	Args: ExactArgsWithUsage(1, "topic-id"),
-	RunE: runDiscussionsUpdate,
+		Args: ExactArgsWithUsage(1, "topic-id"),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			topicID, err := strconv.ParseInt(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid topic ID: %s", args[0])
+			}
+			opts.TopicID = topicID
+			// Track which fields were changed
+			opts.TitleSet = cmd.Flags().Changed("title")
+			opts.MessageSet = cmd.Flags().Changed("message")
+			opts.DiscussionTypeSet = cmd.Flags().Changed("type")
+			opts.PublishedSet = cmd.Flags().Changed("published")
+			opts.DelayedPostAtSet = cmd.Flags().Changed("delayed-post-at")
+			opts.AllowRatingSet = cmd.Flags().Changed("allow-rating")
+			opts.LockAtSet = cmd.Flags().Changed("lock-at")
+			opts.RequireInitialPostSet = cmd.Flags().Changed("require-initial-post")
+			opts.PinnedSet = cmd.Flags().Changed("pinned")
+			opts.LockedSet = cmd.Flags().Changed("locked")
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+			return runDiscussionsUpdate(cmd.Context(), client, opts)
+		},
+	}
+
+	cmd.Flags().Int64Var(&opts.CourseID, "course-id", 0, "Course ID (required)")
+	cmd.Flags().StringVar(&opts.Title, "title", "", "New discussion title")
+	cmd.Flags().StringVar(&opts.Message, "message", "", "New discussion message")
+	cmd.Flags().StringVar(&opts.DiscussionType, "type", "", "Discussion type")
+	cmd.Flags().BoolVar(&opts.Published, "published", false, "Publish the discussion")
+	cmd.Flags().StringVar(&opts.DelayedPostAt, "delayed-post-at", "", "Delay posting until")
+	cmd.Flags().BoolVar(&opts.AllowRating, "allow-rating", false, "Allow rating")
+	cmd.Flags().StringVar(&opts.LockAt, "lock-at", "", "Lock at date")
+	cmd.Flags().BoolVar(&opts.RequireInitialPost, "require-initial-post", false, "Require initial post")
+	cmd.Flags().BoolVar(&opts.Pinned, "pinned", false, "Pin the discussion")
+	cmd.Flags().BoolVar(&opts.Locked, "locked", false, "Lock the discussion")
+	cmd.MarkFlagRequired("course-id")
+
+	return cmd
 }
 
-// discussionsDeleteCmd represents the discussions delete command
-var discussionsDeleteCmd = &cobra.Command{
-	Use:   "delete <topic-id>",
-	Short: "Delete a discussion topic",
-	Long: `Delete a discussion topic from a course.
+func newDiscussionsDeleteCmd() *cobra.Command {
+	opts := &options.DiscussionsDeleteOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "delete <topic-id>",
+		Short: "Delete a discussion topic",
+		Long: `Delete a discussion topic from a course.
 
 Examples:
   canvas discussions delete --course-id 123 456`,
-	Args: ExactArgsWithUsage(1, "topic-id"),
-	RunE: runDiscussionsDelete,
+		Args: ExactArgsWithUsage(1, "topic-id"),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			topicID, err := strconv.ParseInt(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid topic ID: %s", args[0])
+			}
+			opts.TopicID = topicID
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+			return runDiscussionsDelete(cmd.Context(), client, opts)
+		},
+	}
+
+	cmd.Flags().Int64Var(&opts.CourseID, "course-id", 0, "Course ID (required)")
+	cmd.Flags().BoolVarP(&opts.Force, "force", "f", false, "Skip confirmation prompt")
+	cmd.MarkFlagRequired("course-id")
+
+	return cmd
 }
 
-// discussionsEntriesCmd represents the discussions entries command
-var discussionsEntriesCmd = &cobra.Command{
-	Use:   "entries <topic-id>",
-	Short: "List entries in a discussion",
-	Long: `List all entries (posts) in a discussion topic.
+func newDiscussionsEntriesCmd() *cobra.Command {
+	opts := &options.DiscussionsEntriesOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "entries <topic-id>",
+		Short: "List entries in a discussion",
+		Long: `List all entries (posts) in a discussion topic.
 
 Examples:
   canvas discussions entries --course-id 123 456`,
-	Args: ExactArgsWithUsage(1, "topic-id"),
-	RunE: runDiscussionsEntries,
+		Args: ExactArgsWithUsage(1, "topic-id"),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			topicID, err := strconv.ParseInt(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid topic ID: %s", args[0])
+			}
+			opts.TopicID = topicID
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+			return runDiscussionsEntries(cmd.Context(), client, opts)
+		},
+	}
+
+	cmd.Flags().Int64Var(&opts.CourseID, "course-id", 0, "Course ID (required)")
+	cmd.MarkFlagRequired("course-id")
+
+	return cmd
 }
 
-// discussionsPostCmd represents the discussions post command
-var discussionsPostCmd = &cobra.Command{
-	Use:   "post <topic-id> [message]",
-	Short: "Post a new entry to a discussion",
-	Long: `Post a new entry to a discussion topic.
+func newDiscussionsPostCmd() *cobra.Command {
+	opts := &options.DiscussionsPostOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "post <topic-id> [message]",
+		Short: "Post a new entry to a discussion",
+		Long: `Post a new entry to a discussion topic.
 
 The message can be provided as a positional argument or using the --message flag.
 
 Examples:
   canvas discussions post --course-id 123 456 "My response to the discussion"
   canvas discussions post --course-id 123 456 --message "My response to the discussion"`,
-	Args: cobra.RangeArgs(1, 2),
-	RunE: runDiscussionsPost,
+		Args: cobra.RangeArgs(1, 2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			topicID, err := strconv.ParseInt(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid topic ID: %s", args[0])
+			}
+			opts.TopicID = topicID
+			// Get message from positional arg or --message flag
+			if len(args) > 1 {
+				opts.Message = args[1]
+			}
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+			return runDiscussionsPost(cmd.Context(), client, opts)
+		},
+	}
+
+	cmd.Flags().Int64Var(&opts.CourseID, "course-id", 0, "Course ID (required)")
+	cmd.Flags().StringVarP(&opts.Message, "message", "m", "", "Message content (alternative to positional argument)")
+	cmd.MarkFlagRequired("course-id")
+
+	return cmd
 }
 
-// discussionsReplyCmd represents the discussions reply command
-var discussionsReplyCmd = &cobra.Command{
-	Use:   "reply <topic-id> <entry-id> [message]",
-	Short: "Reply to an entry in a discussion",
-	Long: `Reply to a specific entry in a discussion topic.
+func newDiscussionsReplyCmd() *cobra.Command {
+	opts := &options.DiscussionsReplyOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "reply <topic-id> <entry-id> [message]",
+		Short: "Reply to an entry in a discussion",
+		Long: `Reply to a specific entry in a discussion topic.
 
 The message can be provided as a positional argument or using the --message flag.
 
 Examples:
   canvas discussions reply --course-id 123 456 789 "My reply to this entry"
   canvas discussions reply --course-id 123 456 789 --message "My reply to this entry"`,
-	Args: cobra.RangeArgs(2, 3),
-	RunE: runDiscussionsReply,
+		Args: cobra.RangeArgs(2, 3),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			topicID, err := strconv.ParseInt(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid topic ID: %s", args[0])
+			}
+			opts.TopicID = topicID
+			entryID, err := strconv.ParseInt(args[1], 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid entry ID: %s", args[1])
+			}
+			opts.EntryID = entryID
+			// Get message from positional arg or --message flag
+			if len(args) > 2 {
+				opts.Message = args[2]
+			}
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+			return runDiscussionsReply(cmd.Context(), client, opts)
+		},
+	}
+
+	cmd.Flags().Int64Var(&opts.CourseID, "course-id", 0, "Course ID (required)")
+	cmd.Flags().StringVarP(&opts.Message, "message", "m", "", "Message content (alternative to positional argument)")
+	cmd.MarkFlagRequired("course-id")
+
+	return cmd
 }
 
-// discussionsSubscribeCmd represents the discussions subscribe command
-var discussionsSubscribeCmd = &cobra.Command{
-	Use:   "subscribe <topic-id>",
-	Short: "Subscribe to a discussion topic",
-	Long: `Subscribe to receive notifications for a discussion topic.
+func newDiscussionsSubscribeCmd() *cobra.Command {
+	opts := &options.DiscussionsSubscribeOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "subscribe <topic-id>",
+		Short: "Subscribe to a discussion topic",
+		Long: `Subscribe to receive notifications for a discussion topic.
 
 Examples:
   canvas discussions subscribe --course-id 123 456`,
-	Args: ExactArgsWithUsage(1, "topic-id"),
-	RunE: runDiscussionsSubscribe,
+		Args: ExactArgsWithUsage(1, "topic-id"),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			topicID, err := strconv.ParseInt(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid topic ID: %s", args[0])
+			}
+			opts.TopicID = topicID
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+			return runDiscussionsSubscribe(cmd.Context(), client, opts)
+		},
+	}
+
+	cmd.Flags().Int64Var(&opts.CourseID, "course-id", 0, "Course ID (required)")
+	cmd.MarkFlagRequired("course-id")
+
+	return cmd
 }
 
-// discussionsUnsubscribeCmd represents the discussions unsubscribe command
-var discussionsUnsubscribeCmd = &cobra.Command{
-	Use:   "unsubscribe <topic-id>",
-	Short: "Unsubscribe from a discussion topic",
-	Long: `Unsubscribe from a discussion topic to stop receiving notifications.
+func newDiscussionsUnsubscribeCmd() *cobra.Command {
+	opts := &options.DiscussionsUnsubscribeOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "unsubscribe <topic-id>",
+		Short: "Unsubscribe from a discussion topic",
+		Long: `Unsubscribe from a discussion topic to stop receiving notifications.
 
 Examples:
   canvas discussions unsubscribe --course-id 123 456`,
-	Args: ExactArgsWithUsage(1, "topic-id"),
-	RunE: runDiscussionsUnsubscribe,
-}
-
-func init() {
-	rootCmd.AddCommand(discussionsCmd)
-	discussionsCmd.AddCommand(discussionsListCmd)
-	discussionsCmd.AddCommand(discussionsGetCmd)
-	discussionsCmd.AddCommand(discussionsCreateCmd)
-	discussionsCmd.AddCommand(discussionsUpdateCmd)
-	discussionsCmd.AddCommand(discussionsDeleteCmd)
-	discussionsCmd.AddCommand(discussionsEntriesCmd)
-	discussionsCmd.AddCommand(discussionsPostCmd)
-	discussionsCmd.AddCommand(discussionsReplyCmd)
-	discussionsCmd.AddCommand(discussionsSubscribeCmd)
-	discussionsCmd.AddCommand(discussionsUnsubscribeCmd)
-
-	// List flags
-	discussionsListCmd.Flags().Int64Var(&discussionsCourseID, "course-id", 0, "Course ID (required)")
-	discussionsListCmd.Flags().StringVar(&discussionsOrderBy, "order-by", "", "Order by: position, recent_activity, title")
-	discussionsListCmd.Flags().StringVar(&discussionsScope, "scope", "", "Scope: locked, unlocked, pinned, unpinned")
-	discussionsListCmd.Flags().BoolVar(&discussionsOnlyAnnounce, "announcements", false, "Only show announcements")
-	discussionsListCmd.Flags().StringVar(&discussionsFilterBy, "filter", "", "Filter by: all, unread")
-	discussionsListCmd.Flags().StringVar(&discussionsSearchTerm, "search", "", "Search term")
-	discussionsListCmd.Flags().StringSliceVar(&discussionsInclude, "include", []string{}, "Include: all_dates, sections, sections_user_count, overrides")
-	discussionsListCmd.MarkFlagRequired("course-id")
-
-	// Get flags
-	discussionsGetCmd.Flags().Int64Var(&discussionsCourseID, "course-id", 0, "Course ID (required)")
-	discussionsGetCmd.Flags().StringSliceVar(&discussionsInclude, "include", []string{}, "Include additional data")
-	discussionsGetCmd.MarkFlagRequired("course-id")
-
-	// Create flags
-	discussionsCreateCmd.Flags().Int64Var(&discussionsCourseID, "course-id", 0, "Course ID (required)")
-	discussionsCreateCmd.Flags().StringVar(&discussionsTitle, "title", "", "Discussion title (required)")
-	discussionsCreateCmd.Flags().StringVar(&discussionsMessage, "message", "", "Discussion message (HTML)")
-	discussionsCreateCmd.Flags().StringVar(&discussionsType, "type", "", "Discussion type: side_comment, threaded, not_threaded")
-	discussionsCreateCmd.Flags().BoolVar(&discussionsPublished, "published", false, "Publish the discussion")
-	discussionsCreateCmd.Flags().StringVar(&discussionsDelayedPostAt, "delayed-post-at", "", "Delay posting until (ISO 8601)")
-	discussionsCreateCmd.Flags().BoolVar(&discussionsAllowRating, "allow-rating", false, "Allow rating of entries")
-	discussionsCreateCmd.Flags().StringVar(&discussionsLockAt, "lock-at", "", "Lock at date (ISO 8601)")
-	discussionsCreateCmd.Flags().BoolVar(&discussionsRequireInitPost, "require-initial-post", false, "Require initial post before viewing")
-	discussionsCreateCmd.Flags().BoolVar(&discussionsPinned, "pinned", false, "Pin the discussion")
-	discussionsCreateCmd.MarkFlagRequired("course-id")
-	discussionsCreateCmd.MarkFlagRequired("title")
-
-	// Update flags
-	discussionsUpdateCmd.Flags().Int64Var(&discussionsCourseID, "course-id", 0, "Course ID (required)")
-	discussionsUpdateCmd.Flags().StringVar(&discussionsTitle, "title", "", "New discussion title")
-	discussionsUpdateCmd.Flags().StringVar(&discussionsMessage, "message", "", "New discussion message")
-	discussionsUpdateCmd.Flags().StringVar(&discussionsType, "type", "", "Discussion type")
-	discussionsUpdateCmd.Flags().BoolVar(&discussionsPublished, "published", false, "Publish the discussion")
-	discussionsUpdateCmd.Flags().StringVar(&discussionsDelayedPostAt, "delayed-post-at", "", "Delay posting until")
-	discussionsUpdateCmd.Flags().BoolVar(&discussionsAllowRating, "allow-rating", false, "Allow rating")
-	discussionsUpdateCmd.Flags().StringVar(&discussionsLockAt, "lock-at", "", "Lock at date")
-	discussionsUpdateCmd.Flags().BoolVar(&discussionsRequireInitPost, "require-initial-post", false, "Require initial post")
-	discussionsUpdateCmd.Flags().BoolVar(&discussionsPinned, "pinned", false, "Pin the discussion")
-	discussionsUpdateCmd.Flags().BoolVar(&discussionsLocked, "locked", false, "Lock the discussion")
-	discussionsUpdateCmd.MarkFlagRequired("course-id")
-
-	// Delete flags
-	discussionsDeleteCmd.Flags().Int64Var(&discussionsCourseID, "course-id", 0, "Course ID (required)")
-	discussionsDeleteCmd.Flags().BoolVarP(&discussionsForce, "force", "f", false, "Skip confirmation prompt")
-	discussionsDeleteCmd.MarkFlagRequired("course-id")
-
-	// Entries flags
-	discussionsEntriesCmd.Flags().Int64Var(&discussionsCourseID, "course-id", 0, "Course ID (required)")
-	discussionsEntriesCmd.MarkFlagRequired("course-id")
-
-	// Post flags
-	discussionsPostCmd.Flags().Int64Var(&discussionsCourseID, "course-id", 0, "Course ID (required)")
-	discussionsPostCmd.Flags().StringVarP(&discussionsMessage, "message", "m", "", "Message content (alternative to positional argument)")
-	discussionsPostCmd.MarkFlagRequired("course-id")
-
-	// Reply flags
-	discussionsReplyCmd.Flags().Int64Var(&discussionsCourseID, "course-id", 0, "Course ID (required)")
-	discussionsReplyCmd.Flags().StringVarP(&discussionsMessage, "message", "m", "", "Message content (alternative to positional argument)")
-	discussionsReplyCmd.MarkFlagRequired("course-id")
-
-	// Subscribe flags
-	discussionsSubscribeCmd.Flags().Int64Var(&discussionsCourseID, "course-id", 0, "Course ID (required)")
-	discussionsSubscribeCmd.MarkFlagRequired("course-id")
-
-	// Unsubscribe flags
-	discussionsUnsubscribeCmd.Flags().Int64Var(&discussionsCourseID, "course-id", 0, "Course ID (required)")
-	discussionsUnsubscribeCmd.MarkFlagRequired("course-id")
-}
-
-func runDiscussionsList(cmd *cobra.Command, args []string) error {
-	client, err := getAPIClient()
-	if err != nil {
-		return err
+		Args: ExactArgsWithUsage(1, "topic-id"),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			topicID, err := strconv.ParseInt(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid topic ID: %s", args[0])
+			}
+			opts.TopicID = topicID
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+			return runDiscussionsUnsubscribe(cmd.Context(), client, opts)
+		},
 	}
+
+	cmd.Flags().Int64Var(&opts.CourseID, "course-id", 0, "Course ID (required)")
+	cmd.MarkFlagRequired("course-id")
+
+	return cmd
+}
+
+func runDiscussionsList(ctx context.Context, client *api.Client, opts *options.DiscussionsListOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+	logger.LogCommandStart(ctx, "discussions.list", map[string]interface{}{
+		"course_id":   opts.CourseID,
+		"order_by":    opts.OrderBy,
+		"scope":       opts.Scope,
+		"filter_by":   opts.FilterBy,
+		"search_term": opts.SearchTerm,
+	})
 
 	discussionsService := api.NewDiscussionsService(client)
 
-	opts := &api.ListDiscussionsOptions{
-		Include:           discussionsInclude,
-		OrderBy:           discussionsOrderBy,
-		Scope:             discussionsScope,
-		OnlyAnnouncements: discussionsOnlyAnnounce,
-		FilterBy:          discussionsFilterBy,
-		SearchTerm:        discussionsSearchTerm,
+	listOpts := &api.ListDiscussionsOptions{
+		Include:           opts.Include,
+		OrderBy:           opts.OrderBy,
+		Scope:             opts.Scope,
+		OnlyAnnouncements: opts.OnlyAnnouncements,
+		FilterBy:          opts.FilterBy,
+		SearchTerm:        opts.SearchTerm,
 	}
 
-	ctx := context.Background()
-	topics, err := discussionsService.List(ctx, discussionsCourseID, opts)
+	topics, err := discussionsService.List(ctx, opts.CourseID, listOpts)
 	if err != nil {
+		logger.LogCommandError(ctx, "discussions.list", err, map[string]interface{}{
+			"course_id": opts.CourseID,
+		})
 		return fmt.Errorf("failed to list discussions: %w", err)
 	}
 
 	if len(topics) == 0 {
 		fmt.Println("No discussion topics found")
+		logger.LogCommandComplete(ctx, "discussions.list", 0)
 		return nil
 	}
 
 	printVerbose("Found %d discussion topics:\n\n", len(topics))
+	logger.LogCommandComplete(ctx, "discussions.list", len(topics))
 	return formatOutput(topics, nil)
 }
 
-func runDiscussionsGet(cmd *cobra.Command, args []string) error {
-	topicID, err := strconv.ParseInt(args[0], 10, 64)
-	if err != nil {
-		return fmt.Errorf("invalid topic ID: %s", args[0])
-	}
-
-	client, err := getAPIClient()
-	if err != nil {
-		return err
-	}
+func runDiscussionsGet(ctx context.Context, client *api.Client, opts *options.DiscussionsGetOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+	logger.LogCommandStart(ctx, "discussions.get", map[string]interface{}{
+		"course_id": opts.CourseID,
+		"topic_id":  opts.TopicID,
+	})
 
 	discussionsService := api.NewDiscussionsService(client)
 
-	ctx := context.Background()
-	topic, err := discussionsService.Get(ctx, discussionsCourseID, topicID, discussionsInclude)
+	topic, err := discussionsService.Get(ctx, opts.CourseID, opts.TopicID, opts.Include)
 	if err != nil {
+		logger.LogCommandError(ctx, "discussions.get", err, map[string]interface{}{
+			"course_id": opts.CourseID,
+			"topic_id":  opts.TopicID,
+		})
 		return fmt.Errorf("failed to get discussion: %w", err)
 	}
 
+	logger.LogCommandComplete(ctx, "discussions.get", 1)
 	return formatOutput(topic, nil)
 }
 
-func runDiscussionsCreate(cmd *cobra.Command, args []string) error {
-	client, err := getAPIClient()
-	if err != nil {
-		return err
-	}
+func runDiscussionsCreate(ctx context.Context, client *api.Client, opts *options.DiscussionsCreateOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+	logger.LogCommandStart(ctx, "discussions.create", map[string]interface{}{
+		"course_id": opts.CourseID,
+		"title":     opts.Title,
+	})
 
 	discussionsService := api.NewDiscussionsService(client)
 
 	params := &api.CreateDiscussionParams{
-		Title:              discussionsTitle,
-		Message:            discussionsMessage,
-		DiscussionType:     discussionsType,
-		Published:          discussionsPublished,
-		DelayedPostAt:      discussionsDelayedPostAt,
-		AllowRating:        discussionsAllowRating,
-		LockAt:             discussionsLockAt,
-		RequireInitialPost: discussionsRequireInitPost,
-		Pinned:             discussionsPinned,
+		Title:              opts.Title,
+		Message:            opts.Message,
+		DiscussionType:     opts.DiscussionType,
+		Published:          opts.Published,
+		DelayedPostAt:      opts.DelayedPostAt,
+		AllowRating:        opts.AllowRating,
+		LockAt:             opts.LockAt,
+		RequireInitialPost: opts.RequireInitialPost,
+		Pinned:             opts.Pinned,
 	}
 
-	ctx := context.Background()
-	topic, err := discussionsService.Create(ctx, discussionsCourseID, params)
+	topic, err := discussionsService.Create(ctx, opts.CourseID, params)
 	if err != nil {
+		logger.LogCommandError(ctx, "discussions.create", err, map[string]interface{}{
+			"course_id": opts.CourseID,
+			"title":     opts.Title,
+		})
 		return fmt.Errorf("failed to create discussion: %w", err)
 	}
 
+	logger.LogCommandComplete(ctx, "discussions.create", 1)
 	return formatSuccessOutput(topic, "Discussion created successfully!")
 }
 
-func runDiscussionsUpdate(cmd *cobra.Command, args []string) error {
-	topicID, err := strconv.ParseInt(args[0], 10, 64)
-	if err != nil {
-		return fmt.Errorf("invalid topic ID: %s", args[0])
-	}
-
-	client, err := getAPIClient()
-	if err != nil {
-		return err
-	}
+func runDiscussionsUpdate(ctx context.Context, client *api.Client, opts *options.DiscussionsUpdateOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+	logger.LogCommandStart(ctx, "discussions.update", map[string]interface{}{
+		"course_id": opts.CourseID,
+		"topic_id":  opts.TopicID,
+	})
 
 	discussionsService := api.NewDiscussionsService(client)
 
 	params := &api.UpdateDiscussionParams{}
 
-	if cmd.Flags().Changed("title") {
-		params.Title = &discussionsTitle
+	if opts.TitleSet {
+		params.Title = &opts.Title
 	}
-	if cmd.Flags().Changed("message") {
-		params.Message = &discussionsMessage
+	if opts.MessageSet {
+		params.Message = &opts.Message
 	}
-	if cmd.Flags().Changed("type") {
-		params.DiscussionType = &discussionsType
+	if opts.DiscussionTypeSet {
+		params.DiscussionType = &opts.DiscussionType
 	}
-	if cmd.Flags().Changed("published") {
-		params.Published = &discussionsPublished
+	if opts.PublishedSet {
+		params.Published = &opts.Published
 	}
-	if cmd.Flags().Changed("delayed-post-at") {
-		params.DelayedPostAt = &discussionsDelayedPostAt
+	if opts.DelayedPostAtSet {
+		params.DelayedPostAt = &opts.DelayedPostAt
 	}
-	if cmd.Flags().Changed("allow-rating") {
-		params.AllowRating = &discussionsAllowRating
+	if opts.AllowRatingSet {
+		params.AllowRating = &opts.AllowRating
 	}
-	if cmd.Flags().Changed("lock-at") {
-		params.LockAt = &discussionsLockAt
+	if opts.LockAtSet {
+		params.LockAt = &opts.LockAt
 	}
-	if cmd.Flags().Changed("require-initial-post") {
-		params.RequireInitialPost = &discussionsRequireInitPost
+	if opts.RequireInitialPostSet {
+		params.RequireInitialPost = &opts.RequireInitialPost
 	}
-	if cmd.Flags().Changed("pinned") {
-		params.Pinned = &discussionsPinned
+	if opts.PinnedSet {
+		params.Pinned = &opts.Pinned
 	}
-	if cmd.Flags().Changed("locked") {
-		params.Locked = &discussionsLocked
+	if opts.LockedSet {
+		params.Locked = &opts.Locked
 	}
 
-	ctx := context.Background()
-	topic, err := discussionsService.Update(ctx, discussionsCourseID, topicID, params)
+	topic, err := discussionsService.Update(ctx, opts.CourseID, opts.TopicID, params)
 	if err != nil {
+		logger.LogCommandError(ctx, "discussions.update", err, map[string]interface{}{
+			"course_id": opts.CourseID,
+			"topic_id":  opts.TopicID,
+		})
 		return fmt.Errorf("failed to update discussion: %w", err)
 	}
 
+	logger.LogCommandComplete(ctx, "discussions.update", 1)
 	return formatSuccessOutput(topic, "Discussion updated successfully!")
 }
 
-func runDiscussionsDelete(cmd *cobra.Command, args []string) error {
-	topicID, err := strconv.ParseInt(args[0], 10, 64)
-	if err != nil {
-		return fmt.Errorf("invalid topic ID: %s", args[0])
-	}
+func runDiscussionsDelete(ctx context.Context, client *api.Client, opts *options.DiscussionsDeleteOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+	logger.LogCommandStart(ctx, "discussions.delete", map[string]interface{}{
+		"course_id": opts.CourseID,
+		"topic_id":  opts.TopicID,
+		"force":     opts.Force,
+	})
 
 	// Confirm deletion
-	confirmed, err := confirmDelete("discussion", topicID, discussionsForce)
+	confirmed, err := confirmDelete("discussion", opts.TopicID, opts.Force)
 	if err != nil {
 		return err
 	}
@@ -416,159 +606,136 @@ func runDiscussionsDelete(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	client, err := getAPIClient()
-	if err != nil {
-		return err
-	}
-
 	discussionsService := api.NewDiscussionsService(client)
 
-	ctx := context.Background()
-	if err := discussionsService.Delete(ctx, discussionsCourseID, topicID); err != nil {
+	if err := discussionsService.Delete(ctx, opts.CourseID, opts.TopicID); err != nil {
+		logger.LogCommandError(ctx, "discussions.delete", err, map[string]interface{}{
+			"course_id": opts.CourseID,
+			"topic_id":  opts.TopicID,
+		})
 		return fmt.Errorf("failed to delete discussion: %w", err)
 	}
 
-	fmt.Printf("Discussion %d deleted successfully\n", topicID)
+	logger.LogCommandComplete(ctx, "discussions.delete", 1)
+	fmt.Printf("Discussion %d deleted successfully\n", opts.TopicID)
 	return nil
 }
 
-func runDiscussionsEntries(cmd *cobra.Command, args []string) error {
-	topicID, err := strconv.ParseInt(args[0], 10, 64)
-	if err != nil {
-		return fmt.Errorf("invalid topic ID: %s", args[0])
-	}
-
-	client, err := getAPIClient()
-	if err != nil {
-		return err
-	}
+func runDiscussionsEntries(ctx context.Context, client *api.Client, opts *options.DiscussionsEntriesOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+	logger.LogCommandStart(ctx, "discussions.entries", map[string]interface{}{
+		"course_id": opts.CourseID,
+		"topic_id":  opts.TopicID,
+	})
 
 	discussionsService := api.NewDiscussionsService(client)
 
-	ctx := context.Background()
-	entries, err := discussionsService.ListEntries(ctx, discussionsCourseID, topicID)
+	entries, err := discussionsService.ListEntries(ctx, opts.CourseID, opts.TopicID)
 	if err != nil {
+		logger.LogCommandError(ctx, "discussions.entries", err, map[string]interface{}{
+			"course_id": opts.CourseID,
+			"topic_id":  opts.TopicID,
+		})
 		return fmt.Errorf("failed to list entries: %w", err)
 	}
 
 	if len(entries) == 0 {
 		fmt.Println("No entries found")
+		logger.LogCommandComplete(ctx, "discussions.entries", 0)
 		return nil
 	}
 
 	printVerbose("Found %d entries:\n\n", len(entries))
+	logger.LogCommandComplete(ctx, "discussions.entries", len(entries))
 	return formatOutput(entries, nil)
 }
 
-func runDiscussionsPost(cmd *cobra.Command, args []string) error {
-	topicID, err := strconv.ParseInt(args[0], 10, 64)
-	if err != nil {
-		return fmt.Errorf("invalid topic ID: %s", args[0])
-	}
-
-	// Get message from positional arg or --message flag
-	var message string
-	if len(args) > 1 {
-		message = args[1]
-	} else if discussionsMessage != "" {
-		message = discussionsMessage
-	} else {
-		return fmt.Errorf("message is required: provide it as a positional argument or use --message flag")
-	}
-
-	client, err := getAPIClient()
-	if err != nil {
-		return err
-	}
+func runDiscussionsPost(ctx context.Context, client *api.Client, opts *options.DiscussionsPostOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+	logger.LogCommandStart(ctx, "discussions.post", map[string]interface{}{
+		"course_id": opts.CourseID,
+		"topic_id":  opts.TopicID,
+	})
 
 	discussionsService := api.NewDiscussionsService(client)
 
-	ctx := context.Background()
-	entry, err := discussionsService.PostEntry(ctx, discussionsCourseID, topicID, message)
+	entry, err := discussionsService.PostEntry(ctx, opts.CourseID, opts.TopicID, opts.Message)
 	if err != nil {
+		logger.LogCommandError(ctx, "discussions.post", err, map[string]interface{}{
+			"course_id": opts.CourseID,
+			"topic_id":  opts.TopicID,
+		})
 		return fmt.Errorf("failed to post entry: %w", err)
 	}
 
+	logger.LogCommandComplete(ctx, "discussions.post", 1)
 	return formatSuccessOutput(entry, "Entry posted successfully!")
 }
 
-func runDiscussionsReply(cmd *cobra.Command, args []string) error {
-	topicID, err := strconv.ParseInt(args[0], 10, 64)
-	if err != nil {
-		return fmt.Errorf("invalid topic ID: %s", args[0])
-	}
-
-	entryID, err := strconv.ParseInt(args[1], 10, 64)
-	if err != nil {
-		return fmt.Errorf("invalid entry ID: %s", args[1])
-	}
-
-	// Get message from positional arg or --message flag
-	var message string
-	if len(args) > 2 {
-		message = args[2]
-	} else if discussionsMessage != "" {
-		message = discussionsMessage
-	} else {
-		return fmt.Errorf("message is required: provide it as a positional argument or use --message flag")
-	}
-
-	client, err := getAPIClient()
-	if err != nil {
-		return err
-	}
+func runDiscussionsReply(ctx context.Context, client *api.Client, opts *options.DiscussionsReplyOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+	logger.LogCommandStart(ctx, "discussions.reply", map[string]interface{}{
+		"course_id": opts.CourseID,
+		"topic_id":  opts.TopicID,
+		"entry_id":  opts.EntryID,
+	})
 
 	discussionsService := api.NewDiscussionsService(client)
 
-	ctx := context.Background()
-	entry, err := discussionsService.PostReply(ctx, discussionsCourseID, topicID, entryID, message)
+	entry, err := discussionsService.PostReply(ctx, opts.CourseID, opts.TopicID, opts.EntryID, opts.Message)
 	if err != nil {
+		logger.LogCommandError(ctx, "discussions.reply", err, map[string]interface{}{
+			"course_id": opts.CourseID,
+			"topic_id":  opts.TopicID,
+			"entry_id":  opts.EntryID,
+		})
 		return fmt.Errorf("failed to post reply: %w", err)
 	}
 
+	logger.LogCommandComplete(ctx, "discussions.reply", 1)
 	return formatSuccessOutput(entry, "Reply posted successfully!")
 }
 
-func runDiscussionsSubscribe(cmd *cobra.Command, args []string) error {
-	topicID, err := strconv.ParseInt(args[0], 10, 64)
-	if err != nil {
-		return fmt.Errorf("invalid topic ID: %s", args[0])
-	}
-
-	client, err := getAPIClient()
-	if err != nil {
-		return err
-	}
+func runDiscussionsSubscribe(ctx context.Context, client *api.Client, opts *options.DiscussionsSubscribeOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+	logger.LogCommandStart(ctx, "discussions.subscribe", map[string]interface{}{
+		"course_id": opts.CourseID,
+		"topic_id":  opts.TopicID,
+	})
 
 	discussionsService := api.NewDiscussionsService(client)
 
-	ctx := context.Background()
-	if err := discussionsService.Subscribe(ctx, discussionsCourseID, topicID); err != nil {
+	if err := discussionsService.Subscribe(ctx, opts.CourseID, opts.TopicID); err != nil {
+		logger.LogCommandError(ctx, "discussions.subscribe", err, map[string]interface{}{
+			"course_id": opts.CourseID,
+			"topic_id":  opts.TopicID,
+		})
 		return fmt.Errorf("failed to subscribe: %w", err)
 	}
 
-	fmt.Printf("Subscribed to discussion %d\n", topicID)
+	logger.LogCommandComplete(ctx, "discussions.subscribe", 1)
+	fmt.Printf("Subscribed to discussion %d\n", opts.TopicID)
 	return nil
 }
 
-func runDiscussionsUnsubscribe(cmd *cobra.Command, args []string) error {
-	topicID, err := strconv.ParseInt(args[0], 10, 64)
-	if err != nil {
-		return fmt.Errorf("invalid topic ID: %s", args[0])
-	}
-
-	client, err := getAPIClient()
-	if err != nil {
-		return err
-	}
+func runDiscussionsUnsubscribe(ctx context.Context, client *api.Client, opts *options.DiscussionsUnsubscribeOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+	logger.LogCommandStart(ctx, "discussions.unsubscribe", map[string]interface{}{
+		"course_id": opts.CourseID,
+		"topic_id":  opts.TopicID,
+	})
 
 	discussionsService := api.NewDiscussionsService(client)
 
-	ctx := context.Background()
-	if err := discussionsService.Unsubscribe(ctx, discussionsCourseID, topicID); err != nil {
+	if err := discussionsService.Unsubscribe(ctx, opts.CourseID, opts.TopicID); err != nil {
+		logger.LogCommandError(ctx, "discussions.unsubscribe", err, map[string]interface{}{
+			"course_id": opts.CourseID,
+			"topic_id":  opts.TopicID,
+		})
 		return fmt.Errorf("failed to unsubscribe: %w", err)
 	}
 
-	fmt.Printf("Unsubscribed from discussion %d\n", topicID)
+	logger.LogCommandComplete(ctx, "discussions.unsubscribe", 1)
+	fmt.Printf("Unsubscribed from discussion %d\n", opts.TopicID)
 	return nil
 }

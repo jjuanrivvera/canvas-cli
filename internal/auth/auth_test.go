@@ -551,6 +551,37 @@ func TestKeyringTokenStore_ErrorHandling(t *testing.T) {
 	}
 }
 
+func TestKeyringTokenStore_SaveLoadCycle(t *testing.T) {
+	store := NewKeyringTokenStore()
+
+	token := &oauth2.Token{
+		AccessToken:  "keyring-test-token",
+		RefreshToken: "keyring-refresh-token",
+		TokenType:    "Bearer",
+		Expiry:       time.Now().Add(time.Hour),
+	}
+
+	// Save token
+	err := store.Save("keyring-test-instance", token)
+	if err != nil {
+		// Keyring might not be available in CI environment
+		t.Skipf("Keyring save failed (may not be available): %v", err)
+	}
+
+	// Load token
+	loadedToken, err := store.Load("keyring-test-instance")
+	if err != nil {
+		t.Fatalf("Load failed after successful save: %v", err)
+	}
+
+	if loadedToken.AccessToken != token.AccessToken {
+		t.Errorf("expected access token %s, got %s", token.AccessToken, loadedToken.AccessToken)
+	}
+
+	// Clean up
+	store.Delete("keyring-test-instance")
+}
+
 func TestFileTokenStore_ErrorHandling(t *testing.T) {
 	tempDir := t.TempDir()
 	store := NewFileTokenStore(tempDir)
@@ -583,4 +614,456 @@ func TestFallbackTokenStore_ErrorHandling(t *testing.T) {
 	if exists {
 		t.Error("expected false for non-existent token")
 	}
+}
+
+func TestGetMachineID_WithEnvOverride(t *testing.T) {
+	// Set environment variable override
+	testID := "test-machine-id-12345"
+	oldEnv := os.Getenv("CANVAS_CLI_MACHINE_ID")
+	os.Setenv("CANVAS_CLI_MACHINE_ID", testID)
+	defer os.Setenv("CANVAS_CLI_MACHINE_ID", oldEnv)
+
+	id, err := getMachineID()
+	if err != nil {
+		t.Fatalf("getMachineID failed with env override: %v", err)
+	}
+
+	if id != testID {
+		t.Errorf("expected machine ID %s, got %s", testID, id)
+	}
+}
+
+func TestGetUsername_USER_Env(t *testing.T) {
+	// Save original env
+	oldUser := os.Getenv("USER")
+	oldUsername := os.Getenv("USERNAME")
+
+	// Set USER env variable
+	testUser := "testuser123"
+	os.Setenv("USER", testUser)
+	os.Setenv("USERNAME", "") // Clear USERNAME to test USER priority
+	defer func() {
+		os.Setenv("USER", oldUser)
+		os.Setenv("USERNAME", oldUsername)
+	}()
+
+	username := getUsername()
+	if username != testUser {
+		t.Errorf("expected username %s, got %s", testUser, username)
+	}
+}
+
+func TestGetUsername_USERNAME_Env(t *testing.T) {
+	// Save original env
+	oldUser := os.Getenv("USER")
+	oldUsername := os.Getenv("USERNAME")
+
+	// Set USERNAME env variable (Windows)
+	testUser := "windowsuser456"
+	os.Setenv("USER", "") // Clear USER to test USERNAME fallback
+	os.Setenv("USERNAME", testUser)
+	defer func() {
+		os.Setenv("USER", oldUser)
+		os.Setenv("USERNAME", oldUsername)
+	}()
+
+	username := getUsername()
+	if username != testUser {
+		t.Errorf("expected username %s, got %s", testUser, username)
+	}
+}
+
+func TestDeriveEncryptionKey_Consistency(t *testing.T) {
+	// Set consistent environment for testing
+	oldMachineID := os.Getenv("CANVAS_CLI_MACHINE_ID")
+	oldUser := os.Getenv("USER")
+
+	os.Setenv("CANVAS_CLI_MACHINE_ID", "test-machine-123")
+	os.Setenv("USER", "testuser")
+	defer func() {
+		os.Setenv("CANVAS_CLI_MACHINE_ID", oldMachineID)
+		os.Setenv("USER", oldUser)
+	}()
+
+	salt := []byte("test-salt-123456")
+
+	// Derive key twice with same inputs
+	key1, err := deriveEncryptionKey(salt)
+	if err != nil {
+		t.Fatalf("First deriveEncryptionKey failed: %v", err)
+	}
+
+	key2, err := deriveEncryptionKey(salt)
+	if err != nil {
+		t.Fatalf("Second deriveEncryptionKey failed: %v", err)
+	}
+
+	// Keys should be identical
+	if len(key1) != len(key2) {
+		t.Errorf("keys have different lengths: %d vs %d", len(key1), len(key2))
+	}
+
+	for i := range key1 {
+		if key1[i] != key2[i] {
+			t.Error("derived keys are not consistent")
+			break
+		}
+	}
+}
+
+func TestGenerateSalt(t *testing.T) {
+	salt1, err := generateSalt()
+	if err != nil {
+		t.Fatalf("generateSalt failed: %v", err)
+	}
+
+	if len(salt1) != 16 {
+		t.Errorf("expected salt length 16, got %d", len(salt1))
+	}
+
+	salt2, err := generateSalt()
+	if err != nil {
+		t.Fatalf("second generateSalt failed: %v", err)
+	}
+
+	// Salts should be different
+	same := true
+	for i := range salt1 {
+		if salt1[i] != salt2[i] {
+			same = false
+			break
+		}
+	}
+
+	if same {
+		t.Error("expected different salts from consecutive calls")
+	}
+}
+
+func TestFileTokenStore_Load_CorruptedFile(t *testing.T) {
+	tempDir := t.TempDir()
+	store := NewFileTokenStore(tempDir)
+
+	// Create token directory
+	tokenDir := filepath.Join(tempDir, "tokens")
+	if err := os.MkdirAll(tokenDir, 0700); err != nil {
+		t.Fatalf("failed to create token directory: %v", err)
+	}
+
+	// Write corrupted data to token file
+	tokenPath := filepath.Join(tokenDir, "corrupted.token")
+	if err := os.WriteFile(tokenPath, []byte("corrupted-data"), 0600); err != nil {
+		t.Fatalf("failed to write corrupted file: %v", err)
+	}
+
+	// Try to load corrupted token
+	_, err := store.Load("corrupted")
+	if err == nil {
+		t.Error("expected error when loading corrupted token file")
+	}
+}
+
+func TestFileTokenStore_Delete_Success(t *testing.T) {
+	tempDir := t.TempDir()
+	store := NewFileTokenStore(tempDir)
+
+	token := &oauth2.Token{
+		AccessToken:  "delete-test-token",
+		RefreshToken: "delete-test-refresh",
+		TokenType:    "Bearer",
+		Expiry:       time.Now().Add(time.Hour),
+	}
+
+	// Save token
+	if err := store.Save("delete-test", token); err != nil {
+		t.Fatalf("Save failed: %v", err)
+	}
+
+	// Verify it exists
+	if !store.Exists("delete-test") {
+		t.Fatal("expected token to exist after save")
+	}
+
+	// Delete token
+	if err := store.Delete("delete-test"); err != nil {
+		t.Fatalf("Delete failed: %v", err)
+	}
+
+	// Verify it no longer exists
+	if store.Exists("delete-test") {
+		t.Error("expected token to not exist after delete")
+	}
+}
+
+func TestFileTokenStore_Delete_NotExists(t *testing.T) {
+	tempDir := t.TempDir()
+	store := NewFileTokenStore(tempDir)
+
+	// Delete non-existent token should not error
+	err := store.Delete("nonexistent")
+	if err != nil {
+		t.Errorf("expected no error when deleting nonexistent token, got %v", err)
+	}
+}
+
+func TestGetUsername_LOGNAME_Env(t *testing.T) {
+	// Save original env
+	oldUser := os.Getenv("USER")
+	oldUsername := os.Getenv("USERNAME")
+	oldLogname := os.Getenv("LOGNAME")
+
+	// Set LOGNAME env variable
+	testUser := "lognameuser789"
+	os.Setenv("USER", "")     // Clear USER
+	os.Setenv("USERNAME", "") // Clear USERNAME
+	os.Setenv("LOGNAME", testUser)
+	defer func() {
+		os.Setenv("USER", oldUser)
+		os.Setenv("USERNAME", oldUsername)
+		os.Setenv("LOGNAME", oldLogname)
+	}()
+
+	username := getUsername()
+	if username != testUser {
+		t.Errorf("expected username %s from LOGNAME, got %s", testUser, username)
+	}
+}
+
+func TestEncryptDecrypt_EdgeCases(t *testing.T) {
+	// Set consistent environment for testing
+	oldMachineID := os.Getenv("CANVAS_CLI_MACHINE_ID")
+	oldUser := os.Getenv("USER")
+
+	os.Setenv("CANVAS_CLI_MACHINE_ID", "test-machine-encrypt")
+	os.Setenv("USER", "testuser")
+	defer func() {
+		os.Setenv("CANVAS_CLI_MACHINE_ID", oldMachineID)
+		os.Setenv("USER", oldUser)
+	}()
+
+	tests := []struct {
+		name      string
+		plaintext []byte
+	}{
+		{
+			name:      "empty data",
+			plaintext: []byte{},
+		},
+		{
+			name:      "single byte",
+			plaintext: []byte{0x42},
+		},
+		{
+			name:      "large data",
+			plaintext: make([]byte, 10000),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Encrypt
+			encrypted, err := Encrypt(tt.plaintext)
+			if err != nil {
+				t.Fatalf("Encrypt failed: %v", err)
+			}
+
+			// Decrypt
+			decrypted, err := Decrypt(encrypted)
+			if err != nil {
+				t.Fatalf("Decrypt failed: %v", err)
+			}
+
+			// Compare
+			if len(decrypted) != len(tt.plaintext) {
+				t.Errorf("decrypted length %d != original length %d", len(decrypted), len(tt.plaintext))
+			}
+
+			for i := range tt.plaintext {
+				if decrypted[i] != tt.plaintext[i] {
+					t.Error("decrypted data does not match original")
+					break
+				}
+			}
+		})
+	}
+}
+
+func TestDecrypt_InvalidData(t *testing.T) {
+	// Set consistent environment for testing
+	oldMachineID := os.Getenv("CANVAS_CLI_MACHINE_ID")
+	oldUser := os.Getenv("USER")
+
+	os.Setenv("CANVAS_CLI_MACHINE_ID", "test-machine-invalid")
+	os.Setenv("USER", "testuser")
+	defer func() {
+		os.Setenv("CANVAS_CLI_MACHINE_ID", oldMachineID)
+		os.Setenv("USER", oldUser)
+	}()
+
+	// Create data with correct length but invalid content
+	invalidData := make([]byte, 60)
+	for i := range invalidData {
+		invalidData[i] = byte(i)
+	}
+
+	_, err := Decrypt(invalidData)
+	if err == nil {
+		t.Error("expected error when decrypting invalid data")
+	}
+}
+
+func TestFallbackTokenStore_FallbackToFile(t *testing.T) {
+	tempDir := t.TempDir()
+
+	fallbackStore := NewFallbackTokenStore(tempDir)
+
+	token := &oauth2.Token{
+		AccessToken:  "chained-test-token",
+		RefreshToken: "chained-test-refresh",
+		TokenType:    "Bearer",
+		Expiry:       time.Now().Add(time.Hour),
+	}
+
+	// Save token (might go to keyring or file depending on availability)
+	err := fallbackStore.Save("fallback-test", token)
+	if err != nil {
+		t.Fatalf("FallbackTokenStore.Save failed: %v", err)
+	}
+
+	// Load token
+	loadedToken, err := fallbackStore.Load("fallback-test")
+	if err != nil {
+		t.Fatalf("FallbackTokenStore.Load failed: %v", err)
+	}
+
+	if loadedToken.AccessToken != token.AccessToken {
+		t.Errorf("expected access token %s, got %s", token.AccessToken, loadedToken.AccessToken)
+	}
+
+	// Clean up
+	fallbackStore.Delete("fallback-test")
+}
+
+func TestDeriveEncryptionKey_EmptyUsername(t *testing.T) {
+	// Save original env
+	oldMachineID := os.Getenv("CANVAS_CLI_MACHINE_ID")
+	oldUser := os.Getenv("USER")
+	oldUsername := os.Getenv("USERNAME")
+	oldLogname := os.Getenv("LOGNAME")
+
+	// Set machine ID but clear all username env vars
+	os.Setenv("CANVAS_CLI_MACHINE_ID", "test-machine-no-user")
+	os.Setenv("USER", "")
+	os.Setenv("USERNAME", "")
+	os.Setenv("LOGNAME", "")
+
+	defer func() {
+		os.Setenv("CANVAS_CLI_MACHINE_ID", oldMachineID)
+		os.Setenv("USER", oldUser)
+		os.Setenv("USERNAME", oldUsername)
+		os.Setenv("LOGNAME", oldLogname)
+	}()
+
+	salt := []byte("test-salt-empty-user")
+
+	// This test depends on whether whoami command is available
+	// If whoami returns a username, the key will be derived successfully
+	// If whoami fails and returns empty, deriveEncryptionKey should error
+	_, err := deriveEncryptionKey(salt)
+
+	// We expect either success (if whoami works) or an error about empty username
+	// The key point is testing that the code handles the empty username path
+	if err != nil {
+		if !contains(err.Error(), "username") {
+			t.Errorf("expected error about username, got %v", err)
+		}
+	}
+	// If no error, whoami succeeded and returned a username
+}
+
+func TestKeyringTokenStore_Delete(t *testing.T) {
+	store := NewKeyringTokenStore()
+
+	// Try to delete non-existent token
+	err := store.Delete("nonexistent-token")
+	// This might error or succeed depending on keyring implementation
+	// The important thing is that it doesn't panic
+	_ = err
+}
+
+func TestEncrypt_EmptyUsername(t *testing.T) {
+	// Save original env
+	oldMachineID := os.Getenv("CANVAS_CLI_MACHINE_ID")
+	oldUser := os.Getenv("USER")
+	oldUsername := os.Getenv("USERNAME")
+	oldLogname := os.Getenv("LOGNAME")
+
+	// Set machine ID but clear all username env vars
+	os.Setenv("CANVAS_CLI_MACHINE_ID", "test-machine-encrypt-no-user")
+	os.Setenv("USER", "")
+	os.Setenv("USERNAME", "")
+	os.Setenv("LOGNAME", "")
+
+	defer func() {
+		os.Setenv("CANVAS_CLI_MACHINE_ID", oldMachineID)
+		os.Setenv("USER", oldUser)
+		os.Setenv("USERNAME", oldUsername)
+		os.Setenv("LOGNAME", oldLogname)
+	}()
+
+	plaintext := []byte("test data")
+
+	// This test depends on whether whoami command is available
+	_, err := Encrypt(plaintext)
+
+	// We expect either success (if whoami works) or an error about empty username
+	if err != nil {
+		if !contains(err.Error(), "username") && !contains(err.Error(), "failed to get machine ID") {
+			t.Errorf("expected error about username or machine ID, got %v", err)
+		}
+	}
+}
+
+func TestFileTokenStore_Save_CreateDirectory(t *testing.T) {
+	tempDir := t.TempDir()
+
+	// Use a nested directory that doesn't exist yet
+	configDir := filepath.Join(tempDir, "deep", "nested", "config")
+	store := NewFileTokenStore(configDir)
+
+	token := &oauth2.Token{
+		AccessToken: "test-create-dir-token",
+		TokenType:   "Bearer",
+		Expiry:      time.Now().Add(time.Hour),
+	}
+
+	// Save should create the directory
+	err := store.Save("test-create-dir", token)
+	if err != nil {
+		t.Fatalf("Save failed when creating nested directories: %v", err)
+	}
+
+	// Verify token was saved
+	loadedToken, err := store.Load("test-create-dir")
+	if err != nil {
+		t.Fatalf("Load failed after save: %v", err)
+	}
+
+	if loadedToken.AccessToken != token.AccessToken {
+		t.Errorf("expected access token %s, got %s", token.AccessToken, loadedToken.AccessToken)
+	}
+}
+
+// Helper function
+func contains(s, substr string) bool {
+	return len(s) >= len(substr) && (s == substr || len(substr) == 0 || stringContains(s, substr))
+}
+
+func stringContains(s, substr string) bool {
+	for i := 0; i <= len(s)-len(substr); i++ {
+		if s[i:i+len(substr)] == substr {
+			return true
+		}
+	}
+	return false
 }

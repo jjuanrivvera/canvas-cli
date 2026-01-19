@@ -8,12 +8,9 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/jjuanrivvera/canvas-cli/commands/internal/logging"
+	"github.com/jjuanrivvera/canvas-cli/commands/internal/options"
 	"github.com/jjuanrivvera/canvas-cli/internal/api"
-)
-
-var (
-	accountsInclude   []string
-	accountsRecursive bool
 )
 
 // accountsCmd represents the accounts command group
@@ -31,86 +28,147 @@ Examples:
   canvas accounts sub 1 --recursive`,
 }
 
-// accountsListCmd represents the accounts list command
-var accountsListCmd = &cobra.Command{
-	Use:   "list",
-	Short: "List accessible accounts",
-	Long: `List all accounts the current user has access to.
+func init() {
+	rootCmd.AddCommand(accountsCmd)
+	accountsCmd.AddCommand(newAccountsListCmd())
+	accountsCmd.AddCommand(newAccountsGetCmd())
+	accountsCmd.AddCommand(newAccountsSubAccountsCmd())
+}
+
+func newAccountsListCmd() *cobra.Command {
+	opts := &options.AccountsListOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "list",
+		Short: "List accessible accounts",
+		Long: `List all accounts the current user has access to.
 
 This typically returns accounts where you have admin or sub-admin permissions.
 
 Examples:
   canvas accounts list
   canvas accounts list --include lti_guid`,
-	RunE: runAccountsList,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+
+			return runAccountsList(cmd.Context(), client, opts)
+		},
+	}
+
+	cmd.Flags().StringSliceVar(&opts.Include, "include", []string{}, "Additional data to include (lti_guid, registration_settings, services)")
+
+	return cmd
 }
 
-// accountsGetCmd represents the accounts get command
-var accountsGetCmd = &cobra.Command{
-	Use:   "get <account-id>",
-	Short: "Get details of a specific account",
-	Long: `Get details of a specific account by ID.
+func newAccountsGetCmd() *cobra.Command {
+	opts := &options.AccountsGetOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "get <account-id>",
+		Short: "Get details of a specific account",
+		Long: `Get details of a specific account by ID.
 
 Examples:
   canvas accounts get 1
   canvas accounts get 5`,
-	Args: ExactArgsWithUsage(1, "account-id"),
-	RunE: runAccountsGet,
+		Args: ExactArgsWithUsage(1, "account-id"),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			accountID, err := strconv.ParseInt(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid account ID: %s", args[0])
+			}
+			opts.AccountID = accountID
+
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+
+			return runAccountsGet(cmd.Context(), client, opts)
+		},
+	}
+
+	return cmd
 }
 
-// accountsSubAccountsCmd represents the accounts sub command
-var accountsSubAccountsCmd = &cobra.Command{
-	Use:   "sub <account-id>",
-	Short: "List sub-accounts of an account",
-	Long: `List sub-accounts for a given parent account.
+func newAccountsSubAccountsCmd() *cobra.Command {
+	opts := &options.AccountsSubAccountsOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "sub <account-id>",
+		Short: "List sub-accounts of an account",
+		Long: `List sub-accounts for a given parent account.
 
 Use --recursive to get the entire account tree.
 
 Examples:
   canvas accounts sub 1
   canvas accounts sub 1 --recursive`,
-	Args: ExactArgsWithUsage(1, "account-id"),
-	RunE: runAccountsSubAccounts,
-}
+		Args: ExactArgsWithUsage(1, "account-id"),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			accountID, err := strconv.ParseInt(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid account ID: %s", args[0])
+			}
+			opts.AccountID = accountID
 
-func init() {
-	rootCmd.AddCommand(accountsCmd)
-	accountsCmd.AddCommand(accountsListCmd)
-	accountsCmd.AddCommand(accountsGetCmd)
-	accountsCmd.AddCommand(accountsSubAccountsCmd)
+			if err := opts.Validate(); err != nil {
+				return err
+			}
 
-	// List flags
-	accountsListCmd.Flags().StringSliceVar(&accountsInclude, "include", []string{}, "Additional data to include (lti_guid, registration_settings, services)")
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
 
-	// Sub-accounts flags
-	accountsSubAccountsCmd.Flags().BoolVar(&accountsRecursive, "recursive", false, "List entire account tree recursively")
-}
-
-func runAccountsList(cmd *cobra.Command, args []string) error {
-	client, err := getAPIClient()
-	if err != nil {
-		return err
+			return runAccountsSubAccounts(cmd.Context(), client, opts)
+		},
 	}
 
-	ctx := context.Background()
+	cmd.Flags().BoolVar(&opts.Recursive, "recursive", false, "List entire account tree recursively")
+
+	return cmd
+}
+
+func runAccountsList(ctx context.Context, client *api.Client, opts *options.AccountsListOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+	logger.LogCommandStart(ctx, "accounts.list", map[string]interface{}{
+		"include": opts.Include,
+	})
+
 	service := api.NewAccountsService(client)
 
-	var opts *api.ListAccountsOptions
-	if len(accountsInclude) > 0 {
-		opts = &api.ListAccountsOptions{
-			Include: accountsInclude,
+	var apiOpts *api.ListAccountsOptions
+	if len(opts.Include) > 0 {
+		apiOpts = &api.ListAccountsOptions{
+			Include: opts.Include,
 		}
 	}
 
-	accounts, err := service.List(ctx, opts)
+	accounts, err := service.List(ctx, apiOpts)
 	if err != nil {
+		logger.LogCommandError(ctx, "accounts.list", err, nil)
 		return err
 	}
 
 	if len(accounts) == 0 {
 		fmt.Println("No accounts found. You may not have admin access to any accounts.")
+		logger.LogCommandComplete(ctx, "accounts.list", 0)
 		return nil
 	}
+
+	logger.LogCommandComplete(ctx, "accounts.list", len(accounts))
 
 	// Format and display accounts
 	return formatOutput(accounts, func() {
@@ -146,24 +204,23 @@ func runAccountsList(cmd *cobra.Command, args []string) error {
 	})
 }
 
-func runAccountsGet(cmd *cobra.Command, args []string) error {
-	accountID, err := strconv.ParseInt(args[0], 10, 64)
-	if err != nil {
-		return fmt.Errorf("invalid account ID: %s", args[0])
-	}
+func runAccountsGet(ctx context.Context, client *api.Client, opts *options.AccountsGetOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+	logger.LogCommandStart(ctx, "accounts.get", map[string]interface{}{
+		"account_id": opts.AccountID,
+	})
 
-	client, err := getAPIClient()
-	if err != nil {
-		return err
-	}
-
-	ctx := context.Background()
 	service := api.NewAccountsService(client)
 
-	account, err := service.Get(ctx, accountID)
+	account, err := service.Get(ctx, opts.AccountID)
 	if err != nil {
+		logger.LogCommandError(ctx, "accounts.get", err, map[string]interface{}{
+			"account_id": opts.AccountID,
+		})
 		return err
 	}
+
+	logger.LogCommandComplete(ctx, "accounts.get", 1)
 
 	// Format and display account
 	return formatOutput(account, func() {
@@ -191,33 +248,34 @@ func runAccountsGet(cmd *cobra.Command, args []string) error {
 	})
 }
 
-func runAccountsSubAccounts(cmd *cobra.Command, args []string) error {
-	accountID, err := strconv.ParseInt(args[0], 10, 64)
-	if err != nil {
-		return fmt.Errorf("invalid account ID: %s", args[0])
-	}
+func runAccountsSubAccounts(ctx context.Context, client *api.Client, opts *options.AccountsSubAccountsOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+	logger.LogCommandStart(ctx, "accounts.sub", map[string]interface{}{
+		"account_id": opts.AccountID,
+		"recursive":  opts.Recursive,
+	})
 
-	client, err := getAPIClient()
-	if err != nil {
-		return err
-	}
-
-	ctx := context.Background()
 	service := api.NewAccountsService(client)
 
-	opts := &api.ListSubAccountsOptions{
-		Recursive: accountsRecursive,
+	apiOpts := &api.ListSubAccountsOptions{
+		Recursive: opts.Recursive,
 	}
 
-	accounts, err := service.ListSubAccounts(ctx, accountID, opts)
+	accounts, err := service.ListSubAccounts(ctx, opts.AccountID, apiOpts)
 	if err != nil {
+		logger.LogCommandError(ctx, "accounts.sub", err, map[string]interface{}{
+			"account_id": opts.AccountID,
+		})
 		return err
 	}
 
 	if len(accounts) == 0 {
-		fmt.Printf("No sub-accounts found for account %d\n", accountID)
+		fmt.Printf("No sub-accounts found for account %d\n", opts.AccountID)
+		logger.LogCommandComplete(ctx, "accounts.sub", 0)
 		return nil
 	}
+
+	logger.LogCommandComplete(ctx, "accounts.sub", len(accounts))
 
 	// Format and display accounts
 	return formatOutput(accounts, func() {
