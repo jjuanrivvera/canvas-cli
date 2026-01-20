@@ -68,6 +68,8 @@ type Settings struct {
 	CacheTTL            int     `yaml:"cache_ttl_minutes"`
 	TelemetryEnabled    bool    `yaml:"telemetry_enabled"`
 	LogLevel            string  `yaml:"log_level"`
+	AutoUpdateCheck     bool    `yaml:"auto_update_check"`
+	UpdateCheckInterval int     `yaml:"update_check_interval_hours"`
 }
 
 // DefaultSettings returns the default settings
@@ -79,6 +81,8 @@ func DefaultSettings() *Settings {
 		CacheTTL:            15,
 		TelemetryEnabled:    false,
 		LogLevel:            "info",
+		AutoUpdateCheck:     true,
+		UpdateCheckInterval: 24,
 	}
 }
 

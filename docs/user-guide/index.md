@@ -30,6 +30,14 @@ Learn how to configure and use Canvas CLI effectively.
 
     [:octicons-arrow-right-24: Shell Completion](shell-completion.md)
 
+-   :material-update:{ .lg .middle } **Auto-Updates**
+
+    ---
+
+    Check for and install updates to Canvas CLI
+
+    [:octicons-arrow-right-24: Auto-Updates](updates.md)
+
 </div>
 
 ## Key Concepts
