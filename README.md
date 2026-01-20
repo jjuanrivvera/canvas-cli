@@ -1,13 +1,25 @@
-# Canvas CLI
+<p align="center">
+  <img src="docs/assets/images/logo.svg" alt="Canvas CLI" width="280">
+</p>
 
-[![Go Version](https://img.shields.io/badge/Go-1.21+-00ADD8?style=flat&logo=go)](https://go.dev/)
-[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Release](https://img.shields.io/github/v/release/jjuanrivvera/canvas-cli)](https://github.com/jjuanrivvera/canvas-cli/releases)
-[![Go Report Card](https://goreportcard.com/badge/github.com/jjuanrivvera/canvas-cli)](https://goreportcard.com/report/github.com/jjuanrivvera/canvas-cli)
+<p align="center">
+  <a href="https://go.dev/"><img src="https://img.shields.io/badge/Go-1.21+-00ADD8?style=flat&logo=go" alt="Go Version"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License"></a>
+  <a href="https://github.com/jjuanrivvera/canvas-cli/releases"><img src="https://img.shields.io/github/v/release/jjuanrivvera/canvas-cli" alt="Release"></a>
+  <a href="https://goreportcard.com/report/github.com/jjuanrivvera/canvas-cli"><img src="https://goreportcard.com/badge/github.com/jjuanrivvera/canvas-cli" alt="Go Report Card"></a>
+</p>
 
-A powerful command-line interface for [Canvas LMS](https://www.instructure.com/canvas), built with Go.
+<p align="center">
+  A powerful command-line interface for <a href="https://www.instructure.com/canvas">Canvas LMS</a>, built with Go.
+</p>
 
-**[Documentation](https://jjuanrivvera.github.io/canvas-cli/)** | **[Installation](https://jjuanrivvera.github.io/canvas-cli/getting-started/installation/)** | **[Commands](https://jjuanrivvera.github.io/canvas-cli/commands/)**
+<p align="center">
+  <a href="https://jjuanrivvera.github.io/canvas-cli/"><strong>Documentation</strong></a> ·
+  <a href="https://jjuanrivvera.github.io/canvas-cli/getting-started/installation/"><strong>Installation</strong></a> ·
+  <a href="https://jjuanrivvera.github.io/canvas-cli/commands/"><strong>Commands</strong></a>
+</p>
+
+---
 
 ## Features
 

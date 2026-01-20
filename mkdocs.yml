@@ -43,7 +43,8 @@ theme:
     - toc.follow
   icon:
     repo: fontawesome/brands/github
-    logo: material/console
+  logo: assets/images/logo-icon.svg
+  favicon: assets/images/favicon.svg
 
 plugins:
   - search:

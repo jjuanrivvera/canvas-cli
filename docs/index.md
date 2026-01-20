@@ -1,9 +1,14 @@
-# Canvas CLI
+<div align="center" markdown>
 
-A powerful command-line interface for Canvas LMS.
+![Canvas CLI](assets/images/logo.svg){ width="280" }
+
+**A powerful command-line interface for Canvas LMS**
 
 [![Go Version](https://img.shields.io/badge/Go-1.21+-00ADD8?style=flat&logo=go)](https://go.dev/)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Release](https://img.shields.io/github/v/release/jjuanrivvera/canvas-cli)](https://github.com/jjuanrivvera/canvas-cli/releases)
+
+</div>
 
 ## Features
 
