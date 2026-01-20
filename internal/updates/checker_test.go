@@ -192,3 +192,246 @@ func TestLoadCacheNonExistent(t *testing.T) {
 		t.Error("loadCache should return nil for non-existent cache")
 	}
 }
+
+func TestCheckUnknownVersion(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	config := UpdateConfig{
+		Owner:          "jjuanrivvera",
+		Repo:           "canvas-cli",
+		CurrentVersion: "unknown",
+		ForceCheck:     false,
+	}
+
+	checker := NewChecker(config, tmpDir)
+	ctx := context.Background()
+
+	result, err := checker.Check(ctx)
+	if err != nil {
+		t.Fatalf("Check failed: %v", err)
+	}
+
+	if result.UpdateAvailable {
+		t.Error("Unknown version should not have updates available")
+	}
+
+	if result.CurrentVersion != "unknown" {
+		t.Errorf("Expected current version to be 'unknown', got %s", result.CurrentVersion)
+	}
+}
+
+func TestCheckEmptyVersion(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	config := UpdateConfig{
+		Owner:          "jjuanrivvera",
+		Repo:           "canvas-cli",
+		CurrentVersion: "",
+		ForceCheck:     false,
+	}
+
+	checker := NewChecker(config, tmpDir)
+	ctx := context.Background()
+
+	result, err := checker.Check(ctx)
+	if err != nil {
+		t.Fatalf("Check failed: %v", err)
+	}
+
+	if result.UpdateAvailable {
+		t.Error("Empty version should not have updates available")
+	}
+}
+
+func TestCheckWithExpiredCache(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	config := UpdateConfig{
+		Owner:          "jjuanrivvera",
+		Repo:           "canvas-cli",
+		CurrentVersion: "dev",
+		CacheTTL:       1 * time.Millisecond,
+	}
+
+	checker := NewChecker(config, tmpDir)
+
+	// Create an old cached result
+	oldResult := &CheckResult{
+		UpdateAvailable: true,
+		CurrentVersion:  "v1.0.0",
+		LatestVersion:   "v1.1.0",
+		CheckedAt:       time.Now().Add(-2 * time.Millisecond),
+	}
+
+	if err := checker.saveCache(oldResult); err != nil {
+		t.Fatalf("saveCache failed: %v", err)
+	}
+
+	// Wait for cache to expire
+	time.Sleep(2 * time.Millisecond)
+
+	ctx := context.Background()
+	result, err := checker.Check(ctx)
+	if err != nil {
+		t.Fatalf("Check failed: %v", err)
+	}
+
+	// Should get a fresh result (not from cache)
+	// For dev version, we expect no updates available
+	if result.UpdateAvailable {
+		t.Error("Should not use expired cache")
+	}
+}
+
+func TestCheckWithValidCache(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	config := UpdateConfig{
+		Owner:          "jjuanrivvera",
+		Repo:           "canvas-cli",
+		CurrentVersion: "v1.0.0",
+		CacheTTL:       1 * time.Hour,
+	}
+
+	checker := NewChecker(config, tmpDir)
+
+	// Create a recent cached result
+	cachedResult := &CheckResult{
+		UpdateAvailable: true,
+		CurrentVersion:  "v1.0.0",
+		LatestVersion:   "v1.1.0",
+		CheckedAt:       time.Now(),
+	}
+
+	if err := checker.saveCache(cachedResult); err != nil {
+		t.Fatalf("saveCache failed: %v", err)
+	}
+
+	ctx := context.Background()
+	result, err := checker.Check(ctx)
+	if err != nil {
+		t.Fatalf("Check failed: %v", err)
+	}
+
+	// Should use cached result
+	if result.LatestVersion != "v1.1.0" {
+		t.Errorf("Expected to use cached result with version v1.1.0, got %s", result.LatestVersion)
+	}
+}
+
+func TestCheckForceCheckIgnoresCache(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	config := UpdateConfig{
+		Owner:          "jjuanrivvera",
+		Repo:           "canvas-cli",
+		CurrentVersion: "dev",
+		ForceCheck:     true,
+		CacheTTL:       1 * time.Hour,
+	}
+
+	checker := NewChecker(config, tmpDir)
+
+	// Create a recent cached result
+	cachedResult := &CheckResult{
+		UpdateAvailable: true,
+		CurrentVersion:  "v1.0.0",
+		LatestVersion:   "v1.1.0",
+		CheckedAt:       time.Now(),
+	}
+
+	if err := checker.saveCache(cachedResult); err != nil {
+		t.Fatalf("saveCache failed: %v", err)
+	}
+
+	ctx := context.Background()
+	result, err := checker.Check(ctx)
+	if err != nil {
+		t.Fatalf("Check failed: %v", err)
+	}
+
+	// Should NOT use cache when ForceCheck is true
+	// For dev version, we expect the current version to be "dev"
+	if result.CurrentVersion != "dev" {
+		t.Errorf("Expected fresh check with version 'dev', got %s", result.CurrentVersion)
+	}
+}
+
+func TestLoadCacheInvalidJSON(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	config := UpdateConfig{
+		Owner:          "jjuanrivvera",
+		Repo:           "canvas-cli",
+		CurrentVersion: "v1.0.0",
+	}
+
+	checker := NewChecker(config, tmpDir)
+
+	// Write invalid JSON to cache file
+	cachePath := filepath.Join(tmpDir, cacheFileName)
+	if err := os.MkdirAll(tmpDir, 0755); err != nil {
+		t.Fatalf("Failed to create cache dir: %v", err)
+	}
+	if err := os.WriteFile(cachePath, []byte("invalid json"), 0644); err != nil {
+		t.Fatalf("Failed to write invalid cache: %v", err)
+	}
+
+	// Try to load invalid cache
+	result, err := checker.loadCache()
+	if err == nil {
+		t.Error("Expected error when loading invalid JSON")
+	}
+	if result != nil {
+		t.Error("Should not return result for invalid cache")
+	}
+}
+
+func TestClearCacheNonExistent(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	config := UpdateConfig{
+		Owner:          "jjuanrivvera",
+		Repo:           "canvas-cli",
+		CurrentVersion: "v1.0.0",
+	}
+
+	checker := NewChecker(config, tmpDir)
+
+	// Try to clear non-existent cache (should not error)
+	if err := checker.ClearCache(); err != nil {
+		t.Errorf("ClearCache should not error for non-existent cache: %v", err)
+	}
+}
+
+func TestSaveCacheCreatesDirectory(t *testing.T) {
+	// Use a non-existent directory
+	tmpBase := t.TempDir()
+	cacheDir := filepath.Join(tmpBase, "subdir", "cache")
+
+	config := UpdateConfig{
+		Owner:          "jjuanrivvera",
+		Repo:           "canvas-cli",
+		CurrentVersion: "v1.0.0",
+	}
+
+	checker := NewChecker(config, cacheDir)
+
+	result := &CheckResult{
+		UpdateAvailable: false,
+		CurrentVersion:  "v1.0.0",
+		LatestVersion:   "v1.0.0",
+		CheckedAt:       time.Now(),
+	}
+
+	// Should create the directory and save successfully
+	if err := checker.saveCache(result); err != nil {
+		t.Fatalf("saveCache should create directory: %v", err)
+	}
+
+	// Verify the file was created
+	cachePath := filepath.Join(cacheDir, cacheFileName)
+	if _, err := os.Stat(cachePath); os.IsNotExist(err) {
+		t.Error("Cache file was not created")
+	}
+}

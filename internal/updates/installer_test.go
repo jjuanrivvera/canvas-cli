@@ -51,3 +51,51 @@ func TestCanUpdate(t *testing.T) {
 		_, _ = installer.CanUpdate()
 	})
 }
+
+func TestInstallerConfig(t *testing.T) {
+	tests := []struct {
+		name    string
+		config  UpdateConfig
+		wantErr bool
+	}{
+		{
+			name: "valid config",
+			config: UpdateConfig{
+				Owner:          "owner",
+				Repo:           "repo",
+				CurrentVersion: "v1.0.0",
+			},
+			wantErr: false,
+		},
+		{
+			name: "empty owner",
+			config: UpdateConfig{
+				Owner:          "",
+				Repo:           "repo",
+				CurrentVersion: "v1.0.0",
+			},
+			wantErr: false, // We don't validate in constructor
+		},
+		{
+			name: "dev version",
+			config: UpdateConfig{
+				Owner:          "owner",
+				Repo:           "repo",
+				CurrentVersion: "dev",
+			},
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			installer := NewInstaller(tt.config)
+			if installer == nil {
+				t.Error("NewInstaller should not return nil")
+			}
+			if installer.config.Owner != tt.config.Owner {
+				t.Errorf("Expected owner %s, got %s", tt.config.Owner, installer.config.Owner)
+			}
+		})
+	}
+}
