@@ -1,11 +1,16 @@
 package commands
 
 import (
+	"context"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	"github.com/jjuanrivvera/canvas-cli/internal/config"
+	"github.com/jjuanrivvera/canvas-cli/internal/update"
 )
 
 var (
@@ -19,6 +24,9 @@ var (
 	version      string
 	commit       string
 	buildDate    string
+
+	// Auto-updater instance
+	autoUpdater *update.AutoUpdater
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -36,6 +44,21 @@ Examples:
   canvas submissions bulk-grade --course-id 123 --csv grades.csv # Bulk grade from CSV`,
 	SilenceUsage:  true,
 	SilenceErrors: true,
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		// Initialize and run auto-updater asynchronously
+		initAutoUpdater()
+		if autoUpdater != nil {
+			autoUpdater.RunUpdateCheckAsync(context.Background())
+		}
+	},
+	PersistentPostRun: func(cmd *cobra.Command, args []string) {
+		// Print any update notifications after command completes
+		if autoUpdater != nil {
+			// Small delay to allow async update to complete
+			time.Sleep(100 * time.Millisecond)
+			autoUpdater.PrintNotifications()
+		}
+	},
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -101,5 +124,38 @@ func initConfig() {
 	// If a config file is found, read it in
 	if err := viper.ReadInConfig(); err == nil && verbose {
 		fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
+	}
+}
+
+// initAutoUpdater initializes the auto-updater based on config settings
+func initAutoUpdater() {
+	// Skip if already initialized
+	if autoUpdater != nil {
+		return
+	}
+
+	// Load config to check if auto-update is enabled
+	cfg, err := config.Load()
+	if err != nil {
+		// If config fails, use default settings (auto-update enabled)
+		cfg = &config.Config{Settings: config.DefaultSettings()}
+	}
+
+	// Default to enabled if settings are nil
+	enabled := true
+	interval := 60 * time.Minute
+
+	if cfg.Settings != nil {
+		enabled = cfg.Settings.AutoUpdateEnabled
+		if cfg.Settings.AutoUpdateIntervalMin > 0 {
+			interval = time.Duration(cfg.Settings.AutoUpdateIntervalMin) * time.Minute
+		}
+	}
+
+	// Create the auto-updater
+	autoUpdater, err = update.NewAutoUpdater(version, enabled, interval)
+	if err != nil {
+		// Silently ignore errors - auto-update is optional
+		return
 	}
 }

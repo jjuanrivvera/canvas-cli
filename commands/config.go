@@ -442,6 +442,8 @@ func runConfigShow(ctx context.Context, opts *options.ConfigShowOptions) error {
 		fmt.Printf("  Cache TTL: %d minutes\n", cfg.Settings.CacheTTL)
 		fmt.Printf("  Telemetry: %t\n", cfg.Settings.TelemetryEnabled)
 		fmt.Printf("  Log level: %s\n", cfg.Settings.LogLevel)
+		fmt.Printf("  Auto-update: %t\n", cfg.Settings.AutoUpdateEnabled)
+		fmt.Printf("  Auto-update interval: %d minutes\n", cfg.Settings.AutoUpdateIntervalMin)
 	}
 
 	logger.LogCommandComplete(ctx, "config.show", 1)
