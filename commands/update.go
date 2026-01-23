@@ -3,10 +3,13 @@ package commands
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
 
+	"github.com/jjuanrivvera/canvas-cli/commands/internal/logging"
+	"github.com/jjuanrivvera/canvas-cli/commands/internal/options"
 	"github.com/jjuanrivvera/canvas-cli/internal/config"
 	"github.com/jjuanrivvera/canvas-cli/internal/update"
 )
@@ -21,10 +24,10 @@ command to check immediately or configure auto-update behavior.
 
 Examples:
   canvas update              # Check and install updates now
-  canvas update --check      # Check for updates without installing
-  canvas update --disable    # Disable auto-updates
-  canvas update --enable     # Enable auto-updates
-  canvas update --status     # Show auto-update status`,
+  canvas update check        # Check for updates without installing
+  canvas update disable      # Disable auto-updates
+  canvas update enable       # Enable auto-updates
+  canvas update status       # Show auto-update status`,
 }
 
 func init() {
@@ -36,53 +39,93 @@ func init() {
 	updateCmd.AddCommand(newUpdateStatusCmd())
 
 	// Default action for `canvas update` (no subcommand)
-	updateCmd.RunE = runUpdateNow
+	updateCmd.RunE = func(cmd *cobra.Command, args []string) error {
+		opts := &options.UpdateOptions{}
+		if err := opts.Validate(); err != nil {
+			return err
+		}
+		return runUpdateNow(cmd.Context(), opts)
+	}
 }
 
 func newUpdateCheckCmd() *cobra.Command {
+	opts := &options.UpdateCheckOptions{}
+
 	return &cobra.Command{
 		Use:   "check",
 		Short: "Check for updates without installing",
-		RunE:  runUpdateCheck,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+			return runUpdateCheck(cmd.Context(), opts)
+		},
 	}
 }
 
 func newUpdateEnableCmd() *cobra.Command {
+	opts := &options.UpdateEnableOptions{}
+
 	cmd := &cobra.Command{
 		Use:   "enable",
 		Short: "Enable automatic updates",
-		RunE:  runUpdateEnable,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+			return runUpdateEnable(cmd.Context(), opts)
+		},
 	}
 
-	cmd.Flags().Int("interval", 60, "Check interval in minutes (default 60)")
+	cmd.Flags().IntVar(&opts.Interval, "interval", 60, "Check interval in minutes (default 60)")
 	return cmd
 }
 
 func newUpdateDisableCmd() *cobra.Command {
+	opts := &options.UpdateDisableOptions{}
+
 	return &cobra.Command{
 		Use:   "disable",
 		Short: "Disable automatic updates",
-		RunE:  runUpdateDisable,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+			return runUpdateDisable(cmd.Context(), opts)
+		},
 	}
 }
 
 func newUpdateStatusCmd() *cobra.Command {
+	opts := &options.UpdateStatusOptions{}
+
 	return &cobra.Command{
 		Use:   "status",
 		Short: "Show auto-update status and configuration",
-		RunE:  runUpdateStatus,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+			return runUpdateStatus(cmd.Context(), opts)
+		},
 	}
 }
 
-func runUpdateNow(cmd *cobra.Command, args []string) error {
+func runUpdateNow(ctx context.Context, opts *options.UpdateOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+	logger.LogCommandStart(ctx, "update.now", map[string]interface{}{
+		"current_version": version,
+	})
+
 	fmt.Println("Checking for updates...")
 
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	updateCtx, cancel := context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
 
 	updater := update.NewUpdater(version)
-	release, err := updater.GetLatestRelease(ctx)
+	release, err := updater.GetLatestRelease(updateCtx)
 	if err != nil {
+		logger.LogCommandError(ctx, "update.now", err, map[string]interface{}{})
 		return fmt.Errorf("failed to check for updates: %w", err)
 	}
 
@@ -90,16 +133,21 @@ func runUpdateNow(cmd *cobra.Command, args []string) error {
 	fmt.Printf("Current version: %s\n", version)
 	fmt.Printf("Latest version:  %s\n", latestVersion)
 
-	// Check if update is needed
-	if !needsUpdate(version, latestVersion) {
+	// Check if update is needed using semantic version comparison
+	if !isNewerVersion(latestVersion, version) {
 		fmt.Println("\nYou're already running the latest version!")
+		logger.LogCommandComplete(ctx, "update.now", 0)
 		return nil
 	}
 
 	fmt.Println("\nDownloading and installing update...")
 
-	result := updater.CheckAndUpdate(ctx)
+	result := updater.CheckAndUpdate(updateCtx)
 	if result.Error != nil {
+		logger.LogCommandError(ctx, "update.now", result.Error, map[string]interface{}{
+			"from_version": result.FromVersion,
+			"to_version":   result.ToVersion,
+		})
 		return fmt.Errorf("update failed: %w", result.Error)
 	}
 
@@ -108,18 +156,25 @@ func runUpdateNow(cmd *cobra.Command, args []string) error {
 		fmt.Println("  Restart the CLI to use the new version.")
 	}
 
+	logger.LogCommandComplete(ctx, "update.now", 1)
 	return nil
 }
 
-func runUpdateCheck(cmd *cobra.Command, args []string) error {
+func runUpdateCheck(ctx context.Context, opts *options.UpdateCheckOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+	logger.LogCommandStart(ctx, "update.check", map[string]interface{}{
+		"current_version": version,
+	})
+
 	fmt.Println("Checking for updates...")
 
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	checkCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
 	updater := update.NewUpdater(version)
-	release, err := updater.GetLatestRelease(ctx)
+	release, err := updater.GetLatestRelease(checkCtx)
 	if err != nil {
+		logger.LogCommandError(ctx, "update.check", err, map[string]interface{}{})
 		return fmt.Errorf("failed to check for updates: %w", err)
 	}
 
@@ -127,24 +182,26 @@ func runUpdateCheck(cmd *cobra.Command, args []string) error {
 	fmt.Printf("Current version: %s\n", version)
 	fmt.Printf("Latest version:  %s\n", latestVersion)
 
-	if needsUpdate(version, latestVersion) {
+	if isNewerVersion(latestVersion, version) {
 		fmt.Printf("\n\033[33mA new version is available!\033[0m\n")
 		fmt.Println("Run 'canvas update' to install it.")
 	} else {
 		fmt.Println("\nYou're already running the latest version!")
 	}
 
+	logger.LogCommandComplete(ctx, "update.check", 1)
 	return nil
 }
 
-func runUpdateEnable(cmd *cobra.Command, args []string) error {
-	interval, _ := cmd.Flags().GetInt("interval")
-	if interval < 1 {
-		interval = 60
-	}
+func runUpdateEnable(ctx context.Context, opts *options.UpdateEnableOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+	logger.LogCommandStart(ctx, "update.enable", map[string]interface{}{
+		"interval": opts.Interval,
+	})
 
 	cfg, err := config.Load()
 	if err != nil {
+		logger.LogCommandError(ctx, "update.enable", err, map[string]interface{}{})
 		return fmt.Errorf("failed to load config: %w", err)
 	}
 
@@ -153,19 +210,25 @@ func runUpdateEnable(cmd *cobra.Command, args []string) error {
 	}
 
 	cfg.Settings.AutoUpdateEnabled = true
-	cfg.Settings.AutoUpdateIntervalMin = interval
+	cfg.Settings.AutoUpdateIntervalMin = opts.Interval
 
 	if err := cfg.Save(); err != nil {
+		logger.LogCommandError(ctx, "update.enable", err, map[string]interface{}{})
 		return fmt.Errorf("failed to save config: %w", err)
 	}
 
-	fmt.Printf("Auto-updates enabled (checking every %d minutes)\n", interval)
+	fmt.Printf("Auto-updates enabled (checking every %d minutes)\n", opts.Interval)
+	logger.LogCommandComplete(ctx, "update.enable", 1)
 	return nil
 }
 
-func runUpdateDisable(cmd *cobra.Command, args []string) error {
+func runUpdateDisable(ctx context.Context, opts *options.UpdateDisableOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+	logger.LogCommandStart(ctx, "update.disable", map[string]interface{}{})
+
 	cfg, err := config.Load()
 	if err != nil {
+		logger.LogCommandError(ctx, "update.disable", err, map[string]interface{}{})
 		return fmt.Errorf("failed to load config: %w", err)
 	}
 
@@ -176,17 +239,23 @@ func runUpdateDisable(cmd *cobra.Command, args []string) error {
 	cfg.Settings.AutoUpdateEnabled = false
 
 	if err := cfg.Save(); err != nil {
+		logger.LogCommandError(ctx, "update.disable", err, map[string]interface{}{})
 		return fmt.Errorf("failed to save config: %w", err)
 	}
 
 	fmt.Println("Auto-updates disabled")
 	fmt.Println("Run 'canvas update enable' to re-enable automatic updates.")
+	logger.LogCommandComplete(ctx, "update.disable", 1)
 	return nil
 }
 
-func runUpdateStatus(cmd *cobra.Command, args []string) error {
+func runUpdateStatus(ctx context.Context, opts *options.UpdateStatusOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+	logger.LogCommandStart(ctx, "update.status", map[string]interface{}{})
+
 	cfg, err := config.Load()
 	if err != nil {
+		logger.LogCommandError(ctx, "update.status", err, map[string]interface{}{})
 		return fmt.Errorf("failed to load config: %w", err)
 	}
 
@@ -218,26 +287,48 @@ func runUpdateStatus(cmd *cobra.Command, args []string) error {
 		}
 	}
 
+	logger.LogCommandComplete(ctx, "update.status", 1)
 	return nil
 }
 
-// needsUpdate compares versions to determine if an update is needed
-func needsUpdate(current, latest string) bool {
+// isNewerVersion compares two semver versions
+// Returns true if latest is newer than current
+func isNewerVersion(latest, current string) bool {
 	// Strip 'v' prefix for comparison
-	current = trimVersionPrefix(current)
-	latest = trimVersionPrefix(latest)
+	latest = strings.TrimPrefix(latest, "v")
+	current = strings.TrimPrefix(current, "v")
 
 	// Skip dev versions
 	if current == "dev" || current == "" {
 		return false
 	}
 
-	return current != latest
+	latestParts := parseVersion(latest)
+	currentParts := parseVersion(current)
+
+	for i := 0; i < 3; i++ {
+		if latestParts[i] > currentParts[i] {
+			return true
+		}
+		if latestParts[i] < currentParts[i] {
+			return false
+		}
+	}
+
+	return false
 }
 
-func trimVersionPrefix(v string) string {
-	if len(v) > 0 && v[0] == 'v' {
-		return v[1:]
+// parseVersion parses a semver string into [major, minor, patch]
+func parseVersion(v string) [3]int {
+	v = strings.TrimPrefix(v, "v")
+	parts := strings.Split(v, ".")
+
+	var result [3]int
+	for i := 0; i < 3 && i < len(parts); i++ {
+		// Strip any pre-release suffix
+		numStr := strings.Split(parts[i], "-")[0]
+		fmt.Sscanf(numStr, "%d", &result[i])
 	}
-	return v
+
+	return result
 }
