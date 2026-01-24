@@ -54,6 +54,8 @@ func getAPIClient() (*api.Client, error) {
 			CacheEnabled:   cacheEnabled,
 			UserAgent:      getUserAgent(),
 			MaxResults:     globalLimit,
+			DryRun:         dryRun,
+			ShowToken:      showToken,
 		})
 		if err != nil {
 			return nil, fmt.Errorf("failed to create API client from environment: %w", err)
@@ -116,6 +118,8 @@ func getAPIClient() (*api.Client, error) {
 			CacheEnabled:   cacheEnabled,
 			UserAgent:      getUserAgent(),
 			MaxResults:     globalLimit,
+			DryRun:         dryRun,
+			ShowToken:      showToken,
 		}
 
 		if verbose {
@@ -150,6 +154,8 @@ func getAPIClient() (*api.Client, error) {
 				CacheEnabled:   cacheEnabled,
 				UserAgent:      getUserAgent(),
 				MaxResults:     globalLimit,
+				DryRun:         dryRun,
+				ShowToken:      showToken,
 			}
 		} else {
 			// Fall back to static token (no auto-refresh)
@@ -162,6 +168,8 @@ func getAPIClient() (*api.Client, error) {
 				CacheEnabled:   cacheEnabled,
 				UserAgent:      getUserAgent(),
 				MaxResults:     globalLimit,
+				DryRun:         dryRun,
+				ShowToken:      showToken,
 			}
 		}
 	}

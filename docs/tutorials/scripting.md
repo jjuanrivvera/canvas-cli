@@ -240,6 +240,71 @@ esac
 canvas courses list --instance $INSTANCE -o json
 ```
 
+## Debugging with Dry-Run Mode
+
+The `--dry-run` flag prints the equivalent curl command instead of executing HTTP requests. This is invaluable for debugging, learning the Canvas API, and building scripts.
+
+### Basic Usage
+
+```bash
+# See what API call would be made
+canvas --dry-run courses list
+
+# Output:
+# curl -X GET 'https://canvas.example.com/api/v1/courses' \
+#   -H 'Authorization: Bearer [REDACTED]' \
+#   -H 'Content-Type: application/json' \
+#   -H 'Accept: application/json' \
+#   -H 'User-Agent: canvas-cli/1.5.2'
+```
+
+### Show Token for Testing
+
+By default, tokens are redacted. Use `--show-token` to see the actual token:
+
+```bash
+canvas --dry-run --show-token courses list
+```
+
+!!! warning "Security"
+    Only use `--show-token` when you need to copy the curl command for testing. Never share output containing your token.
+
+### Debug with Masquerading
+
+See how masquerading affects API calls:
+
+```bash
+canvas --dry-run --as-user 12345 courses list
+
+# Output includes the as_user_id parameter:
+# curl -X GET 'https://canvas.example.com/api/v1/courses?as_user_id=12345' \
+#   -H 'Authorization: Bearer [REDACTED]' \
+#   ...
+```
+
+### Use Cases
+
+**Learning the API**: See exactly what endpoints and parameters Canvas CLI uses:
+
+```bash
+# See how submissions are graded
+canvas --dry-run submissions grade --course-id 123 --assignment-id 456 --user-id 789 --grade "A"
+```
+
+**Building Scripts**: Generate curl commands for use in other tools:
+
+```bash
+# Generate curl command and pipe to clipboard (macOS)
+canvas --dry-run --show-token courses list | pbcopy
+```
+
+**Troubleshooting**: Verify the request before it's sent:
+
+```bash
+# Check URL construction with complex options
+canvas --dry-run assignments list --course-id 123 --include submissions,score_statistics
+```
+
 ## Tips
 
 !!! tip "Test in Sandbox"
