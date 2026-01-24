@@ -13,6 +13,7 @@ import (
 	"net/url"
 	"reflect"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -20,6 +21,7 @@ import (
 	"golang.org/x/time/rate"
 
 	"github.com/jjuanrivvera/canvas-cli/internal/cache"
+	"github.com/jjuanrivvera/canvas-cli/internal/dryrun"
 )
 
 const (
@@ -74,6 +76,8 @@ type Client struct {
 	cacheEnabled   bool
 	userAgent      string // User-Agent header for API requests
 	maxResults     int    // Max results for paginated requests (0 = unlimited)
+	dryRun         bool   // Print curl commands instead of executing
+	showToken      bool   // Show actual token in dry-run output (default: redacted)
 	mu             sync.RWMutex
 }
 
@@ -155,6 +159,8 @@ type ClientConfig struct {
 	CacheEnabled   bool
 	UserAgent      string // User-Agent header for API requests (required by Canvas)
 	MaxResults     int    // Max results for paginated requests (0 = unlimited)
+	DryRun         bool   // Print curl commands instead of executing requests
+	ShowToken      bool   // Show actual token in dry-run output (default: redacted)
 }
 
 // NewClient creates a new Canvas API client
@@ -212,6 +218,15 @@ func NewClient(config ClientConfig) (*Client, error) {
 		cacheEnabled: config.CacheEnabled && config.Cache != nil,
 		userAgent:    config.UserAgent,
 		maxResults:   config.MaxResults,
+		dryRun:       config.DryRun,
+		showToken:    config.ShowToken,
+	}
+
+	// Skip version detection in dry-run mode (no actual requests)
+	if config.DryRun {
+		client.version = &CanvasVersion{Major: 999, Minor: 999, Patch: 999, Raw: "dry-run"}
+		client.featureChecker = NewFeatureChecker(client.version)
+		return client, nil
 	}
 
 	// Detect Canvas version
@@ -265,11 +280,6 @@ func (c *Client) getToken() (string, error) {
 
 // doRequest performs an HTTP request with rate limiting and retry logic
 func (c *Client) doRequest(ctx context.Context, method, path string, body io.Reader) (*http.Response, error) {
-	// Wait for rate limiter
-	if err := c.rateLimiter.Wait(ctx); err != nil {
-		return nil, fmt.Errorf("rate limiter error: %w", err)
-	}
-
 	// Get current token (may trigger refresh if using token source)
 	token, err := c.getToken()
 	if err != nil {
@@ -287,6 +297,16 @@ func (c *Client) doRequest(ctx context.Context, method, path string, body io.Rea
 			parsedURL.RawQuery = query.Encode()
 			fullURL = parsedURL.String()
 		}
+	}
+
+	// Handle dry-run mode: print curl command and return mock response
+	if c.dryRun {
+		return c.handleDryRun(method, fullURL, token, body)
+	}
+
+	// Wait for rate limiter
+	if err := c.rateLimiter.Wait(ctx); err != nil {
+		return nil, fmt.Errorf("rate limiter error: %w", err)
 	}
 
 	// Execute with retry
@@ -320,6 +340,48 @@ func (c *Client) doRequest(ctx context.Context, method, path string, body io.Rea
 
 		return resp, nil
 	})
+}
+
+// handleDryRun prints the curl command and returns a mock response
+func (c *Client) handleDryRun(method, fullURL, token string, body io.Reader) (*http.Response, error) {
+	// Read body if present
+	var bodyStr string
+	if body != nil {
+		bodyBytes, err := io.ReadAll(body)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read request body: %w", err)
+		}
+		bodyStr = string(bodyBytes)
+	}
+
+	// Build headers
+	headers := []dryrun.Header{
+		{Key: "Authorization", Value: "Bearer " + token},
+		{Key: "Content-Type", Value: "application/json"},
+		{Key: "Accept", Value: "application/json"},
+		{Key: "User-Agent", Value: c.userAgent},
+	}
+
+	// Generate and print curl command
+	curlCmd := dryrun.GenerateCurl(dryrun.CurlOptions{
+		Method:    method,
+		URL:       fullURL,
+		Headers:   headers,
+		Body:      bodyStr,
+		ShowToken: c.showToken,
+	})
+
+	fmt.Println(curlCmd)
+
+	// Return mock response with empty JSON array body
+	// This works well for list operations (most common dry-run use case)
+	// For single-object operations, the curl is still printed before any unmarshal errors
+	mockBody := io.NopCloser(strings.NewReader("[]"))
+	return &http.Response{
+		StatusCode: 200,
+		Body:       mockBody,
+		Header:     make(http.Header),
+	}, nil
 }
 
 // updateRateLimitFromHeaders updates the rate limiter based on response headers

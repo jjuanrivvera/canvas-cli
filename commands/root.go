@@ -21,6 +21,8 @@ var (
 	noCache      bool  // Disable caching for API requests
 	asUserID     int64 // Masquerading: act as another user
 	globalLimit  int   // Global limit for list operations
+	dryRun       bool  // Print curl commands instead of executing
+	showToken    bool  // Show actual token in dry-run output
 	version      string
 	commit       string
 	buildDate    string
@@ -91,6 +93,8 @@ func init() {
 
 	rootCmd.PersistentFlags().BoolVar(&noCache, "no-cache", false, "Disable caching of API responses")
 	rootCmd.PersistentFlags().IntVar(&globalLimit, "limit", 0, "Limit number of results for list operations (0 = unlimited)")
+	rootCmd.PersistentFlags().BoolVar(&dryRun, "dry-run", false, "Print curl commands instead of executing requests")
+	rootCmd.PersistentFlags().BoolVar(&showToken, "show-token", false, "Show actual token in dry-run output (default: redacted)")
 
 	// Bind flags to viper
 	viper.BindPFlag("instance", rootCmd.PersistentFlags().Lookup("instance"))

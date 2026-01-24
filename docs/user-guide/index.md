@@ -68,3 +68,25 @@ canvas courses list --as-user 456
 ```
 
 This requires masquerading permissions in Canvas.
+
+### Dry-Run Mode
+
+Preview API calls without executing them using the `--dry-run` flag:
+
+```bash
+canvas --dry-run courses list
+```
+
+This prints the equivalent curl command, which is useful for:
+
+- **Debugging** - See exactly what API call would be made
+- **Learning** - Understand the Canvas API structure
+- **Scripting** - Generate curl commands for other tools
+
+By default, tokens are redacted as `[REDACTED]`. Use `--show-token` to see the actual token:
+
+```bash
+canvas --dry-run --show-token courses list
+```
+
+See the [Scripting Tutorial](../tutorials/scripting.md#debugging-with-dry-run-mode) for more examples.
