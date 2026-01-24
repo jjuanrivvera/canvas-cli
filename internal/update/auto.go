@@ -15,6 +15,7 @@ type AutoUpdater struct {
 
 	updater      *Updater
 	stateManager *StateManager
+	done         chan struct{} // Signals when async update check completes
 }
 
 // NewAutoUpdater creates a new AutoUpdater
@@ -68,7 +69,9 @@ func (a *AutoUpdater) RunUpdateCheck(ctx context.Context) {
 // RunUpdateCheckAsync runs the update check in a goroutine
 // This prevents blocking the main CLI execution
 func (a *AutoUpdater) RunUpdateCheckAsync(ctx context.Context) {
+	a.done = make(chan struct{})
 	go func() {
+		defer close(a.done)
 		// Recover from any panics to not crash the CLI
 		defer func() {
 			_ = recover() // Silently ignore panics in the updater
@@ -76,6 +79,20 @@ func (a *AutoUpdater) RunUpdateCheckAsync(ctx context.Context) {
 
 		a.RunUpdateCheck(ctx)
 	}()
+}
+
+// WaitForCompletion waits for the async update check to complete with a timeout
+// Returns true if completed, false if timeout was reached
+func (a *AutoUpdater) WaitForCompletion(timeout time.Duration) bool {
+	if a.done == nil {
+		return true // No async operation was started
+	}
+	select {
+	case <-a.done:
+		return true
+	case <-time.After(timeout):
+		return false
+	}
 }
 
 // PrintNotifications prints any pending update notifications to stderr

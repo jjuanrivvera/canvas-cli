@@ -54,8 +54,8 @@ Examples:
 	PersistentPostRun: func(cmd *cobra.Command, args []string) {
 		// Print any update notifications after command completes
 		if autoUpdater != nil {
-			// Small delay to allow async update to complete
-			time.Sleep(100 * time.Millisecond)
+			// Wait for async update check to complete (with timeout to avoid blocking forever)
+			autoUpdater.WaitForCompletion(5 * time.Second)
 			autoUpdater.PrintNotifications()
 		}
 	},
