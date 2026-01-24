@@ -580,14 +580,19 @@ func TestClient_TrackError_NilProperties(t *testing.T) {
 func TestClient_TrackError_FlushChannelFull(t *testing.T) {
 	tempDir := t.TempDir()
 
+	// Create a disabled client first to avoid starting the flush worker
 	client, err := New(&Config{
-		Enabled: true,
+		Enabled: false,
 		DataDir: tempDir,
 		Version: "1.0.0",
 	})
 	if err != nil {
 		t.Fatalf("New failed: %v", err)
 	}
+
+	// Manually enable the client without starting the flush worker
+	// This allows us to test the non-blocking behavior of TrackError
+	client.enabled = true
 
 	// Fill the flush channel by sending a signal
 	client.flushChan <- struct{}{}
@@ -605,8 +610,13 @@ func TestClient_TrackError_FlushChannelFull(t *testing.T) {
 		t.Errorf("expected 1 event, got %d", eventCount)
 	}
 
-	// Drain the channel
-	<-client.flushChan
+	// Drain the channel with timeout to avoid blocking forever
+	select {
+	case <-client.flushChan:
+		// Successfully drained
+	case <-time.After(100 * time.Millisecond):
+		// Channel was already consumed by flush worker - that's OK
+	}
 }
 
 func TestClient_Flush_WriteError(t *testing.T) {

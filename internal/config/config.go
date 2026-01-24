@@ -62,23 +62,27 @@ func (i *Instance) HasDefaultAccountID() bool {
 
 // Settings holds global application settings
 type Settings struct {
-	DefaultOutputFormat string  `yaml:"default_output_format"`
-	RequestsPerSecond   float64 `yaml:"requests_per_second"`
-	CacheEnabled        bool    `yaml:"cache_enabled"`
-	CacheTTL            int     `yaml:"cache_ttl_minutes"`
-	TelemetryEnabled    bool    `yaml:"telemetry_enabled"`
-	LogLevel            string  `yaml:"log_level"`
+	DefaultOutputFormat   string  `yaml:"default_output_format"`
+	RequestsPerSecond     float64 `yaml:"requests_per_second"`
+	CacheEnabled          bool    `yaml:"cache_enabled"`
+	CacheTTL              int     `yaml:"cache_ttl_minutes"`
+	TelemetryEnabled      bool    `yaml:"telemetry_enabled"`
+	LogLevel              string  `yaml:"log_level"`
+	AutoUpdateEnabled     bool    `yaml:"auto_update_enabled"`
+	AutoUpdateIntervalMin int     `yaml:"auto_update_interval_minutes"`
 }
 
 // DefaultSettings returns the default settings
 func DefaultSettings() *Settings {
 	return &Settings{
-		DefaultOutputFormat: "table",
-		RequestsPerSecond:   5.0,
-		CacheEnabled:        true,
-		CacheTTL:            15,
-		TelemetryEnabled:    false,
-		LogLevel:            "info",
+		DefaultOutputFormat:   "table",
+		RequestsPerSecond:     5.0,
+		CacheEnabled:          true,
+		CacheTTL:              15,
+		TelemetryEnabled:      false,
+		LogLevel:              "info",
+		AutoUpdateEnabled:     true,
+		AutoUpdateIntervalMin: 60, // Check every hour
 	}
 }
 
