@@ -27,6 +27,11 @@ var (
 	commit       string
 	buildDate    string
 
+	// Output filtering flags
+	filterText    string   // Filter results by text (substring match)
+	filterColumns []string // Select specific columns to display
+	sortField     string   // Sort results by field
+
 	// Auto-updater instance
 	autoUpdater *update.AutoUpdater
 )
@@ -95,6 +100,11 @@ func init() {
 	rootCmd.PersistentFlags().IntVar(&globalLimit, "limit", 0, "Limit number of results for list operations (0 = unlimited)")
 	rootCmd.PersistentFlags().BoolVar(&dryRun, "dry-run", false, "Print curl commands instead of executing requests")
 	rootCmd.PersistentFlags().BoolVar(&showToken, "show-token", false, "Show actual token in dry-run output (default: redacted)")
+
+	// Output filtering flags
+	rootCmd.PersistentFlags().StringVar(&filterText, "filter", "", "Filter results by text (case-insensitive substring match)")
+	rootCmd.PersistentFlags().StringSliceVar(&filterColumns, "columns", nil, "Select specific columns to display (comma-separated)")
+	rootCmd.PersistentFlags().StringVar(&sortField, "sort", "", "Sort results by field (prefix with - for descending, e.g., -name)")
 
 	// Bind flags to viper
 	viper.BindPFlag("instance", rootCmd.PersistentFlags().Lookup("instance"))

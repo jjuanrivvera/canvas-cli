@@ -19,8 +19,22 @@ type Config struct {
 	// Settings holds global settings
 	Settings *Settings `yaml:"settings"`
 
+	// Aliases holds user-defined command aliases
+	Aliases map[string]string `yaml:"aliases,omitempty"`
+
+	// Context holds the current context (course_id, assignment_id, etc.)
+	Context *Context `yaml:"context,omitempty"`
+
 	// configPath is the path to the config file
 	configPath string
+}
+
+// Context holds the current working context
+type Context struct {
+	CourseID     int64 `yaml:"course_id,omitempty"`
+	AssignmentID int64 `yaml:"assignment_id,omitempty"`
+	UserID       int64 `yaml:"user_id,omitempty"`
+	AccountID    int64 `yaml:"account_id,omitempty"`
 }
 
 // Instance represents a Canvas instance configuration
@@ -131,6 +145,11 @@ func Load() (*Config, error) {
 	// Ensure instances map exists
 	if config.Instances == nil {
 		config.Instances = make(map[string]*Instance)
+	}
+
+	// Ensure aliases map exists
+	if config.Aliases == nil {
+		config.Aliases = make(map[string]string)
 	}
 
 	// Ensure settings exist
@@ -271,5 +290,63 @@ func (c *Config) ListInstances() []*Instance {
 // UpdateSettings updates the global settings
 func (c *Config) UpdateSettings(settings *Settings) error {
 	c.Settings = settings
+	return c.Save()
+}
+
+// SetAlias creates or updates an alias
+func (c *Config) SetAlias(name, expansion string) error {
+	if c.Aliases == nil {
+		c.Aliases = make(map[string]string)
+	}
+	c.Aliases[name] = expansion
+	return c.Save()
+}
+
+// GetAlias retrieves an alias by name
+func (c *Config) GetAlias(name string) (string, bool) {
+	if c.Aliases == nil {
+		return "", false
+	}
+	expansion, exists := c.Aliases[name]
+	return expansion, exists
+}
+
+// DeleteAlias removes an alias
+func (c *Config) DeleteAlias(name string) error {
+	if c.Aliases == nil {
+		return fmt.Errorf("alias %q does not exist", name)
+	}
+	if _, exists := c.Aliases[name]; !exists {
+		return fmt.Errorf("alias %q does not exist", name)
+	}
+	delete(c.Aliases, name)
+	return c.Save()
+}
+
+// ListAliases returns all configured aliases
+func (c *Config) ListAliases() map[string]string {
+	if c.Aliases == nil {
+		return make(map[string]string)
+	}
+	return c.Aliases
+}
+
+// SetContext updates the current context
+func (c *Config) SetContext(ctx *Context) error {
+	c.Context = ctx
+	return c.Save()
+}
+
+// GetContext returns the current context
+func (c *Config) GetContext() *Context {
+	if c.Context == nil {
+		return &Context{}
+	}
+	return c.Context
+}
+
+// ClearContext clears the current context
+func (c *Config) ClearContext() error {
+	c.Context = nil
 	return c.Save()
 }

@@ -61,8 +61,14 @@ Examples:
   canvas assignments list --course-id 123 --bucket upcoming
   canvas assignments list --course-id 123 --search "quiz"
   canvas assignments list --course-id 123 --order-by due_at
-  canvas assignments list --course-id 123 --include submission,rubric`,
+  canvas assignments list --course-id 123 --include submission,rubric
+
+Note: If you have set a course context (canvas context set course 123),
+you can omit --course-id and it will be used automatically.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
+			// Apply context values if flags not provided
+			opts.CourseID = GetContextCourseID(opts.CourseID)
+
 			if err := opts.Validate(); err != nil {
 				return err
 			}
@@ -76,12 +82,11 @@ Examples:
 		},
 	}
 
-	cmd.Flags().Int64Var(&opts.CourseID, "course-id", 0, "Course ID (required)")
+	cmd.Flags().Int64Var(&opts.CourseID, "course-id", 0, "Course ID (required, or set via 'canvas context set course')")
 	cmd.Flags().StringVar(&opts.SearchTerm, "search", "", "Search by assignment name")
 	cmd.Flags().StringVar(&opts.Bucket, "bucket", "", "Filter by bucket (past, overdue, undated, ungraded, unsubmitted, upcoming, future)")
 	cmd.Flags().StringVar(&opts.OrderBy, "order-by", "", "Order by (position, name, due_at)")
 	cmd.Flags().StringSliceVar(&opts.Include, "include", []string{}, "Additional data to include (comma-separated)")
-	cmd.MarkFlagRequired("course-id")
 
 	return cmd
 }
@@ -96,7 +101,9 @@ func newAssignmentsGetCmd() *cobra.Command {
 
 Examples:
   canvas assignments get --course-id 123 456
-  canvas assignments get --course-id 123 456 --include submission,rubric`,
+  canvas assignments get --course-id 123 456 --include submission,rubric
+
+Note: If you have set a course context, you can omit --course-id.`,
 		Args: ExactArgsWithUsage(1, "assignment-id"),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			assignmentID, err := strconv.ParseInt(args[0], 10, 64)
@@ -104,6 +111,9 @@ Examples:
 				return fmt.Errorf("invalid assignment ID: %s", args[0])
 			}
 			opts.AssignmentID = assignmentID
+
+			// Apply context values if flags not provided
+			opts.CourseID = GetContextCourseID(opts.CourseID)
 
 			if err := opts.Validate(); err != nil {
 				return err
@@ -118,9 +128,8 @@ Examples:
 		},
 	}
 
-	cmd.Flags().Int64Var(&opts.CourseID, "course-id", 0, "Course ID (required)")
+	cmd.Flags().Int64Var(&opts.CourseID, "course-id", 0, "Course ID (required, or set via context)")
 	cmd.Flags().StringSliceVar(&opts.Include, "include", []string{}, "Additional data to include (comma-separated)")
-	cmd.MarkFlagRequired("course-id")
 
 	return cmd
 }
@@ -541,6 +550,35 @@ func runAssignmentsUpdate(ctx context.Context, client *api.Client, cmd *cobra.Co
 		params.Position = &opts.Position
 	}
 
+	// Handle dry-run: show what would be updated
+	if dryRun {
+		changes := make(map[string]interface{})
+		if params.Name != "" {
+			changes["name"] = params.Name
+		}
+		if params.PointsPossible != nil {
+			changes["points_possible"] = *params.PointsPossible
+		}
+		if params.GradingType != "" {
+			changes["grading_type"] = params.GradingType
+		}
+		if params.DueAt != nil {
+			changes["due_at"] = *params.DueAt
+		}
+		if params.Description != "" {
+			changes["description"] = "(HTML content)"
+		}
+		if params.Published != nil {
+			changes["published"] = *params.Published
+		}
+		if len(params.SubmissionTypes) > 0 {
+			changes["submission_types"] = params.SubmissionTypes
+		}
+
+		confirmUpdateDryRun("assignment", opts.AssignmentID, changes)
+		return nil
+	}
+
 	assignment, err := assignmentsService.Update(ctx, opts.CourseID, opts.AssignmentID, params)
 	if err != nil {
 		logger.LogCommandError(ctx, "assignments.update", err, map[string]interface{}{
@@ -583,17 +621,43 @@ func runAssignmentsDelete(ctx context.Context, client *api.Client, opts *options
 		return err
 	}
 
-	// Confirm deletion
-	confirmed, err := confirmDelete("assignment", opts.AssignmentID, opts.Force)
+	assignmentsService := api.NewAssignmentsService(client)
+
+	// Fetch assignment details for preview (especially in dry-run mode)
+	assignment, err := assignmentsService.Get(ctx, opts.CourseID, opts.AssignmentID, nil)
+	if err != nil {
+		logger.LogCommandError(ctx, "assignments.delete", err, map[string]interface{}{
+			"course_id":     opts.CourseID,
+			"assignment_id": opts.AssignmentID,
+		})
+		return fmt.Errorf("failed to get assignment: %w", err)
+	}
+
+	// Build details for confirmation
+	details := map[string]interface{}{
+		"Name":   assignment.Name,
+		"Points": assignment.PointsPossible,
+	}
+	if !assignment.DueAt.IsZero() {
+		details["Due"] = assignment.DueAt.Format("2006-01-02 15:04")
+	}
+	if assignment.Published {
+		details["Status"] = "Published"
+	} else {
+		details["Status"] = "Unpublished"
+	}
+
+	// Confirm deletion with details (handles dry-run internally)
+	confirmed, err := confirmDeleteWithDetails("assignment", opts.AssignmentID, details, opts.Force)
 	if err != nil {
 		return err
 	}
 	if !confirmed {
-		fmt.Println("Cancelled.")
+		if !dryRun {
+			fmt.Println("Cancelled.")
+		}
 		return nil
 	}
-
-	assignmentsService := api.NewAssignmentsService(client)
 
 	if err := assignmentsService.Delete(ctx, opts.CourseID, opts.AssignmentID); err != nil {
 		logger.LogCommandError(ctx, "assignments.delete", err, map[string]interface{}{

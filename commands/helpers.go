@@ -233,12 +233,18 @@ func printVerbose(format string, args ...interface{}) {
 // If outputFormat is "table" (default), it uses the custom display function if provided.
 // For other formats (json, yaml, csv), it uses the output formatter.
 // In table format, output is compact by default (key fields only). Use -v/--verbose for all fields.
+// Applies filtering (--filter, --columns, --sort) before output.
 func formatOutput(data interface{}, customTableDisplay func()) error {
 	format := output.FormatType(outputFormat)
 
-	// For table format, use custom display if provided
+	// Apply filtering if any filtering options are set
+	if hasFilteringOptions() {
+		data = applyFiltering(data)
+	}
+
+	// For table format, use custom display if provided (but not when filtering)
 	if format == output.FormatTable {
-		if customTableDisplay != nil {
+		if customTableDisplay != nil && !hasFilteringOptions() {
 			customTableDisplay()
 			return nil
 		}
@@ -251,8 +257,14 @@ func formatOutput(data interface{}, customTableDisplay func()) error {
 // formatSuccessOutput prints a success message (only in table format) and outputs the data.
 // For JSON/YAML/CSV, the success message is omitted and only the raw data is output.
 // This enables scripting with structured output formats.
+// Applies filtering (--filter, --columns, --sort) before output.
 func formatSuccessOutput(data interface{}, successMessage string) error {
 	format := output.FormatType(outputFormat)
+
+	// Apply filtering if any filtering options are set
+	if hasFilteringOptions() {
+		data = applyFiltering(data)
+	}
 
 	// Only print success message for table format
 	if format == output.FormatTable && successMessage != "" {
@@ -265,8 +277,14 @@ func formatSuccessOutput(data interface{}, successMessage string) error {
 // formatEmptyOrOutput handles the case when a list might be empty.
 // For JSON/YAML output, it always outputs valid structured data ([] for empty).
 // For table output, it prints a user-friendly message when empty.
+// Applies filtering (--filter, --columns, --sort) before output.
 func formatEmptyOrOutput(data interface{}, emptyMessage string) error {
 	format := output.FormatType(outputFormat)
+
+	// Apply filtering if any filtering options are set
+	if hasFilteringOptions() {
+		data = applyFiltering(data)
+	}
 
 	// For structured formats (JSON, YAML, CSV), always output the data
 	// even if empty - the formatter will output [] for empty slices
