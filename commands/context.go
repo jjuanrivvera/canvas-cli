@@ -1,10 +1,13 @@
 package commands
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/spf13/cobra"
 
+	"github.com/jjuanrivvera/canvas-cli/commands/internal/logging"
+	"github.com/jjuanrivvera/canvas-cli/commands/internal/options"
 	"github.com/jjuanrivvera/canvas-cli/internal/config"
 )
 
@@ -51,6 +54,8 @@ Examples:
 }
 
 func newContextSetCmd() *cobra.Command {
+	opts := &options.ContextSetOptions{}
+
 	cmd := &cobra.Command{
 		Use:   "set <type> <id>",
 		Short: "Set a context value",
@@ -66,103 +71,130 @@ Examples:
   canvas context set course 123
   canvas context set assignment 456`,
 		Args: cobra.ExactArgs(2),
-		RunE: runContextSet,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			opts.Type = args[0]
+			var id int64
+			if _, err := fmt.Sscanf(args[1], "%d", &id); err != nil {
+				return fmt.Errorf("invalid ID %q: must be a number", args[1])
+			}
+			opts.ID = id
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+			return runContextSet(cmd.Context(), opts)
+		},
 	}
 
 	return cmd
 }
 
-func runContextSet(cmd *cobra.Command, args []string) error {
-	contextType := args[0]
-	idStr := args[1]
-
-	var id int64
-	if _, err := fmt.Sscanf(idStr, "%d", &id); err != nil {
-		return fmt.Errorf("invalid ID %q: must be a number", idStr)
-	}
-
-	if id <= 0 {
-		return fmt.Errorf("invalid ID %d: must be a positive number", id)
-	}
+func runContextSet(ctx context.Context, opts *options.ContextSetOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+	logger.LogCommandStart(ctx, "context.set", map[string]interface{}{
+		"type": opts.Type,
+		"id":   opts.ID,
+	})
 
 	cfg, err := config.Load()
 	if err != nil {
+		logger.LogCommandError(ctx, "context.set", err, nil)
 		return fmt.Errorf("failed to load config: %w", err)
 	}
 
-	ctx := cfg.GetContext()
+	ctxVal := cfg.GetContext()
+	contextType := opts.Type
 
 	switch contextType {
 	case "course", "course_id", "course-id":
-		ctx.CourseID = id
+		ctxVal.CourseID = opts.ID
 		contextType = "course"
 	case "assignment", "assignment_id", "assignment-id":
-		ctx.AssignmentID = id
+		ctxVal.AssignmentID = opts.ID
 		contextType = "assignment"
 	case "user", "user_id", "user-id":
-		ctx.UserID = id
+		ctxVal.UserID = opts.ID
 		contextType = "user"
 	case "account", "account_id", "account-id":
-		ctx.AccountID = id
+		ctxVal.AccountID = opts.ID
 		contextType = "account"
-	default:
-		return fmt.Errorf("unknown context type %q. Valid types: course, assignment, user, account", contextType)
 	}
 
-	if err := cfg.SetContext(ctx); err != nil {
+	if err := cfg.SetContext(ctxVal); err != nil {
+		logger.LogCommandError(ctx, "context.set", err, nil)
 		return fmt.Errorf("failed to save context: %w", err)
 	}
 
-	fmt.Printf("Context %s set to %d\n", contextType, id)
+	logger.LogCommandComplete(ctx, "context.set", 1)
+	fmt.Printf("Context %s set to %d\n", contextType, opts.ID)
 	return nil
 }
 
 func newContextShowCmd() *cobra.Command {
+	opts := &options.ContextShowOptions{}
+
 	cmd := &cobra.Command{
 		Use:   "show",
 		Short: "Show current context",
 		Long:  `Display the current working context values.`,
 		Args:  cobra.NoArgs,
-		RunE:  runContextShow,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+			return runContextShow(cmd.Context(), opts)
+		},
 	}
 
 	return cmd
 }
 
-func runContextShow(cmd *cobra.Command, args []string) error {
+func runContextShow(ctx context.Context, opts *options.ContextShowOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+	logger.LogCommandStart(ctx, "context.show", nil)
+
 	cfg, err := config.Load()
 	if err != nil {
+		logger.LogCommandError(ctx, "context.show", err, nil)
 		return fmt.Errorf("failed to load config: %w", err)
 	}
 
-	ctx := cfg.GetContext()
+	ctxVal := cfg.GetContext()
 
 	// Check if any context is set
-	if ctx.CourseID == 0 && ctx.AssignmentID == 0 && ctx.UserID == 0 && ctx.AccountID == 0 {
+	if ctxVal.CourseID == 0 && ctxVal.AssignmentID == 0 && ctxVal.UserID == 0 && ctxVal.AccountID == 0 {
 		fmt.Println("No context set.")
 		fmt.Println("\nSet context with: canvas context set <type> <id>")
 		fmt.Println("Valid types: course, assignment, user, account")
+		logger.LogCommandComplete(ctx, "context.show", 0)
 		return nil
 	}
 
+	count := 0
 	fmt.Println("Current context:")
-	if ctx.CourseID > 0 {
-		fmt.Printf("  course_id:     %d\n", ctx.CourseID)
+	if ctxVal.CourseID > 0 {
+		fmt.Printf("  course_id:     %d\n", ctxVal.CourseID)
+		count++
 	}
-	if ctx.AssignmentID > 0 {
-		fmt.Printf("  assignment_id: %d\n", ctx.AssignmentID)
+	if ctxVal.AssignmentID > 0 {
+		fmt.Printf("  assignment_id: %d\n", ctxVal.AssignmentID)
+		count++
 	}
-	if ctx.UserID > 0 {
-		fmt.Printf("  user_id:       %d\n", ctx.UserID)
+	if ctxVal.UserID > 0 {
+		fmt.Printf("  user_id:       %d\n", ctxVal.UserID)
+		count++
 	}
-	if ctx.AccountID > 0 {
-		fmt.Printf("  account_id:    %d\n", ctx.AccountID)
+	if ctxVal.AccountID > 0 {
+		fmt.Printf("  account_id:    %d\n", ctxVal.AccountID)
+		count++
 	}
 
+	logger.LogCommandComplete(ctx, "context.show", count)
 	return nil
 }
 
 func newContextClearCmd() *cobra.Command {
+	opts := &options.ContextClearOptions{}
+
 	cmd := &cobra.Command{
 		Use:   "clear [type]",
 		Short: "Clear context values",
@@ -172,52 +204,68 @@ Examples:
   canvas context clear           # Clear all context
   canvas context clear course    # Clear only course context`,
 		Args: cobra.MaximumNArgs(1),
-		RunE: runContextClear,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) > 0 {
+				opts.Type = args[0]
+			}
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+			return runContextClear(cmd.Context(), opts)
+		},
 	}
 
 	return cmd
 }
 
-func runContextClear(cmd *cobra.Command, args []string) error {
+func runContextClear(ctx context.Context, opts *options.ContextClearOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+	logger.LogCommandStart(ctx, "context.clear", map[string]interface{}{
+		"type": opts.Type,
+	})
+
 	cfg, err := config.Load()
 	if err != nil {
+		logger.LogCommandError(ctx, "context.clear", err, nil)
 		return fmt.Errorf("failed to load config: %w", err)
 	}
 
-	if len(args) == 0 {
+	if opts.Type == "" {
 		// Clear all context
 		if err := cfg.ClearContext(); err != nil {
+			logger.LogCommandError(ctx, "context.clear", err, nil)
 			return fmt.Errorf("failed to clear context: %w", err)
 		}
+		logger.LogCommandComplete(ctx, "context.clear", 1)
 		fmt.Println("Context cleared.")
 		return nil
 	}
 
 	// Clear specific context type
-	contextType := args[0]
-	ctx := cfg.GetContext()
+	contextType := opts.Type
+	ctxVal := cfg.GetContext()
 
 	switch contextType {
 	case "course", "course_id", "course-id":
-		ctx.CourseID = 0
+		ctxVal.CourseID = 0
 		contextType = "course"
 	case "assignment", "assignment_id", "assignment-id":
-		ctx.AssignmentID = 0
+		ctxVal.AssignmentID = 0
 		contextType = "assignment"
 	case "user", "user_id", "user-id":
-		ctx.UserID = 0
+		ctxVal.UserID = 0
 		contextType = "user"
 	case "account", "account_id", "account-id":
-		ctx.AccountID = 0
+		ctxVal.AccountID = 0
 		contextType = "account"
-	default:
-		return fmt.Errorf("unknown context type %q. Valid types: course, assignment, user, account", contextType)
 	}
 
-	if err := cfg.SetContext(ctx); err != nil {
+	if err := cfg.SetContext(ctxVal); err != nil {
+		logger.LogCommandError(ctx, "context.clear", err, nil)
 		return fmt.Errorf("failed to save context: %w", err)
 	}
 
+	logger.LogCommandComplete(ctx, "context.clear", 1)
 	fmt.Printf("Context %s cleared.\n", contextType)
 	return nil
 }
