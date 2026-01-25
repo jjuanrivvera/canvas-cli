@@ -5,6 +5,48 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **Command Aliases**: Create shortcuts for frequently used commands
+  - `canvas alias set <name> "<command>"` - Create an alias
+  - `canvas alias list` - List all aliases
+  - `canvas alias delete <name>` - Remove an alias
+  - Aliases are stored in config and expand at runtime
+
+- **Context Management**: Set default values for common flags
+  - `canvas context set <type> <id>` - Set course, assignment, user, or account context
+  - `canvas context show` - Display current context
+  - `canvas context clear [type]` - Clear all or specific context
+  - Commands automatically use context when flags aren't provided
+
+- **Output Filtering**: Filter and sort command output
+  - `--filter <text>` - Filter results by text (case-insensitive, searches all fields)
+  - `--columns <list>` - Select specific columns to display
+  - `--sort <field>` - Sort by field (prefix with `-` for descending)
+  - Works with all output formats (table, JSON, YAML, CSV)
+
+- **Enhanced Dry-Run Mode**: Preview destructive operations with details
+  - Delete commands show resource details before confirmation
+  - Update commands show what would change
+  - Works with `--dry-run` and `--force` flags
+
+- **Curl Command Output**: See equivalent curl commands with `--dry-run`
+  - Useful for debugging and learning the Canvas API
+  - Token redacted by default, use `--show-token` to include
+
+- **Aggressive Auto-Update**: Automatic update checking
+  - `canvas update enable` - Enable automatic update checks
+  - `canvas update disable` - Disable automatic update checks
+  - `canvas update check` - Manually check for updates
+  - `canvas update status` - Show update settings
+
+### Changed
+
+- Improved CLI UX inspired by modern tools (gh, kubectl, stripe-cli)
+- Documentation updated with new feature guides
+
 ## [1.5.2] - 2026-01-14
 
 ### Added

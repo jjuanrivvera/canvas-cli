@@ -99,6 +99,75 @@ canvas users list --course-id 123 -o json | jq length
 canvas users list --course-id 123 -o json | jq '.[].email'
 ```
 
+## Output Filtering
+
+Canvas CLI includes built-in filtering, column selection, and sorting capabilities.
+
+### Filter Results
+
+Use `--filter` to search across all fields:
+
+```bash
+# Find courses containing "CS"
+canvas courses list --filter "CS"
+
+# Find assignments with "exam" in the name
+canvas assignments list --course-id 123 --filter "exam"
+```
+
+The filter is case-insensitive and searches all fields.
+
+### Select Columns
+
+Use `--columns` to display only specific fields:
+
+```bash
+# Show only id and name
+canvas courses list --columns id,name
+
+# Show specific assignment fields
+canvas assignments list --course-id 123 --columns id,name,due_at,points_possible
+```
+
+### Sort Results
+
+Use `--sort` to order results by a field:
+
+```bash
+# Sort by name (ascending)
+canvas courses list --sort name
+
+# Sort by due date (descending with - prefix)
+canvas assignments list --course-id 123 --sort -due_at
+
+# Sort by points
+canvas assignments list --course-id 123 --sort points_possible
+```
+
+### Combining Options
+
+All filtering options can be combined:
+
+```bash
+# Find exams, show key fields, sort by due date
+canvas assignments list --course-id 123 \
+  --filter "exam" \
+  --columns id,name,due_at,points_possible \
+  --sort -due_at
+```
+
+### Works with All Formats
+
+Filtering works with any output format:
+
+```bash
+# Filter JSON output
+canvas courses list --filter "CS" --output json
+
+# Filter and export to CSV
+canvas users list --course-id 123 --filter "student" --output csv > students.csv
+```
+
 ## Tips
 
 !!! tip "Use JSON for Scripts"
@@ -107,8 +176,12 @@ canvas users list --course-id 123 -o json | jq '.[].email'
 !!! tip "CSV for Spreadsheets"
     Use `-o csv` when you need to import data into Excel, Google Sheets, or other spreadsheet applications.
 
-!!! tip "Combine with grep"
-    For quick filtering, combine table output with grep:
+!!! tip "Built-in Filtering vs jq"
+    For simple filtering, use built-in `--filter`. For complex queries, use JSON output with `jq`:
     ```bash
-    canvas courses list | grep "Fall 2024"
+    # Simple - use built-in
+    canvas courses list --filter "Fall 2024"
+
+    # Complex - use jq
+    canvas courses list -o json | jq '.[] | select(.enrollment_term_id == 5)'
     ```

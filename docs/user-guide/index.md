@@ -18,7 +18,7 @@ Learn how to configure and use Canvas CLI effectively.
 
     ---
 
-    Learn about the different output formats available
+    Learn about output formats and filtering options
 
     [:octicons-arrow-right-24: Output Formats](output-formats.md)
 
@@ -29,6 +29,22 @@ Learn how to configure and use Canvas CLI effectively.
     Set up tab completion for your shell
 
     [:octicons-arrow-right-24: Shell Completion](shell-completion.md)
+
+-   :material-link-variant:{ .lg .middle } **Command Aliases**
+
+    ---
+
+    Create shortcuts for frequently used commands
+
+    [:octicons-arrow-right-24: Aliases](aliases.md)
+
+-   :material-crosshairs:{ .lg .middle } **Context Management**
+
+    ---
+
+    Set default values for course, assignment, and user IDs
+
+    [:octicons-arrow-right-24: Context](context.md)
 
 </div>
 

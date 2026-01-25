@@ -114,6 +114,8 @@ nav:
     - Configuration: user-guide/configuration.md
     - Output Formats: user-guide/output-formats.md
     - Shell Completion: user-guide/shell-completion.md
+    - Command Aliases: user-guide/aliases.md
+    - Context Management: user-guide/context.md
   - Commands: commands/index.md
   - Tutorials:
     - tutorials/index.md
