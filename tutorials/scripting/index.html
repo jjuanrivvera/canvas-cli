@@ -800,6 +800,62 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/aliases/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Command Aliases
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/context/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Context Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1202,6 +1258,67 @@
     <span class="md-ellipsis">
       
         Environment-Based Configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#debugging-with-dry-run-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Debugging with Dry-Run Mode
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Debugging with Dry-Run Mode">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#basic-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Basic Usage
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#show-token-for-testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Show Token for Testing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#debug-with-masquerading" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Debug with Masquerading
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#use-cases" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Use Cases
       
     </span>
   </a>
@@ -1756,6 +1873,67 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#debugging-with-dry-run-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Debugging with Dry-Run Mode
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Debugging with Dry-Run Mode">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#basic-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Basic Usage
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#show-token-for-testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Show Token for Testing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#debug-with-masquerading" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Debug with Masquerading
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#use-cases" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Use Cases
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#tips" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1987,6 +2165,49 @@
 </span><span id="__span-8-14"><a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a>
 </span><span id="__span-8-15"><a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a>canvas<span class="w"> </span>courses<span class="w"> </span>list<span class="w"> </span>--instance<span class="w"> </span><span class="nv">$INSTANCE</span><span class="w"> </span>-o<span class="w"> </span>json
 </span></code></pre></div>
+<h2 id="debugging-with-dry-run-mode">Debugging with Dry-Run Mode<a class="headerlink" href="#debugging-with-dry-run-mode" title="Permanent link">&para;</a></h2>
+<p>The <code>--dry-run</code> flag prints the equivalent curl command instead of executing HTTP requests. This is invaluable for debugging, learning the Canvas API, and building scripts.</p>
+<h3 id="basic-usage">Basic Usage<a class="headerlink" href="#basic-usage" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># See what API call would be made</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>canvas<span class="w"> </span>--dry-run<span class="w"> </span>courses<span class="w"> </span>list
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="c1"># Output:</span>
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="c1"># curl -X GET &#39;https://canvas.example.com/api/v1/courses&#39; \</span>
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="c1">#   -H &#39;Authorization: Bearer [REDACTED]&#39; \</span>
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="c1">#   -H &#39;Content-Type: application/json&#39; \</span>
+</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="c1">#   -H &#39;Accept: application/json&#39; \</span>
+</span><span id="__span-9-9"><a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="c1">#   -H &#39;User-Agent: canvas-cli/1.5.2&#39;</span>
+</span></code></pre></div>
+<h3 id="show-token-for-testing">Show Token for Testing<a class="headerlink" href="#show-token-for-testing" title="Permanent link">&para;</a></h3>
+<p>By default, tokens are redacted. Use <code>--show-token</code> to see the actual token:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>canvas<span class="w"> </span>--dry-run<span class="w"> </span>--show-token<span class="w"> </span>courses<span class="w"> </span>list
+</span></code></pre></div>
+<div class="admonition warning">
+<p class="admonition-title">Security</p>
+<p>Only use <code>--show-token</code> when you need to copy the curl command for testing. Never share output containing your token.</p>
+</div>
+<h3 id="debug-with-masquerading">Debug with Masquerading<a class="headerlink" href="#debug-with-masquerading" title="Permanent link">&para;</a></h3>
+<p>See how masquerading affects API calls:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>canvas<span class="w"> </span>--dry-run<span class="w"> </span>--as-user<span class="w"> </span><span class="m">12345</span><span class="w"> </span>courses<span class="w"> </span>list
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="c1"># Output includes the as_user_id parameter:</span>
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="c1"># curl -X GET &#39;https://canvas.example.com/api/v1/courses?as_user_id=12345&#39; \</span>
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="c1">#   -H &#39;Authorization: Bearer [REDACTED]&#39; \</span>
+</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="c1">#   ...</span>
+</span></code></pre></div>
+<h3 id="use-cases">Use Cases<a class="headerlink" href="#use-cases" title="Permanent link">&para;</a></h3>
+<p><strong>Learning the API</strong>: See exactly what endpoints and parameters Canvas CLI uses:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="c1"># See how submissions are graded</span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>canvas<span class="w"> </span>--dry-run<span class="w"> </span>submissions<span class="w"> </span>grade<span class="w"> </span>--course-id<span class="w"> </span><span class="m">123</span><span class="w"> </span>--assignment-id<span class="w"> </span><span class="m">456</span><span class="w"> </span>--user-id<span class="w"> </span><span class="m">789</span><span class="w"> </span>--grade<span class="w"> </span><span class="s2">&quot;A&quot;</span>
+</span></code></pre></div>
+<p><strong>Building Scripts</strong>: Generate curl commands for use in other tools:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c1"># Generate curl command and pipe to clipboard (macOS)</span>
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>canvas<span class="w"> </span>--dry-run<span class="w"> </span>--show-token<span class="w"> </span>courses<span class="w"> </span>list<span class="w"> </span><span class="p">|</span><span class="w"> </span>pbcopy
+</span></code></pre></div>
+<p><strong>Troubleshooting</strong>: Verify the request before it's sent:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1"># Check URL construction with complex options</span>
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>canvas<span class="w"> </span>--dry-run<span class="w"> </span>assignments<span class="w"> </span>list<span class="w"> </span>--course-id<span class="w"> </span><span class="m">123</span><span class="w"> </span>--include<span class="w"> </span>submissions,score_statistics
+</span></code></pre></div>
 <h2 id="tips">Tips<a class="headerlink" href="#tips" title="Permanent link">&para;</a></h2>
 <div class="admonition tip">
 <p class="admonition-title">Test in Sandbox</p>
@@ -1999,10 +2220,10 @@
 <div class="admonition tip">
 <p class="admonition-title">Logging</p>
 <p>Add timestamps and logging for long-running scripts:
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>log<span class="o">()</span><span class="w"> </span><span class="o">{</span>
-</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;[</span><span class="k">$(</span>date<span class="w"> </span><span class="s1">&#39;+%Y-%m-%d %H:%M:%S&#39;</span><span class="k">)</span><span class="s2">] </span><span class="nv">$1</span><span class="s2">&quot;</span>
-</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="o">}</span>
-</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>log<span class="w"> </span><span class="s2">&quot;Starting process...&quot;</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>log<span class="o">()</span><span class="w"> </span><span class="o">{</span>
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;[</span><span class="k">$(</span>date<span class="w"> </span><span class="s1">&#39;+%Y-%m-%d %H:%M:%S&#39;</span><span class="k">)</span><span class="s2">] </span><span class="nv">$1</span><span class="s2">&quot;</span>
+</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="o">}</span>
+</span><span id="__span-15-4"><a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a>log<span class="w"> </span><span class="s2">&quot;Starting process...&quot;</span>
 </span></code></pre></div></p>
 </div>
 <div class="admonition warning">
@@ -2031,7 +2252,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="January 13, 2026 17:30:15 UTC"><span class="timeago" datetime="2026-01-13T17:30:15+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="January 13, 2026 17:30:15 UTC">2026-01-13</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="January 24, 2026 18:26:33 UTC"><span class="timeago" datetime="2026-01-24T18:26:33+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="January 24, 2026 18:26:33 UTC">2026-01-24</span>
   </span>
 
     

@@ -925,6 +925,78 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#output-filtering" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Output Filtering
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Output Filtering">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#filter-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Filter Results
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#select-columns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Select Columns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sort-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sort Results
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combining-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Combining Options
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#works-with-all-formats" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Works with All Formats
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#tips" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -959,6 +1031,62 @@
     
   
     Shell Completion
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../aliases/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Command Aliases
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../context/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Context Management
   
 
     
@@ -1634,6 +1762,78 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#output-filtering" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Output Filtering
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Output Filtering">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#filter-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Filter Results
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#select-columns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Select Columns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sort-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sort Results
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combining-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Combining Options
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#works-with-all-formats" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Works with All Formats
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#tips" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1728,6 +1928,52 @@
 </span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="c1"># Get specific fields</span>
 </span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>canvas<span class="w"> </span>users<span class="w"> </span>list<span class="w"> </span>--course-id<span class="w"> </span><span class="m">123</span><span class="w"> </span>-o<span class="w"> </span>json<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span><span class="s1">&#39;.[].email&#39;</span>
 </span></code></pre></div>
+<h2 id="output-filtering">Output Filtering<a class="headerlink" href="#output-filtering" title="Permanent link">&para;</a></h2>
+<p>Canvas CLI includes built-in filtering, column selection, and sorting capabilities.</p>
+<h3 id="filter-results">Filter Results<a class="headerlink" href="#filter-results" title="Permanent link">&para;</a></h3>
+<p>Use <code>--filter</code> to search across all fields:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1"># Find courses containing &quot;CS&quot;</span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>canvas<span class="w"> </span>courses<span class="w"> </span>list<span class="w"> </span>--filter<span class="w"> </span><span class="s2">&quot;CS&quot;</span>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="c1"># Find assignments with &quot;exam&quot; in the name</span>
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>canvas<span class="w"> </span>assignments<span class="w"> </span>list<span class="w"> </span>--course-id<span class="w"> </span><span class="m">123</span><span class="w"> </span>--filter<span class="w"> </span><span class="s2">&quot;exam&quot;</span>
+</span></code></pre></div>
+<p>The filter is case-insensitive and searches all fields.</p>
+<h3 id="select-columns">Select Columns<a class="headerlink" href="#select-columns" title="Permanent link">&para;</a></h3>
+<p>Use <code>--columns</code> to display only specific fields:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="c1"># Show only id and name</span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>canvas<span class="w"> </span>courses<span class="w"> </span>list<span class="w"> </span>--columns<span class="w"> </span>id,name
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="c1"># Show specific assignment fields</span>
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>canvas<span class="w"> </span>assignments<span class="w"> </span>list<span class="w"> </span>--course-id<span class="w"> </span><span class="m">123</span><span class="w"> </span>--columns<span class="w"> </span>id,name,due_at,points_possible
+</span></code></pre></div>
+<h3 id="sort-results">Sort Results<a class="headerlink" href="#sort-results" title="Permanent link">&para;</a></h3>
+<p>Use <code>--sort</code> to order results by a field:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c1"># Sort by name (ascending)</span>
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>canvas<span class="w"> </span>courses<span class="w"> </span>list<span class="w"> </span>--sort<span class="w"> </span>name
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="c1"># Sort by due date (descending with - prefix)</span>
+</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>canvas<span class="w"> </span>assignments<span class="w"> </span>list<span class="w"> </span>--course-id<span class="w"> </span><span class="m">123</span><span class="w"> </span>--sort<span class="w"> </span>-due_at
+</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>
+</span><span id="__span-13-7"><a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="c1"># Sort by points</span>
+</span><span id="__span-13-8"><a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a>canvas<span class="w"> </span>assignments<span class="w"> </span>list<span class="w"> </span>--course-id<span class="w"> </span><span class="m">123</span><span class="w"> </span>--sort<span class="w"> </span>points_possible
+</span></code></pre></div>
+<h3 id="combining-options">Combining Options<a class="headerlink" href="#combining-options" title="Permanent link">&para;</a></h3>
+<p>All filtering options can be combined:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1"># Find exams, show key fields, sort by due date</span>
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>canvas<span class="w"> </span>assignments<span class="w"> </span>list<span class="w"> </span>--course-id<span class="w"> </span><span class="m">123</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="w">  </span>--filter<span class="w"> </span><span class="s2">&quot;exam&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="w">  </span>--columns<span class="w"> </span>id,name,due_at,points_possible<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="w">  </span>--sort<span class="w"> </span>-due_at
+</span></code></pre></div>
+<h3 id="works-with-all-formats">Works with All Formats<a class="headerlink" href="#works-with-all-formats" title="Permanent link">&para;</a></h3>
+<p>Filtering works with any output format:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="c1"># Filter JSON output</span>
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>canvas<span class="w"> </span>courses<span class="w"> </span>list<span class="w"> </span>--filter<span class="w"> </span><span class="s2">&quot;CS&quot;</span><span class="w"> </span>--output<span class="w"> </span>json
+</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>
+</span><span id="__span-15-4"><a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="c1"># Filter and export to CSV</span>
+</span><span id="__span-15-5"><a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a>canvas<span class="w"> </span>users<span class="w"> </span>list<span class="w"> </span>--course-id<span class="w"> </span><span class="m">123</span><span class="w"> </span>--filter<span class="w"> </span><span class="s2">&quot;student&quot;</span><span class="w"> </span>--output<span class="w"> </span>csv<span class="w"> </span>&gt;<span class="w"> </span>students.csv
+</span></code></pre></div>
 <h2 id="tips">Tips<a class="headerlink" href="#tips" title="Permanent link">&para;</a></h2>
 <div class="admonition tip">
 <p class="admonition-title">Use JSON for Scripts</p>
@@ -1738,9 +1984,13 @@
 <p>Use <code>-o csv</code> when you need to import data into Excel, Google Sheets, or other spreadsheet applications.</p>
 </div>
 <div class="admonition tip">
-<p class="admonition-title">Combine with grep</p>
-<p>For quick filtering, combine table output with grep:
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>canvas<span class="w"> </span>courses<span class="w"> </span>list<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span><span class="s2">&quot;Fall 2024&quot;</span>
+<p class="admonition-title">Built-in Filtering vs jq</p>
+<p>For simple filtering, use built-in <code>--filter</code>. For complex queries, use JSON output with <code>jq</code>:
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="c1"># Simple - use built-in</span>
+</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>canvas<span class="w"> </span>courses<span class="w"> </span>list<span class="w"> </span>--filter<span class="w"> </span><span class="s2">&quot;Fall 2024&quot;</span>
+</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>
+</span><span id="__span-16-4"><a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a><span class="c1"># Complex - use jq</span>
+</span><span id="__span-16-5"><a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>canvas<span class="w"> </span>courses<span class="w"> </span>list<span class="w"> </span>-o<span class="w"> </span>json<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span><span class="s1">&#39;.[] | select(.enrollment_term_id == 5)&#39;</span>
 </span></code></pre></div></p>
 </div>
 
@@ -1765,7 +2015,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="January 13, 2026 17:30:15 UTC"><span class="timeago" datetime="2026-01-13T17:30:15+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="January 13, 2026 17:30:15 UTC">2026-01-13</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="January 25, 2026 20:04:02 UTC"><span class="timeago" datetime="2026-01-25T20:04:02+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="January 25, 2026 20:04:02 UTC">2026-01-25</span>
   </span>
 
     
