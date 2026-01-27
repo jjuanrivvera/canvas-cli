@@ -718,7 +718,7 @@ func runGroupsCreate(ctx context.Context, client *api.Client, opts *options.Grou
 		return fmt.Errorf("failed to create group: %w", err)
 	}
 
-	fmt.Printf("Group created successfully (ID: %d)\n", group.ID)
+	printInfo("Group created successfully (ID: %d)\n", group.ID)
 	if err := formatOutput(group, nil); err != nil {
 		return err
 	}
@@ -765,7 +765,7 @@ func runGroupsUpdate(ctx context.Context, client *api.Client, opts *options.Grou
 		return fmt.Errorf("failed to update group: %w", err)
 	}
 
-	fmt.Printf("Group updated successfully (ID: %d)\n", group.ID)
+	printInfo("Group updated successfully (ID: %d)\n", group.ID)
 	if err := formatOutput(group, nil); err != nil {
 		return err
 	}
@@ -801,7 +801,7 @@ func runGroupsDelete(ctx context.Context, client *api.Client, opts *options.Grou
 		return fmt.Errorf("failed to delete group: %w", err)
 	}
 
-	fmt.Printf("Group %d deleted successfully\n", group.ID)
+	printInfo("Group %d deleted successfully\n", group.ID)
 
 	logger.LogCommandComplete(ctx, "groups.delete", 1)
 	return nil
@@ -984,7 +984,7 @@ func runGroupsCategoriesCreate(ctx context.Context, client *api.Client, opts *op
 		return fmt.Errorf("failed to create category: %w", err)
 	}
 
-	fmt.Printf("Category created successfully (ID: %d)\n", category.ID)
+	printInfo("Category created successfully (ID: %d)\n", category.ID)
 	if err := formatOutput(category, nil); err != nil {
 		return err
 	}
@@ -1028,7 +1028,7 @@ func runGroupsCategoriesUpdate(ctx context.Context, client *api.Client, opts *op
 		return fmt.Errorf("failed to update category: %w", err)
 	}
 
-	fmt.Printf("Category updated successfully (ID: %d)\n", category.ID)
+	printInfo("Category updated successfully (ID: %d)\n", category.ID)
 	if err := formatOutput(category, nil); err != nil {
 		return err
 	}
@@ -1066,7 +1066,7 @@ func runGroupsCategoriesDelete(ctx context.Context, client *api.Client, opts *op
 		return fmt.Errorf("failed to delete category: %w", err)
 	}
 
-	fmt.Printf("Category %d deleted successfully\n", category.ID)
+	printInfo("Category %d deleted successfully\n", category.ID)
 
 	logger.LogCommandComplete(ctx, "groups.categories.delete", 1)
 	return nil

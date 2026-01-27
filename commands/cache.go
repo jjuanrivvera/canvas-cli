@@ -12,6 +12,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/jjuanrivvera/canvas-cli/internal/cache"
+	"github.com/jjuanrivvera/canvas-cli/internal/config"
 )
 
 var cacheCmd = &cobra.Command{
@@ -65,11 +66,11 @@ func init() {
 }
 
 func getCacheDir() (string, error) {
-	home, err := os.UserHomeDir()
+	configDir, err := config.GetConfigDir()
 	if err != nil {
-		return "", fmt.Errorf("failed to get home directory: %w", err)
+		return "", fmt.Errorf("failed to get config directory: %w", err)
 	}
-	return filepath.Join(home, ".canvas-cli", "cache"), nil
+	return filepath.Join(configDir, "cache"), nil
 }
 
 func runCacheStats(_ *cobra.Command, _ []string) error {

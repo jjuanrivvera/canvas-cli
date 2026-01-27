@@ -458,7 +458,7 @@ func runAssignmentsCreate(ctx context.Context, client *api.Client, cmd *cobra.Co
 		return fmt.Errorf("failed to create assignment: %w", err)
 	}
 
-	fmt.Printf("Assignment created successfully!\n")
+	printInfo("Assignment created successfully!\n")
 	fmt.Printf("  ID: %d\n", assignment.ID)
 	fmt.Printf("  Name: %s\n", assignment.Name)
 	fmt.Printf("  Points: %.1f\n", assignment.PointsPossible)
@@ -588,7 +588,7 @@ func runAssignmentsUpdate(ctx context.Context, client *api.Client, cmd *cobra.Co
 		return fmt.Errorf("failed to update assignment: %w", err)
 	}
 
-	fmt.Printf("Assignment updated successfully!\n")
+	printInfo("Assignment updated successfully!\n")
 	fmt.Printf("  ID: %d\n", assignment.ID)
 	fmt.Printf("  Name: %s\n", assignment.Name)
 	fmt.Printf("  Points: %.1f\n", assignment.PointsPossible)
@@ -667,7 +667,7 @@ func runAssignmentsDelete(ctx context.Context, client *api.Client, opts *options
 		return fmt.Errorf("failed to delete assignment: %w", err)
 	}
 
-	fmt.Printf("Assignment %d deleted successfully.\n", opts.AssignmentID)
+	printInfo("Assignment %d deleted successfully.\n", opts.AssignmentID)
 
 	logger.LogCommandComplete(ctx, "assignments.delete", 1)
 	return nil

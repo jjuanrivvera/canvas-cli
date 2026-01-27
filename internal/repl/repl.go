@@ -10,6 +10,9 @@ import (
 
 	"github.com/chzyer/readline"
 	"github.com/spf13/cobra"
+
+	"github.com/jjuanrivvera/canvas-cli/internal/config"
+	"github.com/jjuanrivvera/canvas-cli/internal/shellparse"
 )
 
 // REPL represents a Read-Eval-Print Loop session
@@ -21,13 +24,14 @@ type REPL struct {
 	prompt      string
 	session     *Session
 	historyFile string
+	completer   *ReadlineCompleter
 }
 
 // New creates a new REPL instance
 func New(rootCmd *cobra.Command) *REPL {
 	// Get history file path
-	home, _ := os.UserHomeDir()
-	historyFile := filepath.Join(home, ".canvas-cli", "history")
+	configDir, _ := config.GetConfigDir()
+	historyFile := filepath.Join(configDir, "history")
 
 	// Ensure directory exists (best-effort, ignore errors)
 	_ = os.MkdirAll(filepath.Dir(historyFile), 0755)
@@ -39,12 +43,13 @@ func New(rootCmd *cobra.Command) *REPL {
 		prompt:      "canvas> ",
 		session:     NewSession(),
 		historyFile: historyFile,
+		completer:   NewReadlineCompleter(NewCompleter(rootCmd)),
 	}
 }
 
 // Run starts the REPL loop
 func (r *REPL) Run(ctx context.Context) error {
-	// Create readline instance with history support
+	// Create readline instance with history and tab-completion support
 	rl, err := readline.NewEx(&readline.Config{
 		Prompt:                 r.prompt,
 		HistoryFile:            r.historyFile,
@@ -53,6 +58,7 @@ func (r *REPL) Run(ctx context.Context) error {
 		InterruptPrompt:        "^C",
 		EOFPrompt:              "exit",
 		HistorySearchFold:      true,
+		AutoComplete:           r.completer,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to initialize readline: %w", err)
@@ -142,8 +148,8 @@ func (r *REPL) handleReplCommand(input string) bool {
 
 // executeCommand executes a CLI command
 func (r *REPL) executeCommand(ctx context.Context, input string) error {
-	// Parse the input into arguments
-	args := strings.Fields(input)
+	// Parse the input into arguments (quote-aware)
+	args := shellparse.Split(input)
 	if len(args) == 0 {
 		return nil
 	}

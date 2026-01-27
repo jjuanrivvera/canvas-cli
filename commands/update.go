@@ -152,8 +152,8 @@ func runUpdateNow(ctx context.Context, opts *options.UpdateOptions) error {
 	}
 
 	if result.Updated {
-		fmt.Printf("\n\033[32m✓ Successfully updated from v%s to v%s\033[0m\n", result.FromVersion, result.ToVersion)
-		fmt.Println("  Restart the CLI to use the new version.")
+		printInfo("\n\033[32m✓ Successfully updated from v%s to v%s\033[0m\n", result.FromVersion, result.ToVersion)
+		printInfoln("  Restart the CLI to use the new version.")
 	}
 
 	logger.LogCommandComplete(ctx, "update.now", 1)

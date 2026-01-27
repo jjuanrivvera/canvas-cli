@@ -617,7 +617,7 @@ func runDiscussionsDelete(ctx context.Context, client *api.Client, opts *options
 	}
 
 	logger.LogCommandComplete(ctx, "discussions.delete", 1)
-	fmt.Printf("Discussion %d deleted successfully\n", opts.TopicID)
+	printInfo("Discussion %d deleted successfully\n", opts.TopicID)
 	return nil
 }
 

@@ -329,7 +329,7 @@ func runAssignmentGroupsCreate(ctx context.Context, client *api.Client, opts *op
 		return fmt.Errorf("failed to create assignment group: %w", err)
 	}
 
-	fmt.Printf("Assignment group created successfully (ID: %d)\n", group.ID)
+	printInfo("Assignment group created successfully (ID: %d)\n", group.ID)
 	logger.LogCommandComplete(ctx, "assignment_groups.create", 1)
 	return formatOutput(group, nil)
 }
@@ -373,7 +373,7 @@ func runAssignmentGroupsUpdate(ctx context.Context, client *api.Client, opts *op
 		return fmt.Errorf("failed to update assignment group: %w", err)
 	}
 
-	fmt.Printf("Assignment group updated successfully (ID: %d)\n", group.ID)
+	printInfo("Assignment group updated successfully (ID: %d)\n", group.ID)
 	logger.LogCommandComplete(ctx, "assignment_groups.update", 1)
 	return formatOutput(group, nil)
 }

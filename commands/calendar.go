@@ -492,7 +492,7 @@ func runCalendarDelete(ctx context.Context, client *api.Client, opts *options.Ca
 		return fmt.Errorf("failed to delete calendar event: %w", err)
 	}
 
-	fmt.Printf("Calendar event %d deleted successfully\n", opts.EventID)
+	printInfo("Calendar event %d deleted successfully\n", opts.EventID)
 	logger.LogCommandComplete(ctx, "calendar.delete", 1)
 	return nil
 }

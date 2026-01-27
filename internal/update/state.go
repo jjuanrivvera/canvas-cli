@@ -5,6 +5,8 @@ import (
 	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/jjuanrivvera/canvas-cli/internal/config"
 )
 
 // State tracks update-related state
@@ -24,12 +26,12 @@ type StateManager struct {
 
 // NewStateManager creates a new StateManager
 func NewStateManager() (*StateManager, error) {
-	home, err := os.UserHomeDir()
+	configDir, err := config.GetConfigDir()
 	if err != nil {
 		return nil, err
 	}
 
-	statePath := filepath.Join(home, ".canvas-cli", "update-state.json")
+	statePath := filepath.Join(configDir, "update-state.json")
 	return &StateManager{statePath: statePath}, nil
 }
 

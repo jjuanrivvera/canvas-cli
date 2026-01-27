@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path/filepath"
 	"reflect"
 	"strings"
 	"time"
@@ -127,11 +128,10 @@ func getAPIClient() (*api.Client, error) {
 		}
 	} else {
 		// OAuth flow - load token from store
-		configDir, err := os.UserHomeDir()
+		configDir, err := config.GetConfigDir()
 		if err != nil {
-			return nil, fmt.Errorf("failed to get home directory: %w", err)
+			return nil, fmt.Errorf("failed to get config directory: %w", err)
 		}
-		configDir = configDir + "/.canvas-cli"
 
 		tokenStore := auth.NewFallbackTokenStore(configDir)
 		token, err := tokenStore.Load(instance.Name)
@@ -194,14 +194,12 @@ func getAPIClient() (*api.Client, error) {
 
 // createCache creates a multi-tier cache for API responses
 func createCache() cache.CacheInterface {
-	// Get cache directory
-	homeDir, err := os.UserHomeDir()
+	configDir, err := config.GetConfigDir()
 	if err != nil {
-		// Fall back to memory-only cache
 		return cache.New(5 * time.Minute)
 	}
 
-	cacheDir := homeDir + "/.canvas-cli/cache"
+	cacheDir := filepath.Join(configDir, "cache")
 
 	// Create multi-tier cache (memory + disk) with 5 minute TTL
 	multiCache, err := cache.NewMultiTierCache(
@@ -226,6 +224,22 @@ func getConfig() (*config.Config, error) {
 func printVerbose(format string, args ...interface{}) {
 	if verbose {
 		fmt.Printf(format, args...)
+	}
+}
+
+// printInfo prints an informational message unless --quiet is set.
+// Use this for success messages and status output that should not appear
+// when the user is piping or scripting.
+func printInfo(format string, args ...interface{}) {
+	if !quiet {
+		fmt.Printf(format, args...)
+	}
+}
+
+// printInfoln prints an informational line unless --quiet is set.
+func printInfoln(a ...interface{}) {
+	if !quiet {
+		fmt.Println(a...)
 	}
 }
 
@@ -266,8 +280,8 @@ func formatSuccessOutput(data interface{}, successMessage string) error {
 		data = applyFiltering(data)
 	}
 
-	// Only print success message for table format
-	if format == output.FormatTable && successMessage != "" {
+	// Only print success message for table format and when not quiet
+	if format == output.FormatTable && successMessage != "" && !quiet {
 		fmt.Println(successMessage)
 	}
 
@@ -293,10 +307,11 @@ func formatEmptyOrOutput(data interface{}, emptyMessage string) error {
 	}
 
 	// For table format, show user-friendly message when empty
-	// Check if data is an empty slice
 	v := reflect.ValueOf(data)
 	if v.Kind() == reflect.Slice && v.Len() == 0 {
-		fmt.Println(emptyMessage)
+		if !quiet {
+			fmt.Println(emptyMessage)
+		}
 		return nil
 	}
 

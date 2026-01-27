@@ -3,7 +3,6 @@ package commands
 import (
 	"context"
 	"fmt"
-	"os"
 	"strconv"
 
 	"github.com/spf13/cobra"
@@ -187,11 +186,10 @@ func getAPIClientForInstance(instanceName string) (*api.Client, error) {
 	}
 
 	// Get config directory
-	configDir, err := os.UserHomeDir()
+	configDir, err := config.GetConfigDir()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get home directory: %w", err)
+		return nil, fmt.Errorf("failed to get config directory: %w", err)
 	}
-	configDir = configDir + "/.canvas-cli"
 
 	// Load token
 	tokenStore := auth.NewFallbackTokenStore(configDir)

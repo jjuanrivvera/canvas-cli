@@ -9,6 +9,7 @@ import (
 	"github.com/jjuanrivvera/canvas-cli/commands/internal/logging"
 	"github.com/jjuanrivvera/canvas-cli/commands/internal/options"
 	"github.com/jjuanrivvera/canvas-cli/internal/api"
+	"github.com/jjuanrivvera/canvas-cli/internal/progress"
 )
 
 // coursesCmd represents the courses command group
@@ -93,6 +94,11 @@ func runCoursesList(ctx context.Context, client *api.Client, opts *options.Cours
 		"search_term":      opts.SearchTerm,
 	})
 
+	spin := progress.New("Fetching courses...")
+	if !quiet {
+		spin.Start()
+	}
+
 	var courses []api.Course
 	var err error
 
@@ -110,6 +116,7 @@ func runCoursesList(ctx context.Context, client *api.Client, opts *options.Cours
 		}
 
 		courses, err = accountsService.ListCourses(ctx, opts.AccountID, reqOpts)
+		spin.Stop()
 		if err != nil {
 			logger.LogCommandError(ctx, "courses.list", err, map[string]interface{}{
 				"account_id": opts.AccountID,
@@ -130,6 +137,7 @@ func runCoursesList(ctx context.Context, client *api.Client, opts *options.Cours
 		}
 
 		courses, err = coursesService.List(ctx, reqOpts)
+		spin.Stop()
 		if err != nil {
 			logger.LogCommandError(ctx, "courses.list", err, map[string]interface{}{
 				"enrollment_type": opts.EnrollmentType,
@@ -301,7 +309,7 @@ func runCoursesCreate(ctx context.Context, client *api.Client, opts *options.Cou
 		return fmt.Errorf("failed to create course: %w", err)
 	}
 
-	fmt.Printf("Course created successfully (ID: %d)\n", course.ID)
+	printInfo("Course created successfully (ID: %d)\n", course.ID)
 	if err := formatOutput(course, nil); err != nil {
 		return fmt.Errorf("failed to print result: %w", err)
 	}
@@ -393,7 +401,7 @@ func runCoursesUpdate(ctx context.Context, client *api.Client, opts *options.Cou
 		return fmt.Errorf("failed to update course: %w", err)
 	}
 
-	fmt.Printf("Course updated successfully (ID: %d)\n", course.ID)
+	printInfo("Course updated successfully (ID: %d)\n", course.ID)
 	if err := formatOutput(course, nil); err != nil {
 		return fmt.Errorf("failed to print result: %w", err)
 	}

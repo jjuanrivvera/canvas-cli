@@ -385,7 +385,7 @@ func runFilesUpload(ctx context.Context, client *api.Client, opts *options.Files
 		return fmt.Errorf("failed to upload file: %w", err)
 	}
 
-	fmt.Printf("✅ File uploaded successfully\n\n")
+	printInfo("✅ File uploaded successfully\n\n")
 	fmt.Printf("   ID: %d\n", uploadedFile.ID)
 	fmt.Printf("   Name: %s\n", uploadedFile.DisplayName)
 	fmt.Printf("   Size: %s\n", formatFileSize(uploadedFile.Size))
@@ -466,7 +466,7 @@ func runFilesDelete(ctx context.Context, client *api.Client, opts *options.Files
 		return fmt.Errorf("failed to delete file: %w", err)
 	}
 
-	fmt.Printf("✅ File %d deleted successfully\n", opts.FileID)
+	printInfo("✅ File %d deleted successfully\n", opts.FileID)
 
 	logger.LogCommandComplete(ctx, "files.delete", 1)
 	return nil

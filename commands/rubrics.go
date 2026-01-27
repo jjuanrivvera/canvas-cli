@@ -390,7 +390,7 @@ func runRubricsCreate(ctx context.Context, client *api.Client, opts *options.Rub
 		return fmt.Errorf("failed to create rubric: %w", err)
 	}
 
-	fmt.Printf("Rubric created successfully (ID: %d)\n", rubric.ID)
+	printInfo("Rubric created successfully (ID: %d)\n", rubric.ID)
 	logger.LogCommandComplete(ctx, "rubrics.create", 1)
 	return formatOutput(rubric, nil)
 }
@@ -428,7 +428,7 @@ func runRubricsUpdate(ctx context.Context, client *api.Client, opts *options.Rub
 		return fmt.Errorf("failed to update rubric: %w", err)
 	}
 
-	fmt.Printf("Rubric updated successfully (ID: %d)\n", rubric.ID)
+	printInfo("Rubric updated successfully (ID: %d)\n", rubric.ID)
 	logger.LogCommandComplete(ctx, "rubrics.update", 1)
 	return formatOutput(rubric, nil)
 }

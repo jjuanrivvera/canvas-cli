@@ -116,6 +116,7 @@ nav:
     - Shell Completion: user-guide/shell-completion.md
     - Command Aliases: user-guide/aliases.md
     - Context Management: user-guide/context.md
+    - Best Practices: best-practices.md
   - Commands: commands/index.md
   - Tutorials:
     - tutorials/index.md

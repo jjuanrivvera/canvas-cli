@@ -10,6 +10,7 @@ import (
 	"github.com/jjuanrivvera/canvas-cli/commands/internal/logging"
 	"github.com/jjuanrivvera/canvas-cli/commands/internal/options"
 	"github.com/jjuanrivvera/canvas-cli/internal/api"
+	"github.com/jjuanrivvera/canvas-cli/internal/progress"
 )
 
 // modulesCmd represents the modules command group
@@ -712,7 +713,12 @@ func runModulesList(ctx context.Context, client *api.Client, opts *options.Modul
 		StudentID:  opts.StudentID,
 	}
 
+	spin := progress.New("Fetching modules...")
+	if !quiet {
+		spin.Start()
+	}
 	modules, err := modulesService.List(ctx, opts.CourseID, apiOpts)
+	spin.Stop()
 	if err != nil {
 		logger.LogCommandError(ctx, "modules.list", err, map[string]interface{}{
 			"course_id": opts.CourseID,
@@ -903,7 +909,7 @@ func runModulesDelete(ctx context.Context, client *api.Client, opts *options.Mod
 		return fmt.Errorf("failed to delete module: %w", err)
 	}
 
-	fmt.Printf("Module %d deleted successfully\n", opts.ModuleID)
+	printInfo("Module %d deleted successfully\n", opts.ModuleID)
 
 	logger.LogCommandComplete(ctx, "modules.delete", 1)
 	return nil
@@ -1260,7 +1266,7 @@ func runModulesItemsDelete(ctx context.Context, client *api.Client, opts *option
 		return fmt.Errorf("failed to delete module item: %w", err)
 	}
 
-	fmt.Printf("Module item %d deleted successfully\n", opts.ItemID)
+	printInfo("Module item %d deleted successfully\n", opts.ItemID)
 
 	logger.LogCommandComplete(ctx, "modules.items.delete", 1)
 	return nil

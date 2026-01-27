@@ -1,12 +1,16 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
+	"os/signal"
 	"strings"
+	"syscall"
 
 	"github.com/jjuanrivvera/canvas-cli/commands"
 	"github.com/jjuanrivvera/canvas-cli/internal/config"
+	"github.com/jjuanrivvera/canvas-cli/internal/shellparse"
 )
 
 var (
@@ -22,7 +26,10 @@ func main() {
 	// Expand aliases before executing commands
 	expandAliases()
 
-	if err := commands.Execute(Version, Commit, BuildDate); err != nil {
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+
+	if err := commands.ExecuteContext(ctx, Version, Commit, BuildDate); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
@@ -52,8 +59,8 @@ func expandAliases() {
 		return
 	}
 
-	// Parse the expansion into args
-	expandedArgs := parseAliasExpansion(expansion)
+	// Parse the expansion into args (quote-aware)
+	expandedArgs := shellparse.Split(expansion)
 	if len(expandedArgs) == 0 {
 		return
 	}
@@ -66,41 +73,4 @@ func expandAliases() {
 	newArgs = append(newArgs, expandedArgs...)
 	newArgs = append(newArgs, os.Args[2:]...)
 	os.Args = newArgs
-}
-
-// parseAliasExpansion splits an alias expansion into arguments
-// Handles quoted strings properly
-func parseAliasExpansion(expansion string) []string {
-	var args []string
-	var current strings.Builder
-	inQuote := false
-	quoteChar := rune(0)
-
-	for _, r := range expansion {
-		switch {
-		case r == '"' || r == '\'':
-			if inQuote && r == quoteChar {
-				inQuote = false
-				quoteChar = 0
-			} else if !inQuote {
-				inQuote = true
-				quoteChar = r
-			} else {
-				current.WriteRune(r)
-			}
-		case r == ' ' && !inQuote:
-			if current.Len() > 0 {
-				args = append(args, current.String())
-				current.Reset()
-			}
-		default:
-			current.WriteRune(r)
-		}
-	}
-
-	if current.Len() > 0 {
-		args = append(args, current.String())
-	}
-
-	return args
 }

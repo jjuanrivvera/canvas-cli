@@ -381,7 +381,7 @@ func runAnnouncementsDelete(ctx context.Context, client *api.Client, opts *optio
 		return fmt.Errorf("failed to delete announcement: %w", err)
 	}
 
-	fmt.Printf("Announcement %d deleted successfully\n", opts.AnnouncementID)
+	printInfo("Announcement %d deleted successfully\n", opts.AnnouncementID)
 	logger.LogCommandComplete(ctx, "announcements.delete", 1)
 	return nil
 }
