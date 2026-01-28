@@ -513,13 +513,13 @@ func runUsersCreate(ctx context.Context, client *api.Client, cmd *cobra.Command,
 	logger.LogCommandComplete(ctx, "users.create", 1)
 
 	printInfo("User created successfully!\n")
-	fmt.Printf("  ID: %d\n", user.ID)
-	fmt.Printf("  Name: %s\n", user.Name)
+	printInfo("  ID: %d\n", user.ID)
+	printInfo("  Name: %s\n", user.Name)
 	if user.LoginID != "" {
-		fmt.Printf("  Login: %s\n", user.LoginID)
+		printInfo("  Login: %s\n", user.LoginID)
 	}
 	if user.Email != "" {
-		fmt.Printf("  Email: %s\n", user.Email)
+		printInfo("  Email: %s\n", user.Email)
 	}
 
 	return nil
@@ -588,13 +588,13 @@ func runUsersUpdate(ctx context.Context, client *api.Client, opts *options.Users
 	logger.LogCommandComplete(ctx, "users.update", 1)
 
 	printInfo("User updated successfully!\n")
-	fmt.Printf("  ID: %d\n", user.ID)
-	fmt.Printf("  Name: %s\n", user.Name)
+	printInfo("  ID: %d\n", user.ID)
+	printInfo("  Name: %s\n", user.Name)
 	if user.LoginID != "" {
-		fmt.Printf("  Login: %s\n", user.LoginID)
+		printInfo("  Login: %s\n", user.LoginID)
 	}
 	if user.Email != "" {
-		fmt.Printf("  Email: %s\n", user.Email)
+		printInfo("  Email: %s\n", user.Email)
 	}
 
 	return nil

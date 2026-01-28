@@ -386,10 +386,10 @@ func runFilesUpload(ctx context.Context, client *api.Client, opts *options.Files
 	}
 
 	printInfo("✅ File uploaded successfully\n\n")
-	fmt.Printf("   ID: %d\n", uploadedFile.ID)
-	fmt.Printf("   Name: %s\n", uploadedFile.DisplayName)
-	fmt.Printf("   Size: %s\n", formatFileSize(uploadedFile.Size))
-	fmt.Printf("   URL: %s\n", uploadedFile.URL)
+	printInfo("   ID: %d\n", uploadedFile.ID)
+	printInfo("   Name: %s\n", uploadedFile.DisplayName)
+	printInfo("   Size: %s\n", formatFileSize(uploadedFile.Size))
+	printInfo("   URL: %s\n", uploadedFile.URL)
 
 	logger.LogCommandComplete(ctx, "files.upload", 1)
 	return nil

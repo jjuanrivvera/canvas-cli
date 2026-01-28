@@ -459,16 +459,16 @@ func runAssignmentsCreate(ctx context.Context, client *api.Client, cmd *cobra.Co
 	}
 
 	printInfo("Assignment created successfully!\n")
-	fmt.Printf("  ID: %d\n", assignment.ID)
-	fmt.Printf("  Name: %s\n", assignment.Name)
-	fmt.Printf("  Points: %.1f\n", assignment.PointsPossible)
+	printInfo("  ID: %d\n", assignment.ID)
+	printInfo("  Name: %s\n", assignment.Name)
+	printInfo("  Points: %.1f\n", assignment.PointsPossible)
 	if !assignment.DueAt.IsZero() {
-		fmt.Printf("  Due: %s\n", assignment.DueAt.Format("2006-01-02 15:04"))
+		printInfo("  Due: %s\n", assignment.DueAt.Format("2006-01-02 15:04"))
 	}
 	if assignment.Published {
-		fmt.Printf("  Status: Published\n")
+		printInfo("  Status: Published\n")
 	} else {
-		fmt.Printf("  Status: Unpublished\n")
+		printInfo("  Status: Unpublished\n")
 	}
 
 	logger.LogCommandComplete(ctx, "assignments.create", 1)
@@ -589,16 +589,16 @@ func runAssignmentsUpdate(ctx context.Context, client *api.Client, cmd *cobra.Co
 	}
 
 	printInfo("Assignment updated successfully!\n")
-	fmt.Printf("  ID: %d\n", assignment.ID)
-	fmt.Printf("  Name: %s\n", assignment.Name)
-	fmt.Printf("  Points: %.1f\n", assignment.PointsPossible)
+	printInfo("  ID: %d\n", assignment.ID)
+	printInfo("  Name: %s\n", assignment.Name)
+	printInfo("  Points: %.1f\n", assignment.PointsPossible)
 	if !assignment.DueAt.IsZero() {
-		fmt.Printf("  Due: %s\n", assignment.DueAt.Format("2006-01-02 15:04"))
+		printInfo("  Due: %s\n", assignment.DueAt.Format("2006-01-02 15:04"))
 	}
 	if assignment.Published {
-		fmt.Printf("  Status: Published\n")
+		printInfo("  Status: Published\n")
 	} else {
-		fmt.Printf("  Status: Unpublished\n")
+		printInfo("  Status: Unpublished\n")
 	}
 
 	logger.LogCommandComplete(ctx, "assignments.update", 1)

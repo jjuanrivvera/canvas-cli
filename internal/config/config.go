@@ -106,6 +106,51 @@ func DefaultSettings() *Settings {
 	}
 }
 
+// Clone returns a deep copy of the Config.
+func (c *Config) Clone() *Config {
+	if c == nil {
+		return nil
+	}
+
+	clone := &Config{
+		DefaultInstance: c.DefaultInstance,
+		configPath:      c.configPath,
+	}
+
+	// Clone Instances map
+	if c.Instances != nil {
+		clone.Instances = make(map[string]*Instance, len(c.Instances))
+		for k, v := range c.Instances {
+			if v != nil {
+				inst := *v
+				clone.Instances[k] = &inst
+			}
+		}
+	}
+
+	// Clone Settings
+	if c.Settings != nil {
+		s := *c.Settings
+		clone.Settings = &s
+	}
+
+	// Clone Aliases map
+	if c.Aliases != nil {
+		clone.Aliases = make(map[string]string, len(c.Aliases))
+		for k, v := range c.Aliases {
+			clone.Aliases[k] = v
+		}
+	}
+
+	// Clone Context
+	if c.Context != nil {
+		ctx := *c.Context
+		clone.Context = &ctx
+	}
+
+	return clone
+}
+
 // GetConfigDir returns the path to the config directory (~/.canvas-cli)
 func GetConfigDir() (string, error) {
 	home, err := os.UserHomeDir()
@@ -126,13 +171,14 @@ func GetConfigPath() (string, error) {
 
 // Load loads the configuration from the config file.
 // The result is cached after the first successful load; subsequent calls
-// return the cached value. Use Reload() to force a fresh read.
+// return a clone of the cached value. Use Reload() to force a fresh read.
+// The returned Config is safe to mutate without affecting other callers.
 func Load() (*Config, error) {
 	cacheMu.Lock()
 	defer cacheMu.Unlock()
 
 	if cachedConfig != nil {
-		return cachedConfig, nil
+		return cachedConfig.Clone(), nil
 	}
 
 	cfg, err := loadFromDisk()
@@ -141,10 +187,11 @@ func Load() (*Config, error) {
 	}
 
 	cachedConfig = cfg
-	return cachedConfig, nil
+	return cachedConfig.Clone(), nil
 }
 
 // Reload forces a fresh read of the config file, ignoring the cache.
+// The returned Config is safe to mutate without affecting other callers.
 func Reload() (*Config, error) {
 	cacheMu.Lock()
 	defer cacheMu.Unlock()
@@ -155,7 +202,7 @@ func Reload() (*Config, error) {
 	}
 
 	cachedConfig = cfg
-	return cachedConfig, nil
+	return cachedConfig.Clone(), nil
 }
 
 // ResetCache clears the cached config. Intended for tests.

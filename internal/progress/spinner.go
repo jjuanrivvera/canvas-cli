@@ -14,6 +14,7 @@ import (
 // operations become no-ops so machine-readable output is never polluted.
 type Spinner struct {
 	mu      sync.Mutex
+	wg      sync.WaitGroup
 	message string
 	active  bool
 	done    chan struct{}
@@ -42,6 +43,7 @@ func (s *Spinner) Start() {
 	}
 	s.active = true
 	s.done = make(chan struct{})
+	s.wg.Add(1)
 	s.mu.Unlock()
 
 	go s.run()
@@ -58,6 +60,9 @@ func (s *Spinner) Stop() {
 	close(s.done)
 	s.mu.Unlock()
 
+	// Wait for goroutine to exit before clearing the line
+	s.wg.Wait()
+
 	// Clear the spinner line
 	if terminal.IsStderrTerminal() {
 		fmt.Fprintf(os.Stderr, "\r\033[K")
@@ -72,6 +77,8 @@ func (s *Spinner) UpdateMessage(msg string) {
 }
 
 func (s *Spinner) run() {
+	defer s.wg.Done()
+
 	ticker := time.NewTicker(80 * time.Millisecond)
 	defer ticker.Stop()
 

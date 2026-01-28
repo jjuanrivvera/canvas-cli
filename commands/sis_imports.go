@@ -402,7 +402,7 @@ func runSISCreate(ctx context.Context, client *api.Client, opts *options.SISImpo
 	}
 
 	printInfo("SIS import created successfully (ID: %d)\n", sisImport.ID)
-	fmt.Printf("Workflow state: %s\n", sisImport.WorkflowState)
+	printInfo("Workflow state: %s\n", sisImport.WorkflowState)
 	logger.LogCommandComplete(ctx, "sis_imports.create", 1)
 	return nil
 }

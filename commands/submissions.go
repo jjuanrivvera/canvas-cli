@@ -446,23 +446,23 @@ func runSubmissionsGrade(ctx context.Context, client *api.Client, opts *options.
 	}
 
 	printInfo("✅ Successfully graded submission for %s\n", userName)
-	fmt.Printf("   User ID: %d\n", submission.UserID)
-	fmt.Printf("   Assignment ID: %d\n", submission.AssignmentID)
+	printInfo("   User ID: %d\n", submission.UserID)
+	printInfo("   Assignment ID: %d\n", submission.AssignmentID)
 
 	if submission.Score > 0 {
-		fmt.Printf("   Score: %.1f\n", submission.Score)
+		printInfo("   Score: %.1f\n", submission.Score)
 	}
 
 	if submission.Grade != "" {
-		fmt.Printf("   Grade: %s\n", submission.Grade)
+		printInfo("   Grade: %s\n", submission.Grade)
 	}
 
 	if submission.ExcusedTLN {
-		fmt.Printf("   ✓ Excused\n")
+		printInfo("   ✓ Excused\n")
 	}
 
 	if !submission.GradedAt.IsZero() {
-		fmt.Printf("   Graded: %s\n", submission.GradedAt.Format("2006-01-02 15:04"))
+		printInfo("   Graded: %s\n", submission.GradedAt.Format("2006-01-02 15:04"))
 	}
 
 	logger.LogCommandComplete(ctx, "submissions.grade", 1)
