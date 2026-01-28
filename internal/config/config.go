@@ -271,9 +271,10 @@ func (c *Config) Save() error {
 		return fmt.Errorf("failed to write config file: %w", err)
 	}
 
-	// Invalidate cache so next Load() picks up the saved changes
+	// Update cache with a clone so next Load() picks up the saved changes
+	// without allowing the caller to mutate the cached copy
 	cacheMu.Lock()
-	cachedConfig = c
+	cachedConfig = c.Clone()
 	cacheMu.Unlock()
 
 	return nil
