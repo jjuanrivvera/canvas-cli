@@ -562,7 +562,7 @@ func runGradesColumnsCreate(ctx context.Context, client *api.Client, opts *optio
 		return fmt.Errorf("failed to create custom column: %w", err)
 	}
 
-	fmt.Printf("Custom column created successfully (ID: %d)\n", column.ID)
+	printInfo("Custom column created successfully (ID: %d)\n", column.ID)
 
 	logger.LogCommandComplete(ctx, "grades.columns.create", 1)
 	return formatOutput(column, nil)
@@ -604,7 +604,7 @@ func runGradesColumnsUpdate(ctx context.Context, client *api.Client, opts *optio
 		return fmt.Errorf("failed to update custom column: %w", err)
 	}
 
-	fmt.Printf("Custom column updated successfully (ID: %d)\n", column.ID)
+	printInfo("Custom column updated successfully (ID: %d)\n", column.ID)
 
 	logger.LogCommandComplete(ctx, "grades.columns.update", 1)
 	return formatOutput(column, nil)

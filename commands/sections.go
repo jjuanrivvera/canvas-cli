@@ -398,7 +398,7 @@ func runSectionsCreate(ctx context.Context, client *api.Client, opts *options.Se
 		return fmt.Errorf("failed to create section: %w", err)
 	}
 
-	fmt.Printf("Section created successfully (ID: %d)\n", section.ID)
+	printInfo("Section created successfully (ID: %d)\n", section.ID)
 	logger.LogCommandComplete(ctx, "sections.create", 1)
 	return formatOutput(section, nil)
 }
@@ -442,7 +442,7 @@ func runSectionsUpdate(ctx context.Context, client *api.Client, opts *options.Se
 		return fmt.Errorf("failed to update section: %w", err)
 	}
 
-	fmt.Printf("Section updated successfully (ID: %d)\n", section.ID)
+	printInfo("Section updated successfully (ID: %d)\n", section.ID)
 	logger.LogCommandComplete(ctx, "sections.update", 1)
 	return formatOutput(section, nil)
 }

@@ -301,14 +301,14 @@ func runConfigAdd(ctx context.Context, opts *options.ConfigAddOptions) error {
 		return fmt.Errorf("failed to add instance: %w", err)
 	}
 
-	fmt.Printf("Instance %q added successfully.\n", opts.Name)
+	printInfo("Instance %q added successfully.\n", opts.Name)
 
 	if cfg.DefaultInstance == opts.Name {
-		fmt.Printf("Set as default instance.\n")
+		printInfo("Set as default instance.\n")
 	}
 
-	fmt.Println("\nNext step: Authenticate with this instance:")
-	fmt.Printf("  canvas auth login --instance %s\n", opts.Name)
+	printInfoln("\nNext step: Authenticate with this instance:")
+	printInfo("  canvas auth login --instance %s\n", opts.Name)
 
 	logger.LogCommandComplete(ctx, "config.add", 1)
 	return nil
@@ -648,11 +648,10 @@ func getAPIClientForInstanceByName(instanceName string) (*api.Client, error) {
 		}
 	} else {
 		// OAuth flow - load token from store
-		configDir, err := os.UserHomeDir()
+		configDir, err := config.GetConfigDir()
 		if err != nil {
-			return nil, fmt.Errorf("failed to get home directory: %w", err)
+			return nil, fmt.Errorf("failed to get config directory: %w", err)
 		}
-		configDir = configDir + "/.canvas-cli"
 
 		tokenStore := auth.NewFallbackTokenStore(configDir)
 		token, err := tokenStore.Load(instance.Name)

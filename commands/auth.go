@@ -3,7 +3,6 @@ package commands
 import (
 	"context"
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -326,11 +325,10 @@ func runAuthLogin(ctx context.Context, opts *options.AuthLoginOptions) error {
 	}
 
 	// Save token
-	configDir, err := os.UserHomeDir()
+	configDir, err := config.GetConfigDir()
 	if err != nil {
-		return fmt.Errorf("failed to get home directory: %w", err)
+		return fmt.Errorf("failed to get config directory: %w", err)
 	}
-	configDir = configDir + "/.canvas-cli"
 
 	tokenStore := auth.NewFallbackTokenStore(configDir)
 	if err := tokenStore.Save(opts.InstanceName, token); err != nil {
@@ -355,8 +353,8 @@ func runAuthLogin(ctx context.Context, opts *options.AuthLoginOptions) error {
 		}
 	}
 
-	fmt.Printf("\n✓ Successfully authenticated with %s\n", opts.InstanceName)
-	fmt.Printf("Token expires: %s\n", token.Expiry.Format(time.RFC3339))
+	printInfo("\n✓ Successfully authenticated with %s\n", opts.InstanceName)
+	printInfo("Token expires: %s\n", token.Expiry.Format(time.RFC3339))
 
 	return nil
 }
@@ -391,11 +389,10 @@ func runAuthLogout(ctx context.Context, opts *options.AuthLogoutOptions) error {
 	}
 
 	// Get config directory
-	configDir, err := os.UserHomeDir()
+	configDir, err := config.GetConfigDir()
 	if err != nil {
-		return fmt.Errorf("failed to get home directory: %w", err)
+		return fmt.Errorf("failed to get config directory: %w", err)
 	}
-	configDir = configDir + "/.canvas-cli"
 
 	// Delete token
 	tokenStore := auth.NewFallbackTokenStore(configDir)
@@ -403,7 +400,7 @@ func runAuthLogout(ctx context.Context, opts *options.AuthLogoutOptions) error {
 		return fmt.Errorf("failed to delete token: %w", err)
 	}
 
-	fmt.Printf("✓ Successfully logged out from %s\n", instanceName)
+	printInfo("✓ Successfully logged out from %s\n", instanceName)
 
 	return nil
 }
@@ -422,11 +419,10 @@ func runAuthStatus(ctx context.Context, opts *options.AuthStatusOptions) error {
 	}
 
 	// Get config directory
-	configDir, err := os.UserHomeDir()
+	configDir, err := config.GetConfigDir()
 	if err != nil {
-		return fmt.Errorf("failed to get home directory: %w", err)
+		return fmt.Errorf("failed to get config directory: %w", err)
 	}
-	configDir = configDir + "/.canvas-cli"
 
 	tokenStore := auth.NewFallbackTokenStore(configDir)
 
@@ -591,16 +587,16 @@ func runAuthTokenSet(ctx context.Context, opts *options.AuthTokenSetOptions) err
 		if err := cfg.UpdateInstance(opts.InstanceName, instance); err != nil {
 			return fmt.Errorf("failed to update instance: %w", err)
 		}
-		fmt.Printf("✓ Updated API token for %s\n", opts.InstanceName)
+		printInfo("✓ Updated API token for %s\n", opts.InstanceName)
 	} else {
 		if err := cfg.AddInstance(instance); err != nil {
 			return fmt.Errorf("failed to add instance: %w", err)
 		}
-		fmt.Printf("✓ Created instance %s with API token authentication\n", opts.InstanceName)
+		printInfo("✓ Created instance %s with API token authentication\n", opts.InstanceName)
 	}
 
-	fmt.Printf("URL: %s\n", normalizedURL)
-	fmt.Printf("Auth type: token\n")
+	printInfo("URL: %s\n", normalizedURL)
+	printInfo("Auth type: token\n")
 
 	return nil
 }
@@ -628,7 +624,7 @@ func runAuthTokenRemove(ctx context.Context, opts *options.AuthTokenRemoveOption
 	fmt.Scanln(&confirm)
 
 	if confirm != "y" && confirm != "Y" {
-		fmt.Println("Token removal cancelled")
+		printInfoln("Token removal cancelled")
 		return nil
 	}
 
@@ -639,12 +635,12 @@ func runAuthTokenRemove(ctx context.Context, opts *options.AuthTokenRemoveOption
 		return fmt.Errorf("failed to update instance: %w", err)
 	}
 
-	fmt.Printf("✓ Removed API token from %s\n", opts.InstanceName)
+	printInfo("✓ Removed API token from %s\n", opts.InstanceName)
 
 	// Suggest next steps if no auth remains
 	if !instance.HasOAuth() {
-		fmt.Printf("\nNote: Instance %s now has no authentication configured.\n", opts.InstanceName)
-		fmt.Println("Use 'canvas auth login' or 'canvas auth token set' to authenticate.")
+		printInfo("\nNote: Instance %s now has no authentication configured.\n", opts.InstanceName)
+		printInfoln("Use 'canvas auth login' or 'canvas auth token set' to authenticate.")
 	}
 
 	return nil

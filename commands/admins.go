@@ -464,7 +464,7 @@ func runAdminsAdd(ctx context.Context, client *api.Client, opts *options.AdminsA
 		return fmt.Errorf("failed to add admin: %w", err)
 	}
 
-	fmt.Printf("Admin added successfully (User ID: %d)\n", admin.UserID)
+	printInfo("Admin added successfully (User ID: %d)\n", admin.UserID)
 	logger.LogCommandComplete(ctx, "admins.add", 1)
 	return nil
 }
@@ -493,7 +493,7 @@ func runAdminsRemove(ctx context.Context, client *api.Client, opts *options.Admi
 		return fmt.Errorf("failed to remove admin: %w", err)
 	}
 
-	fmt.Printf("Admin removed successfully (User ID: %d)\n", admin.UserID)
+	printInfo("Admin removed successfully (User ID: %d)\n", admin.UserID)
 	logger.LogCommandComplete(ctx, "admins.remove", 1)
 	return nil
 }
@@ -578,7 +578,7 @@ func runRolesCreate(ctx context.Context, client *api.Client, opts *options.Roles
 		return fmt.Errorf("failed to create role: %w", err)
 	}
 
-	fmt.Printf("Role created successfully (ID: %d)\n", role.ID)
+	printInfo("Role created successfully (ID: %d)\n", role.ID)
 	logger.LogCommandComplete(ctx, "roles.create", 1)
 	return nil
 }
@@ -607,7 +607,7 @@ func runRolesUpdate(ctx context.Context, client *api.Client, opts *options.Roles
 		return fmt.Errorf("failed to update role: %w", err)
 	}
 
-	fmt.Printf("Role updated successfully (ID: %d)\n", role.ID)
+	printInfo("Role updated successfully (ID: %d)\n", role.ID)
 	logger.LogCommandComplete(ctx, "roles.update", 1)
 	return nil
 }

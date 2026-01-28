@@ -635,7 +635,7 @@ func runQuizzesCreate(ctx context.Context, client *api.Client, opts *options.Qui
 		return fmt.Errorf("failed to create quiz: %w", err)
 	}
 
-	fmt.Printf("Quiz created successfully (ID: %d)\n", quiz.ID)
+	printInfo("Quiz created successfully (ID: %d)\n", quiz.ID)
 	if err := formatOutput(quiz, nil); err != nil {
 		return fmt.Errorf("failed to print results: %w", err)
 	}
@@ -723,7 +723,7 @@ func runQuizzesUpdate(ctx context.Context, client *api.Client, opts *options.Qui
 		return fmt.Errorf("failed to update quiz: %w", err)
 	}
 
-	fmt.Printf("Quiz updated successfully (ID: %d)\n", quiz.ID)
+	printInfo("Quiz updated successfully (ID: %d)\n", quiz.ID)
 	if err := formatOutput(quiz, nil); err != nil {
 		return fmt.Errorf("failed to print results: %w", err)
 	}
@@ -762,7 +762,7 @@ func runQuizzesDelete(ctx context.Context, client *api.Client, opts *options.Qui
 		return fmt.Errorf("failed to delete quiz: %w", err)
 	}
 
-	fmt.Printf("Quiz %d deleted\n", quiz.ID)
+	printInfo("Quiz %d deleted\n", quiz.ID)
 
 	logger.LogCommandComplete(ctx, "quizzes.delete", 1)
 	return nil
@@ -853,7 +853,7 @@ func runQuizzesQuestionsCreate(ctx context.Context, client *api.Client, opts *op
 		return fmt.Errorf("failed to create question: %w", err)
 	}
 
-	fmt.Printf("Question created successfully (ID: %d)\n", question.ID)
+	printInfo("Question created successfully (ID: %d)\n", question.ID)
 	if err := formatOutput(question, nil); err != nil {
 		return fmt.Errorf("failed to print results: %w", err)
 	}
@@ -893,7 +893,7 @@ func runQuizzesQuestionsDelete(ctx context.Context, client *api.Client, opts *op
 		return fmt.Errorf("failed to delete question: %w", err)
 	}
 
-	fmt.Printf("Question %d deleted\n", opts.QuestionID)
+	printInfo("Question %d deleted\n", opts.QuestionID)
 
 	logger.LogCommandComplete(ctx, "quizzes.questions.delete", 1)
 	return nil

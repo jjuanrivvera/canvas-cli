@@ -180,12 +180,12 @@ func runTelemetryStatus(cmd *cobra.Command, args []string) error {
 	}
 
 	// Check for telemetry data
-	home, err := os.UserHomeDir()
+	configDir, err := config.GetConfigDir()
 	if err != nil {
-		return fmt.Errorf("failed to get home directory: %w", err)
+		return fmt.Errorf("failed to get config directory: %w", err)
 	}
 
-	telemetryDir := filepath.Join(home, ".canvas-cli", "telemetry")
+	telemetryDir := filepath.Join(configDir, "telemetry")
 	files, err := os.ReadDir(telemetryDir)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -222,12 +222,12 @@ func runTelemetryStatus(cmd *cobra.Command, args []string) error {
 }
 
 func runTelemetryShow(cmd *cobra.Command, args []string) error {
-	home, err := os.UserHomeDir()
+	configDir, err := config.GetConfigDir()
 	if err != nil {
-		return fmt.Errorf("failed to get home directory: %w", err)
+		return fmt.Errorf("failed to get config directory: %w", err)
 	}
 
-	telemetryDir := filepath.Join(home, ".canvas-cli", "telemetry")
+	telemetryDir := filepath.Join(configDir, "telemetry")
 	files, err := os.ReadDir(telemetryDir)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -275,12 +275,12 @@ func runTelemetryShow(cmd *cobra.Command, args []string) error {
 }
 
 func runTelemetryClear(cmd *cobra.Command, args []string) error {
-	home, err := os.UserHomeDir()
+	configDir, err := config.GetConfigDir()
 	if err != nil {
-		return fmt.Errorf("failed to get home directory: %w", err)
+		return fmt.Errorf("failed to get config directory: %w", err)
 	}
 
-	telemetryDir := filepath.Join(home, ".canvas-cli", "telemetry")
+	telemetryDir := filepath.Join(configDir, "telemetry")
 
 	// Check if directory exists
 	if _, err := os.Stat(telemetryDir); os.IsNotExist(err) {

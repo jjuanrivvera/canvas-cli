@@ -294,17 +294,16 @@ func (d *Doctor) checkDiskSpace(ctx context.Context) Check {
 		Status:      StatusPass,
 	}
 
-	// Get home directory
-	home, err := os.UserHomeDir()
+	// Check if directory is writable
+	configDir, err := config.GetConfigDir()
 	if err != nil {
 		check.Status = StatusWarning
-		check.Message = fmt.Sprintf("Could not determine home directory: %v", err)
+		check.Message = fmt.Sprintf("Could not determine config directory: %v", err)
 		check.Duration = time.Since(start)
 		return check
 	}
 
-	// Check if directory is writable
-	cacheDir := home + "/.canvas-cli/cache"
+	cacheDir := configDir + "/cache"
 	if err := os.MkdirAll(cacheDir, 0700); err != nil {
 		check.Status = StatusWarning
 		check.Message = fmt.Sprintf("Cache directory not writable: %v", err)
@@ -327,17 +326,14 @@ func (d *Doctor) checkPermissions(ctx context.Context) Check {
 		Status:      StatusPass,
 	}
 
-	// Get home directory
-	home, err := os.UserHomeDir()
+	// Check config directory
+	configDir, err := config.GetConfigDir()
 	if err != nil {
 		check.Status = StatusWarning
-		check.Message = fmt.Sprintf("Could not determine home directory: %v", err)
+		check.Message = fmt.Sprintf("Could not determine config directory: %v", err)
 		check.Duration = time.Since(start)
 		return check
 	}
-
-	// Check config directory
-	configDir := home + "/.canvas-cli"
 	if info, err := os.Stat(configDir); err != nil {
 		if os.IsNotExist(err) {
 			check.Status = StatusWarning

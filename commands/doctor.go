@@ -2,7 +2,9 @@ package commands
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -82,7 +84,7 @@ func runDoctor(ctx context.Context, opts *options.DoctorOptions) error {
 	doctor := diagnostics.New(cfg, client)
 
 	// Run diagnostics
-	fmt.Println("Running diagnostics...")
+	printInfoln("Running diagnostics...")
 	report, err := doctor.Run(ctx)
 	if err != nil {
 		logger.LogCommandError(ctx, "doctor", err, nil)
@@ -179,29 +181,43 @@ func getStatusIcon(status diagnostics.CheckStatus) string {
 	}
 }
 
+// jsonReport is the JSON-serializable representation of a diagnostic report.
+type jsonReport struct {
+	Duration string      `json:"duration"`
+	Summary  string      `json:"summary"`
+	Healthy  bool        `json:"healthy"`
+	Checks   []jsonCheck `json:"checks"`
+}
+
+// jsonCheck is the JSON-serializable representation of a single diagnostic check.
+type jsonCheck struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Status      string `json:"status"`
+	Message     string `json:"message"`
+	Duration    string `json:"duration"`
+}
+
 func printReportJSON(report *diagnostics.Report, opts *options.DoctorOptions) {
-	// Create a simple JSON structure
-	fmt.Println("{")
-	fmt.Printf("  \"duration\": \"%s\",\n", report.Duration)
-	fmt.Printf("  \"summary\": \"%s\",\n", report.Summary())
-	fmt.Printf("  \"healthy\": %t,\n", report.IsHealthy())
-	fmt.Printf("  \"checks\": [\n")
-
-	for i, check := range report.Checks {
-		fmt.Println("    {")
-		fmt.Printf("      \"name\": \"%s\",\n", check.Name)
-		fmt.Printf("      \"description\": \"%s\",\n", check.Description)
-		fmt.Printf("      \"status\": \"%s\",\n", check.Status)
-		fmt.Printf("      \"message\": \"%s\",\n", check.Message)
-		fmt.Printf("      \"duration\": \"%s\"\n", check.Duration)
-
-		if i < len(report.Checks)-1 {
-			fmt.Println("    },")
-		} else {
-			fmt.Println("    }")
+	checks := make([]jsonCheck, len(report.Checks))
+	for i, c := range report.Checks {
+		checks[i] = jsonCheck{
+			Name:        c.Name,
+			Description: c.Description,
+			Status:      string(c.Status),
+			Message:     c.Message,
+			Duration:    c.Duration.String(),
 		}
 	}
 
-	fmt.Println("  ]")
-	fmt.Println("}")
+	r := jsonReport{
+		Duration: report.Duration.String(),
+		Summary:  report.Summary(),
+		Healthy:  report.IsHealthy(),
+		Checks:   checks,
+	}
+
+	enc := json.NewEncoder(os.Stdout)
+	enc.SetIndent("", "  ")
+	_ = enc.Encode(r)
 }

@@ -23,6 +23,7 @@ var (
 	globalLimit  int   // Global limit for list operations
 	dryRun       bool  // Print curl commands instead of executing
 	showToken    bool  // Show actual token in dry-run output
+	quiet        bool  // Suppress informational messages
 	version      string
 	commit       string
 	buildDate    string
@@ -81,6 +82,18 @@ func Execute(v, c, bd string) error {
 	return rootCmd.Execute()
 }
 
+// ExecuteContext is like Execute but accepts a context for signal handling.
+func ExecuteContext(ctx context.Context, v, c, bd string) error {
+	version = v
+	commit = c
+	buildDate = bd
+
+	rootCmd.Version = version
+	rootCmd.SetVersionTemplate("canvas-cli version {{.Version}}\n")
+
+	return rootCmd.ExecuteContext(ctx)
+}
+
 // GetRootCmd returns the root command for documentation generation
 func GetRootCmd() *cobra.Command {
 	return rootCmd
@@ -100,6 +113,7 @@ func init() {
 	rootCmd.PersistentFlags().IntVar(&globalLimit, "limit", 0, "Limit number of results for list operations (0 = unlimited)")
 	rootCmd.PersistentFlags().BoolVar(&dryRun, "dry-run", false, "Print curl commands instead of executing requests")
 	rootCmd.PersistentFlags().BoolVar(&showToken, "show-token", false, "Show actual token in dry-run output (default: redacted)")
+	rootCmd.PersistentFlags().BoolVarP(&quiet, "quiet", "q", false, "Suppress informational messages, only output data and errors")
 
 	// Output filtering flags
 	rootCmd.PersistentFlags().StringVar(&filterText, "filter", "", "Filter results by text (case-insensitive substring match)")
@@ -120,12 +134,9 @@ func initConfig() {
 		// Use config file from the flag
 		viper.SetConfigFile(cfgFile)
 	} else {
-		// Find home directory
-		home, err := os.UserHomeDir()
+		configDir, err := config.GetConfigDir()
 		cobra.CheckErr(err)
 
-		// Search config in home directory with name ".canvas-cli"
-		configDir := home + "/.canvas-cli"
 		viper.AddConfigPath(configDir)
 		viper.SetConfigType("yaml")
 		viper.SetConfigName("config")

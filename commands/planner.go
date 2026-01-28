@@ -564,7 +564,7 @@ func runPlannerNotesDelete(ctx context.Context, client *api.Client, opts *option
 		return fmt.Errorf("failed to delete planner note: %w", err)
 	}
 
-	fmt.Printf("Planner note %d deleted successfully\n", opts.NoteID)
+	printInfo("Planner note %d deleted successfully\n", opts.NoteID)
 
 	logger.LogCommandComplete(ctx, "planner.notes.delete", 1)
 	return nil

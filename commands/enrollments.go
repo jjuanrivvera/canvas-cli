@@ -10,6 +10,7 @@ import (
 	"github.com/jjuanrivvera/canvas-cli/commands/internal/logging"
 	"github.com/jjuanrivvera/canvas-cli/commands/internal/options"
 	"github.com/jjuanrivvera/canvas-cli/internal/api"
+	"github.com/jjuanrivvera/canvas-cli/internal/progress"
 )
 
 // enrollmentsCmd represents the enrollments command group
@@ -329,19 +330,23 @@ func runEnrollmentsList(ctx context.Context, client *api.Client, opts *options.E
 	}
 
 	// List enrollments based on context
+	spin := progress.New("Fetching enrollments...")
+	if !quiet {
+		spin.Start()
+	}
+
 	var enrollments []api.Enrollment
 	var contextName string
 	var err error
 
 	if opts.CourseID > 0 {
-		// Course context - list all enrollments in the course
 		enrollments, err = enrollmentsService.ListCourse(ctx, opts.CourseID, apiOpts)
 		contextName = fmt.Sprintf("course %d", opts.CourseID)
 	} else {
-		// User context - list all enrollments for the user
 		enrollments, err = enrollmentsService.ListUser(ctx, opts.UserID, apiOpts)
 		contextName = fmt.Sprintf("user %d", opts.UserID)
 	}
+	spin.Stop()
 
 	if err != nil {
 		logger.LogCommandError(ctx, "enrollments.list", err, map[string]interface{}{
@@ -439,7 +444,7 @@ func runEnrollmentsCreate(ctx context.Context, client *api.Client, opts *options
 		return fmt.Errorf("failed to create enrollment: %w", err)
 	}
 
-	fmt.Printf("Enrollment created successfully (ID: %d)\n", enrollment.ID)
+	printInfo("Enrollment created successfully (ID: %d)\n", enrollment.ID)
 	logger.LogCommandComplete(ctx, "enrollments.create", 1)
 	return formatOutput(enrollment, nil)
 }

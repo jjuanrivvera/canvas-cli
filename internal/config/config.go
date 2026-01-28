@@ -4,8 +4,14 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sync"
 
 	"gopkg.in/yaml.v3"
+)
+
+var (
+	cachedConfig *Config
+	cacheMu      sync.Mutex
 )
 
 // Config represents the application configuration
@@ -100,19 +106,114 @@ func DefaultSettings() *Settings {
 	}
 }
 
-// GetConfigPath returns the path to the config file
-func GetConfigPath() (string, error) {
+// Clone returns a deep copy of the Config.
+func (c *Config) Clone() *Config {
+	if c == nil {
+		return nil
+	}
+
+	clone := &Config{
+		DefaultInstance: c.DefaultInstance,
+		configPath:      c.configPath,
+	}
+
+	// Clone Instances map
+	if c.Instances != nil {
+		clone.Instances = make(map[string]*Instance, len(c.Instances))
+		for k, v := range c.Instances {
+			if v != nil {
+				inst := *v
+				clone.Instances[k] = &inst
+			}
+		}
+	}
+
+	// Clone Settings
+	if c.Settings != nil {
+		s := *c.Settings
+		clone.Settings = &s
+	}
+
+	// Clone Aliases map
+	if c.Aliases != nil {
+		clone.Aliases = make(map[string]string, len(c.Aliases))
+		for k, v := range c.Aliases {
+			clone.Aliases[k] = v
+		}
+	}
+
+	// Clone Context
+	if c.Context != nil {
+		ctx := *c.Context
+		clone.Context = &ctx
+	}
+
+	return clone
+}
+
+// GetConfigDir returns the path to the config directory (~/.canvas-cli)
+func GetConfigDir() (string, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return "", fmt.Errorf("failed to get home directory: %w", err)
 	}
+	return filepath.Join(home, ".canvas-cli"), nil
+}
 
-	configDir := filepath.Join(home, ".canvas-cli")
+// GetConfigPath returns the path to the config file
+func GetConfigPath() (string, error) {
+	configDir, err := GetConfigDir()
+	if err != nil {
+		return "", err
+	}
 	return filepath.Join(configDir, "config.yaml"), nil
 }
 
-// Load loads the configuration from the config file
+// Load loads the configuration from the config file.
+// The result is cached after the first successful load; subsequent calls
+// return a clone of the cached value. Use Reload() to force a fresh read.
+// The returned Config is safe to mutate without affecting other callers.
 func Load() (*Config, error) {
+	cacheMu.Lock()
+	defer cacheMu.Unlock()
+
+	if cachedConfig != nil {
+		return cachedConfig.Clone(), nil
+	}
+
+	cfg, err := loadFromDisk()
+	if err != nil {
+		return nil, err
+	}
+
+	cachedConfig = cfg
+	return cachedConfig.Clone(), nil
+}
+
+// Reload forces a fresh read of the config file, ignoring the cache.
+// The returned Config is safe to mutate without affecting other callers.
+func Reload() (*Config, error) {
+	cacheMu.Lock()
+	defer cacheMu.Unlock()
+
+	cfg, err := loadFromDisk()
+	if err != nil {
+		return nil, err
+	}
+
+	cachedConfig = cfg
+	return cachedConfig.Clone(), nil
+}
+
+// ResetCache clears the cached config. Intended for tests.
+func ResetCache() {
+	cacheMu.Lock()
+	defer cacheMu.Unlock()
+	cachedConfig = nil
+}
+
+// loadFromDisk reads and parses the config file from disk.
+func loadFromDisk() (*Config, error) {
 	configPath, err := GetConfigPath()
 	if err != nil {
 		return nil, err
@@ -120,7 +221,6 @@ func Load() (*Config, error) {
 
 	// Check if config file exists
 	if _, err := os.Stat(configPath); os.IsNotExist(err) {
-		// Config doesn't exist, return default
 		return &Config{
 			Instances:  make(map[string]*Instance),
 			Settings:   DefaultSettings(),
@@ -128,13 +228,11 @@ func Load() (*Config, error) {
 		}, nil
 	}
 
-	// Read config file
 	data, err := os.ReadFile(configPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read config file: %w", err)
 	}
 
-	// Parse YAML
 	var config Config
 	if err := yaml.Unmarshal(data, &config); err != nil {
 		return nil, fmt.Errorf("failed to parse config file: %w", err)
@@ -142,17 +240,14 @@ func Load() (*Config, error) {
 
 	config.configPath = configPath
 
-	// Ensure instances map exists
 	if config.Instances == nil {
 		config.Instances = make(map[string]*Instance)
 	}
 
-	// Ensure aliases map exists
 	if config.Aliases == nil {
 		config.Aliases = make(map[string]string)
 	}
 
-	// Ensure settings exist
 	if config.Settings == nil {
 		config.Settings = DefaultSettings()
 	}
@@ -160,24 +255,27 @@ func Load() (*Config, error) {
 	return &config, nil
 }
 
-// Save saves the configuration to the config file
+// Save saves the configuration to the config file and invalidates the cache.
 func (c *Config) Save() error {
-	// Ensure config directory exists
 	configDir := filepath.Dir(c.configPath)
 	if err := os.MkdirAll(configDir, 0755); err != nil {
 		return fmt.Errorf("failed to create config directory: %w", err)
 	}
 
-	// Marshal to YAML
 	data, err := yaml.Marshal(c)
 	if err != nil {
 		return fmt.Errorf("failed to marshal config: %w", err)
 	}
 
-	// Write to file
 	if err := os.WriteFile(c.configPath, data, 0600); err != nil {
 		return fmt.Errorf("failed to write config file: %w", err)
 	}
+
+	// Update cache with a clone so next Load() picks up the saved changes
+	// without allowing the caller to mutate the cached copy
+	cacheMu.Lock()
+	cachedConfig = c.Clone()
+	cacheMu.Unlock()
 
 	return nil
 }

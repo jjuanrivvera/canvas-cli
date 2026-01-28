@@ -241,7 +241,7 @@ func runPeerReviewsDelete(ctx context.Context, client *api.Client, opts *options
 		return fmt.Errorf("failed to delete peer review: %w", err)
 	}
 
-	fmt.Println("Peer review deleted successfully")
+	printInfoln("Peer review deleted successfully")
 	logger.LogCommandComplete(ctx, "peer_reviews.delete", 1)
 	return nil
 }

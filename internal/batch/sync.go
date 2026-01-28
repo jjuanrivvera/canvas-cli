@@ -8,9 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"golang.org/x/term"
-
 	"github.com/jjuanrivvera/canvas-cli/internal/api"
+	"github.com/jjuanrivvera/canvas-cli/internal/terminal"
 )
 
 // ConflictResolution defines how to handle conflicts during sync
@@ -27,7 +26,7 @@ const promptTimeout = 60 * time.Second
 
 // isTerminal checks if stdin is a terminal (TTY)
 func isTerminal() bool {
-	return term.IsTerminal(int(os.Stdin.Fd()))
+	return terminal.IsStdinTerminal()
 }
 
 // promptWithTimeout reads user input with a timeout

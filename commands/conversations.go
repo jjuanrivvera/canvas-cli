@@ -585,7 +585,7 @@ func runConversationsReply(ctx context.Context, client *api.Client, opts *option
 
 	logger.LogCommandComplete(ctx, "conversations.reply", 1)
 
-	fmt.Printf("Reply added successfully (conversation ID: %d)\n", conversation.ID)
+	printInfo("Reply added successfully (conversation ID: %d)\n", conversation.ID)
 	return formatOutput(conversation, nil)
 }
 

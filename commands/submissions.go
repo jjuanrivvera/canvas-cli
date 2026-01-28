@@ -10,6 +10,7 @@ import (
 	"github.com/jjuanrivvera/canvas-cli/commands/internal/options"
 	"github.com/jjuanrivvera/canvas-cli/internal/api"
 	"github.com/jjuanrivvera/canvas-cli/internal/batch"
+	"github.com/jjuanrivvera/canvas-cli/internal/progress"
 )
 
 // submissionsCmd represents the submissions command group
@@ -322,7 +323,12 @@ func runSubmissionsList(ctx context.Context, client *api.Client, opts *options.S
 	}
 
 	// List submissions
+	spin := progress.New("Fetching submissions...")
+	if !quiet {
+		spin.Start()
+	}
 	submissions, err := submissionsService.List(ctx, opts.CourseID, opts.AssignmentID, apiOpts)
+	spin.Stop()
 	if err != nil {
 		logger.LogCommandError(ctx, "submissions.list", err, map[string]interface{}{
 			"course_id":     opts.CourseID,
@@ -439,24 +445,24 @@ func runSubmissionsGrade(ctx context.Context, client *api.Client, opts *options.
 		userName = submission.User.Name
 	}
 
-	fmt.Printf("✅ Successfully graded submission for %s\n", userName)
-	fmt.Printf("   User ID: %d\n", submission.UserID)
-	fmt.Printf("   Assignment ID: %d\n", submission.AssignmentID)
+	printInfo("✅ Successfully graded submission for %s\n", userName)
+	printInfo("   User ID: %d\n", submission.UserID)
+	printInfo("   Assignment ID: %d\n", submission.AssignmentID)
 
 	if submission.Score > 0 {
-		fmt.Printf("   Score: %.1f\n", submission.Score)
+		printInfo("   Score: %.1f\n", submission.Score)
 	}
 
 	if submission.Grade != "" {
-		fmt.Printf("   Grade: %s\n", submission.Grade)
+		printInfo("   Grade: %s\n", submission.Grade)
 	}
 
 	if submission.ExcusedTLN {
-		fmt.Printf("   ✓ Excused\n")
+		printInfo("   ✓ Excused\n")
 	}
 
 	if !submission.GradedAt.IsZero() {
-		fmt.Printf("   Graded: %s\n", submission.GradedAt.Format("2006-01-02 15:04"))
+		printInfo("   Graded: %s\n", submission.GradedAt.Format("2006-01-02 15:04"))
 	}
 
 	logger.LogCommandComplete(ctx, "submissions.grade", 1)
@@ -645,7 +651,7 @@ func runSubmissionsAddComment(ctx context.Context, client *api.Client, opts *opt
 	}
 
 	logger.LogCommandComplete(ctx, "submissions.add-comment", 1)
-	fmt.Printf("Comment added successfully to submission for user %d\n", submission.UserID)
+	printInfo("Comment added successfully to submission for user %d\n", submission.UserID)
 	return nil
 }
 
@@ -679,6 +685,6 @@ func runSubmissionsDeleteComment(ctx context.Context, client *api.Client, opts *
 	}
 
 	logger.LogCommandComplete(ctx, "submissions.delete-comment", 1)
-	fmt.Printf("Comment %d deleted successfully\n", opts.CommentID)
+	printInfo("Comment %d deleted successfully\n", opts.CommentID)
 	return nil
 }

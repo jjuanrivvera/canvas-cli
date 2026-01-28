@@ -347,7 +347,7 @@ func runOverridesCreate(ctx context.Context, client *api.Client, opts *options.O
 		return fmt.Errorf("failed to create override: %w", err)
 	}
 
-	fmt.Printf("Override created successfully (ID: %d)\n", override.ID)
+	printInfo("Override created successfully (ID: %d)\n", override.ID)
 	logger.LogCommandComplete(ctx, "overrides.create", 1)
 	return formatOutput(override, nil)
 }
@@ -407,7 +407,7 @@ func runOverridesUpdate(ctx context.Context, client *api.Client, opts *options.O
 		return fmt.Errorf("failed to update override: %w", err)
 	}
 
-	fmt.Printf("Override updated successfully (ID: %d)\n", override.ID)
+	printInfo("Override updated successfully (ID: %d)\n", override.ID)
 	logger.LogCommandComplete(ctx, "overrides.update", 1)
 	return formatOutput(override, nil)
 }

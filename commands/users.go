@@ -13,6 +13,7 @@ import (
 	"github.com/jjuanrivvera/canvas-cli/commands/internal/logging"
 	"github.com/jjuanrivvera/canvas-cli/commands/internal/options"
 	"github.com/jjuanrivvera/canvas-cli/internal/api"
+	"github.com/jjuanrivvera/canvas-cli/internal/progress"
 )
 
 // usersCmd represents the users command group
@@ -312,19 +313,23 @@ func runUsersList(ctx context.Context, client *api.Client, opts *options.UsersLi
 	}
 
 	// List users based on context
+	spin := progress.New("Fetching users...")
+	if !quiet {
+		spin.Start()
+	}
+
 	var users []api.User
 	var contextName string
 	var err error
 
 	if accountID > 0 {
-		// Account context - list all users in the account
 		users, err = usersService.List(ctx, accountID, listOpts)
 		contextName = fmt.Sprintf("account %d", accountID)
 	} else {
-		// Course context - list users enrolled in the course
 		users, err = usersService.ListCourseUsers(ctx, opts.CourseID, listOpts)
 		contextName = fmt.Sprintf("course %d", opts.CourseID)
 	}
+	spin.Stop()
 
 	if err != nil {
 		logger.LogCommandError(ctx, "users.list", err, map[string]interface{}{
@@ -507,14 +512,14 @@ func runUsersCreate(ctx context.Context, client *api.Client, cmd *cobra.Command,
 
 	logger.LogCommandComplete(ctx, "users.create", 1)
 
-	fmt.Printf("User created successfully!\n")
-	fmt.Printf("  ID: %d\n", user.ID)
-	fmt.Printf("  Name: %s\n", user.Name)
+	printInfo("User created successfully!\n")
+	printInfo("  ID: %d\n", user.ID)
+	printInfo("  Name: %s\n", user.Name)
 	if user.LoginID != "" {
-		fmt.Printf("  Login: %s\n", user.LoginID)
+		printInfo("  Login: %s\n", user.LoginID)
 	}
 	if user.Email != "" {
-		fmt.Printf("  Email: %s\n", user.Email)
+		printInfo("  Email: %s\n", user.Email)
 	}
 
 	return nil
@@ -582,14 +587,14 @@ func runUsersUpdate(ctx context.Context, client *api.Client, opts *options.Users
 
 	logger.LogCommandComplete(ctx, "users.update", 1)
 
-	fmt.Printf("User updated successfully!\n")
-	fmt.Printf("  ID: %d\n", user.ID)
-	fmt.Printf("  Name: %s\n", user.Name)
+	printInfo("User updated successfully!\n")
+	printInfo("  ID: %d\n", user.ID)
+	printInfo("  Name: %s\n", user.Name)
 	if user.LoginID != "" {
-		fmt.Printf("  Login: %s\n", user.LoginID)
+		printInfo("  Login: %s\n", user.LoginID)
 	}
 	if user.Email != "" {
-		fmt.Printf("  Email: %s\n", user.Email)
+		printInfo("  Email: %s\n", user.Email)
 	}
 
 	return nil

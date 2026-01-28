@@ -538,7 +538,7 @@ func runPagesDelete(ctx context.Context, client *api.Client, opts *options.Pages
 	}
 
 	logger.LogCommandComplete(ctx, "pages.delete", 1)
-	fmt.Printf("Page '%s' deleted successfully\n", opts.URLOrID)
+	printInfo("Page '%s' deleted successfully\n", opts.URLOrID)
 	return nil
 }
 

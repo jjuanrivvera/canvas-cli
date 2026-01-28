@@ -512,11 +512,11 @@ func runOutcomesCreate(ctx context.Context, client *api.Client, opts *options.Ou
 		return fmt.Errorf("failed to create outcome: %w", err)
 	}
 
-	fmt.Printf("Outcome created successfully")
 	if link.Outcome != nil {
-		fmt.Printf(" (ID: %d)", link.Outcome.ID)
+		printInfo("Outcome created successfully (ID: %d)\n", link.Outcome.ID)
+	} else {
+		printInfo("Outcome created successfully\n")
 	}
-	fmt.Println()
 
 	if err := formatOutput(link, nil); err != nil {
 		return fmt.Errorf("failed to print results: %w", err)
@@ -564,7 +564,7 @@ func runOutcomesUpdate(ctx context.Context, client *api.Client, opts *options.Ou
 		return fmt.Errorf("failed to update outcome: %w", err)
 	}
 
-	fmt.Printf("Outcome updated successfully (ID: %d)\n", outcome.ID)
+	printInfo("Outcome updated successfully (ID: %d)\n", outcome.ID)
 	if err := formatOutput(outcome, nil); err != nil {
 		return fmt.Errorf("failed to print results: %w", err)
 	}
