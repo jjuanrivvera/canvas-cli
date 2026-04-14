@@ -277,6 +277,102 @@ func TestIsNotFoundError_NotAPIError(t *testing.T) {
 	}
 }
 
+func TestCheckSoftError_MaintenanceMode(t *testing.T) {
+	body := []byte(`{"message":"This environment is currently being updated with a copy of the latest production data. Please check back later.","status":"unauthorized"}`)
+
+	err := checkSoftError(body)
+	if err == nil {
+		t.Fatal("expected soft error, got nil")
+	}
+
+	softErr, ok := err.(*SoftError)
+	if !ok {
+		t.Fatalf("expected *SoftError, got %T", err)
+	}
+
+	if softErr.Status != "unauthorized" {
+		t.Errorf("expected status 'unauthorized', got %q", softErr.Status)
+	}
+
+	if !strings.Contains(softErr.Message, "currently being updated") {
+		t.Errorf("expected message about maintenance, got %q", softErr.Message)
+	}
+}
+
+func TestCheckSoftError_ValidResponse(t *testing.T) {
+	body := []byte(`{"id":123,"name":"Test Course"}`)
+
+	err := checkSoftError(body)
+	if err != nil {
+		t.Errorf("expected no error for valid response, got %v", err)
+	}
+}
+
+func TestCheckSoftError_ArrayResponse(t *testing.T) {
+	body := []byte(`[{"id":1},{"id":2}]`)
+
+	err := checkSoftError(body)
+	if err != nil {
+		t.Errorf("expected no error for array response, got %v", err)
+	}
+}
+
+func TestCheckSoftError_StatusOk(t *testing.T) {
+	body := []byte(`{"message":"success","status":"ok"}`)
+
+	err := checkSoftError(body)
+	if err != nil {
+		t.Errorf("expected no error for status 'ok', got %v", err)
+	}
+}
+
+func TestCheckSoftError_EmptyFields(t *testing.T) {
+	body := []byte(`{"id":1,"status":"","message":""}`)
+
+	err := checkSoftError(body)
+	if err != nil {
+		t.Errorf("expected no error for empty status/message, got %v", err)
+	}
+}
+
+func TestCheckSoftError_InvalidJSON(t *testing.T) {
+	body := []byte(`not json at all`)
+
+	err := checkSoftError(body)
+	if err != nil {
+		t.Errorf("expected no error for invalid JSON, got %v", err)
+	}
+}
+
+func TestIsSoftError_True(t *testing.T) {
+	err := &SoftError{Status: "unauthorized", Message: "test"}
+	if !IsSoftError(err) {
+		t.Error("expected IsSoftError to return true for SoftError")
+	}
+}
+
+func TestIsSoftError_False(t *testing.T) {
+	err := &APIError{StatusCode: 401}
+	if IsSoftError(err) {
+		t.Error("expected IsSoftError to return false for APIError")
+	}
+}
+
+func TestSoftError_ErrorMessage(t *testing.T) {
+	err := &SoftError{
+		Status:  "unauthorized",
+		Message: "Environment is being updated",
+	}
+
+	msg := err.Error()
+	if !strings.Contains(msg, "Environment is being updated") {
+		t.Errorf("expected error message to contain the message, got %q", msg)
+	}
+	if !strings.Contains(msg, "unauthorized") {
+		t.Errorf("expected error message to contain the status, got %q", msg)
+	}
+}
+
 func TestAPIError_Error(t *testing.T) {
 	apiErr := &APIError{
 		StatusCode: http.StatusNotFound,

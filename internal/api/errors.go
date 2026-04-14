@@ -45,6 +45,49 @@ func ParseAPIError(resp *http.Response) error {
 	return &apiErr
 }
 
+// SoftError represents a Canvas API error returned with an HTTP 200 status code.
+// This occurs during maintenance windows, data refreshes, or other situations
+// where Canvas returns a success status code but the body contains an error message.
+type SoftError struct {
+	Status  string `json:"status"`
+	Message string `json:"message"`
+}
+
+// Error implements the error interface
+func (e *SoftError) Error() string {
+	return fmt.Sprintf("Canvas API error: %s (status: %s)", e.Message, e.Status)
+}
+
+// checkSoftError inspects a response body for Canvas error patterns
+// that are returned with HTTP 200 status codes (e.g., maintenance mode).
+// Known patterns include: {"message":"...","status":"unauthorized"}
+func checkSoftError(body []byte) error {
+	var probe struct {
+		Status  string `json:"status"`
+		Message string `json:"message"`
+	}
+
+	if err := json.Unmarshal(body, &probe); err != nil {
+		return nil // not a JSON object — not a soft error
+	}
+
+	// Canvas uses "status" field with error-like values in soft error responses
+	if probe.Message != "" && probe.Status != "" && probe.Status != "ok" {
+		return &SoftError{
+			Status:  probe.Status,
+			Message: probe.Message,
+		}
+	}
+
+	return nil
+}
+
+// IsSoftError checks if the error is a Canvas soft error (HTTP 200 with error body)
+func IsSoftError(err error) bool {
+	var softErr *SoftError
+	return errors.As(err, &softErr)
+}
+
 // IsRateLimitError checks if the error is a rate limit error
 // Uses errors.As to properly handle wrapped errors
 func IsRateLimitError(err error) bool {

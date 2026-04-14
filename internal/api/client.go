@@ -495,6 +495,11 @@ func (c *Client) GetJSON(ctx context.Context, path string, result interface{}) e
 		return fmt.Errorf("failed to read response body: %w", err)
 	}
 
+	// Check for Canvas soft errors (HTTP 200 with error body)
+	if err := checkSoftError(body); err != nil {
+		return err
+	}
+
 	// Decode the response
 	if err := json.Unmarshal(body, result); err != nil {
 		return err
@@ -522,8 +527,17 @@ func (c *Client) PostJSON(ctx context.Context, path string, body interface{}, re
 	}
 	defer resp.Body.Close()
 
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("failed to read response body: %w", err)
+	}
+
+	if err := checkSoftError(bodyBytes); err != nil {
+		return err
+	}
+
 	if result != nil {
-		return json.NewDecoder(resp.Body).Decode(result)
+		return json.Unmarshal(bodyBytes, result)
 	}
 
 	return nil
@@ -542,8 +556,17 @@ func (c *Client) PutJSON(ctx context.Context, path string, body interface{}, res
 	}
 	defer resp.Body.Close()
 
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("failed to read response body: %w", err)
+	}
+
+	if err := checkSoftError(bodyBytes); err != nil {
+		return err
+	}
+
 	if result != nil {
-		return json.NewDecoder(resp.Body).Decode(result)
+		return json.Unmarshal(bodyBytes, result)
 	}
 
 	return nil
@@ -572,12 +595,20 @@ func GetAllPagesGeneric[T any](c *Client, ctx context.Context, path string) ([]T
 			return nil, err
 		}
 
+		bodyBytes, err := io.ReadAll(resp.Body)
+		resp.Body.Close()
+		if err != nil {
+			return nil, fmt.Errorf("failed to read response body: %w", err)
+		}
+
+		if err := checkSoftError(bodyBytes); err != nil {
+			return nil, err
+		}
+
 		var pageResults []T
-		if err := json.NewDecoder(resp.Body).Decode(&pageResults); err != nil {
-			resp.Body.Close()
+		if err := json.Unmarshal(bodyBytes, &pageResults); err != nil {
 			return nil, fmt.Errorf("failed to decode response: %w", err)
 		}
-		resp.Body.Close()
 
 		allResults = append(allResults, pageResults...)
 
@@ -643,12 +674,20 @@ func (c *Client) GetAllPages(ctx context.Context, path string, result interface{
 			return err
 		}
 
+		bodyBytes, err := io.ReadAll(resp.Body)
+		resp.Body.Close()
+		if err != nil {
+			return fmt.Errorf("failed to read response body: %w", err)
+		}
+
+		if err := checkSoftError(bodyBytes); err != nil {
+			return err
+		}
+
 		var pageResults []json.RawMessage
-		if err := json.NewDecoder(resp.Body).Decode(&pageResults); err != nil {
-			resp.Body.Close()
+		if err := json.Unmarshal(bodyBytes, &pageResults); err != nil {
 			return fmt.Errorf("failed to decode response: %w", err)
 		}
-		resp.Body.Close()
 
 		allResults = append(allResults, pageResults...)
 

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 )
 
@@ -542,6 +543,127 @@ func TestCoursesService_Update_WithAllOptions(t *testing.T) {
 	}
 	if course.Name != "Updated Comprehensive Course" {
 		t.Errorf("Expected course name 'Updated Comprehensive Course', got %s", course.Name)
+	}
+}
+
+func TestCoursesService_Create_SoftError(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			handleVersionDetection(w)
+			return
+		}
+
+		// Return HTTP 200 with Canvas error body (maintenance mode)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"message":"This environment is currently being updated with a copy of the latest production data. Please check back later.","status":"unauthorized"}`))
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{
+		BaseURL:        server.URL,
+		Token:          "test-token",
+		RequestsPerSec: 10,
+	})
+	if err != nil {
+		t.Fatalf("Failed to create client: %v", err)
+	}
+
+	service := NewCoursesService(client)
+	ctx := context.Background()
+
+	params := &CreateCourseParams{
+		AccountID: 1,
+		Name:      "New Course",
+	}
+
+	course, err := service.Create(ctx, params)
+	if err == nil {
+		t.Fatalf("expected error, got course with ID %d", course.ID)
+	}
+
+	if !IsSoftError(err) {
+		t.Errorf("expected SoftError, got %T: %v", err, err)
+	}
+}
+
+func TestCoursesService_Update_SoftError(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			handleVersionDetection(w)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"message":"This environment is currently being updated.","status":"unauthorized"}`))
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{
+		BaseURL:        server.URL,
+		Token:          "test-token",
+		RequestsPerSec: 10,
+	})
+	if err != nil {
+		t.Fatalf("Failed to create client: %v", err)
+	}
+
+	service := NewCoursesService(client)
+	ctx := context.Background()
+
+	params := &UpdateCourseParams{
+		Name: "Updated Name",
+	}
+
+	course, err := service.Update(ctx, 123, params)
+	if err == nil {
+		t.Fatalf("expected error, got course with ID %d", course.ID)
+	}
+
+	if !IsSoftError(err) {
+		t.Errorf("expected SoftError, got %T: %v", err, err)
+	}
+}
+
+func TestCoursesService_Create_ZeroID(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			handleVersionDetection(w)
+			return
+		}
+
+		// Return a response with valid JSON but missing ID
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"name":"Some Course"}`))
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{
+		BaseURL:        server.URL,
+		Token:          "test-token",
+		RequestsPerSec: 10,
+	})
+	if err != nil {
+		t.Fatalf("Failed to create client: %v", err)
+	}
+
+	service := NewCoursesService(client)
+	ctx := context.Background()
+
+	params := &CreateCourseParams{
+		AccountID: 1,
+		Name:      "Some Course",
+	}
+
+	_, err = service.Create(ctx, params)
+	if err == nil {
+		t.Fatal("expected error for zero ID course response")
+	}
+
+	if !strings.Contains(err.Error(), "no course ID") {
+		t.Errorf("expected error about missing course ID, got: %v", err)
 	}
 }
 

@@ -597,6 +597,254 @@ func TestClient_UserAgent_Custom(t *testing.T) {
 	}
 }
 
+func TestClient_GetJSON_SoftError(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte(`[]`))
+			return
+		}
+		if r.URL.Path == "/api/v1/courses/123" {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte(`{"message":"This environment is currently being updated.","status":"unauthorized"}`))
+			return
+		}
+		w.WriteHeader(http.StatusNotFound)
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{
+		BaseURL:        server.URL,
+		Token:          "test-token",
+		RequestsPerSec: 10,
+	})
+	if err != nil {
+		t.Fatalf("Failed to create client: %v", err)
+	}
+
+	ctx := context.Background()
+	var course Course
+	err = client.GetJSON(ctx, "/api/v1/courses/123", &course)
+	if err == nil {
+		t.Fatal("expected error for soft error response, got nil")
+	}
+
+	if !IsSoftError(err) {
+		t.Errorf("expected SoftError, got %T: %v", err, err)
+	}
+}
+
+func TestClient_PostJSON_SoftError(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte(`[]`))
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"message":"Maintenance in progress","status":"unauthorized"}`))
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{
+		BaseURL:        server.URL,
+		Token:          "test-token",
+		RequestsPerSec: 10,
+	})
+	if err != nil {
+		t.Fatalf("Failed to create client: %v", err)
+	}
+
+	ctx := context.Background()
+	var result map[string]interface{}
+	err = client.PostJSON(ctx, "/api/v1/accounts/1/courses", map[string]string{"name": "test"}, &result)
+	if err == nil {
+		t.Fatal("expected error for soft error response, got nil")
+	}
+
+	if !IsSoftError(err) {
+		t.Errorf("expected SoftError, got %T: %v", err, err)
+	}
+}
+
+func TestClient_PutJSON_SoftError(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte(`[]`))
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"message":"Maintenance in progress","status":"unauthorized"}`))
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{
+		BaseURL:        server.URL,
+		Token:          "test-token",
+		RequestsPerSec: 10,
+	})
+	if err != nil {
+		t.Fatalf("Failed to create client: %v", err)
+	}
+
+	ctx := context.Background()
+	var result map[string]interface{}
+	err = client.PutJSON(ctx, "/api/v1/courses/123", map[string]string{"name": "test"}, &result)
+	if err == nil {
+		t.Fatal("expected error for soft error response, got nil")
+	}
+
+	if !IsSoftError(err) {
+		t.Errorf("expected SoftError, got %T: %v", err, err)
+	}
+}
+
+func TestClient_PostJSON_NilResult_SoftError(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte(`[]`))
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"message":"Maintenance in progress","status":"unauthorized"}`))
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{
+		BaseURL:        server.URL,
+		Token:          "test-token",
+		RequestsPerSec: 10,
+	})
+	if err != nil {
+		t.Fatalf("Failed to create client: %v", err)
+	}
+
+	ctx := context.Background()
+	// Pass nil result — the P2 fix ensures we still check for soft errors
+	err = client.PostJSON(ctx, "/api/v1/modules/1/items/2/mark_read", nil, nil)
+	if err == nil {
+		t.Fatal("expected error for soft error response with nil result, got nil")
+	}
+
+	if !IsSoftError(err) {
+		t.Errorf("expected SoftError, got %T: %v", err, err)
+	}
+}
+
+func TestClient_PutJSON_NilResult_SoftError(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte(`[]`))
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"message":"Maintenance in progress","status":"unauthorized"}`))
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{
+		BaseURL:        server.URL,
+		Token:          "test-token",
+		RequestsPerSec: 10,
+	})
+	if err != nil {
+		t.Fatalf("Failed to create client: %v", err)
+	}
+
+	ctx := context.Background()
+	err = client.PutJSON(ctx, "/api/v1/some/endpoint", nil, nil)
+	if err == nil {
+		t.Fatal("expected error for soft error response with nil result, got nil")
+	}
+
+	if !IsSoftError(err) {
+		t.Errorf("expected SoftError, got %T: %v", err, err)
+	}
+}
+
+func TestClient_GetAllPagesGeneric_SoftError(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte(`[]`))
+			return
+		}
+		// Return soft error instead of array
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"message":"This environment is currently being updated.","status":"unauthorized"}`))
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{
+		BaseURL:        server.URL,
+		Token:          "test-token",
+		RequestsPerSec: 10,
+	})
+	if err != nil {
+		t.Fatalf("Failed to create client: %v", err)
+	}
+
+	ctx := context.Background()
+	_, err = GetAllPagesGeneric[Course](client, ctx, "/api/v1/courses")
+	if err == nil {
+		t.Fatal("expected error for soft error response in paginated request, got nil")
+	}
+
+	if !IsSoftError(err) {
+		t.Errorf("expected SoftError, got %T: %v", err, err)
+	}
+}
+
+func TestClient_GetAllPages_SoftError(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte(`[]`))
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"message":"This environment is currently being updated.","status":"unauthorized"}`))
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{
+		BaseURL:        server.URL,
+		Token:          "test-token",
+		RequestsPerSec: 10,
+	})
+	if err != nil {
+		t.Fatalf("Failed to create client: %v", err)
+	}
+
+	ctx := context.Background()
+	var courses []Course
+	err = client.GetAllPages(ctx, "/api/v1/courses", &courses)
+	if err == nil {
+		t.Fatal("expected error for soft error response in paginated request, got nil")
+	}
+
+	if !IsSoftError(err) {
+		t.Errorf("expected SoftError, got %T: %v", err, err)
+	}
+}
+
 // BenchmarkGetAllPages_Reflection benchmarks the old reflection-based GetAllPages method
 func BenchmarkGetAllPages_Reflection(b *testing.B) {
 	// Create test server with paginated data

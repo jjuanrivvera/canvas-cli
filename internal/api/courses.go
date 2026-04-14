@@ -205,6 +205,10 @@ func (s *CoursesService) Create(ctx context.Context, params *CreateCourseParams)
 		return nil, err
 	}
 
+	if course.ID == 0 {
+		return nil, fmt.Errorf("course creation failed: Canvas returned no course ID (possible API error or maintenance mode)")
+	}
+
 	return NormalizeCourse(&course), nil
 }
 
@@ -285,6 +289,10 @@ func (s *CoursesService) Update(ctx context.Context, courseID int64, params *Upd
 	var course Course
 	if err := s.client.PutJSON(ctx, path, body, &course); err != nil {
 		return nil, err
+	}
+
+	if course.ID == 0 {
+		return nil, fmt.Errorf("course update failed: Canvas returned no course ID (possible API error or maintenance mode)")
 	}
 
 	return NormalizeCourse(&course), nil
