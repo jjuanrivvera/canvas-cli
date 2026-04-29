@@ -10,6 +10,7 @@ func TestNewHighlighter(t *testing.T) {
 
 	if h == nil {
 		t.Fatal("expected non-nil highlighter")
+		return
 	}
 
 	if !h.enabled {

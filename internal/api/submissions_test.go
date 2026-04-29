@@ -362,6 +362,7 @@ func TestNewSubmissionsService(t *testing.T) {
 
 	if service == nil {
 		t.Fatal("NewSubmissionsService returned nil")
+		return
 	}
 	if service.client != client {
 		t.Error("NewSubmissionsService did not set client correctly")
@@ -1037,6 +1038,7 @@ func TestSubmissionsService_DeleteComment(t *testing.T) {
 
 	if comment == nil {
 		t.Fatal("expected comment to be returned")
+		return
 	}
 
 	if comment.ID != 999 {

@@ -120,6 +120,7 @@ func TestJWKSet_GetKey(t *testing.T) {
 
 	if pubKey == nil {
 		t.Fatal("Expected public key, got nil")
+		return
 	}
 
 	// Verify it's the same key

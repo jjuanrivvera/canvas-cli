@@ -606,6 +606,7 @@ func TestNewModulesService(t *testing.T) {
 	service := NewModulesService(client)
 	if service == nil {
 		t.Fatal("Expected non-nil service")
+		return
 	}
 	if service.client != client {
 		t.Error("Expected service client to match input client")

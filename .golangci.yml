@@ -50,12 +50,6 @@ issues:
     - path: _test\.go
       linters:
         - errcheck
-    # SA5011 in tests is frequently triggered by t.Fatal/t.FailNow control flow.
-    # Keep the check enabled for production code while reducing test noise.
-    - path: _test\.go
-      text: "SA5011"
-      linters:
-        - staticcheck
 
 output:
   formats:

@@ -297,6 +297,7 @@ func TestNewOAuthFlow(t *testing.T) {
 
 	if flow == nil {
 		t.Fatal("expected non-nil flow")
+		return
 	}
 
 	if flow.config.ClientID != "test-client-id" {
@@ -415,6 +416,7 @@ func TestFileTokenStore_Creation(t *testing.T) {
 	store := NewFileTokenStore(tempDir)
 	if store == nil {
 		t.Fatal("expected non-nil file store")
+		return
 	}
 	if store.configDir != tempDir {
 		t.Errorf("expected configDir '%s', got '%s'", tempDir, store.configDir)
@@ -426,6 +428,7 @@ func TestFallbackTokenStore_Creation(t *testing.T) {
 	store := NewFallbackTokenStore(tempDir)
 	if store == nil {
 		t.Fatal("expected non-nil fallback store")
+		return
 	}
 	if store.keyring == nil {
 		t.Error("expected keyring to be initialized")

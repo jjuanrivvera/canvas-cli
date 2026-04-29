@@ -493,6 +493,7 @@ func TestNewOutcomesService(t *testing.T) {
 	service := NewOutcomesService(client)
 	if service == nil {
 		t.Fatal("expected non-nil service")
+		return
 	}
 	if service.client != client {
 		t.Error("expected client to be set")

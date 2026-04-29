@@ -302,6 +302,7 @@ func TestNewCoursesService(t *testing.T) {
 
 	if service == nil {
 		t.Fatal("NewCoursesService returned nil")
+		return
 	}
 	if service.client != client {
 		t.Error("NewCoursesService did not set client correctly")

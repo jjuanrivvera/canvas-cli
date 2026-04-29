@@ -406,6 +406,7 @@ func TestNormalizeTerm(t *testing.T) {
 
 			if got == nil {
 				t.Fatal("NormalizeTerm() returned nil, want non-nil")
+				return
 			}
 
 			if got.ID != tt.want.ID {

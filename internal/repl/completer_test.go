@@ -50,6 +50,7 @@ func TestNewCompleter(t *testing.T) {
 
 	if completer == nil {
 		t.Fatal("expected non-nil completer")
+		return
 	}
 
 	if completer.rootCmd != rootCmd {

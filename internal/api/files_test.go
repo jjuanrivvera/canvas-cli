@@ -17,6 +17,7 @@ func TestNewFilesService(t *testing.T) {
 
 	if service == nil {
 		t.Fatal("NewFilesService returned nil")
+		return
 	}
 	if service.client != client {
 		t.Error("NewFilesService did not set client correctly")

@@ -13,6 +13,7 @@ func TestDefaultRetryPolicy(t *testing.T) {
 	policy := DefaultRetryPolicy()
 	if policy == nil {
 		t.Fatal("expected non-nil retry policy")
+		return
 	}
 
 	if policy.MaxRetries != 3 {

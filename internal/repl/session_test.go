@@ -10,6 +10,7 @@ func TestNewSession(t *testing.T) {
 
 	if session == nil {
 		t.Fatal("expected non-nil session")
+		return
 	}
 
 	if session.Variables == nil {

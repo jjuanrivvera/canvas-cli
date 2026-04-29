@@ -416,6 +416,7 @@ func TestNewRubricsService(t *testing.T) {
 	service := NewRubricsService(client)
 	if service == nil {
 		t.Fatal("expected non-nil service")
+		return
 	}
 	if service.client != client {
 		t.Error("expected client to be set")

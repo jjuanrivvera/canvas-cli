@@ -26,6 +26,7 @@ func TestNewCommandLogger(t *testing.T) {
 			logger := NewCommandLogger(tt.debug)
 			if logger == nil {
 				t.Fatal("NewCommandLogger() returned nil")
+				return
 			}
 			if logger.logger == nil {
 				t.Error("NewCommandLogger() logger field is nil")

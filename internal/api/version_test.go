@@ -162,6 +162,7 @@ func TestDetectCanvasVersion(t *testing.T) {
 
 	if version == nil {
 		t.Fatal("expected non-nil version")
+		return
 	}
 
 	if version.Major != 2024 {

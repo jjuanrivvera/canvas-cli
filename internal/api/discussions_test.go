@@ -476,6 +476,7 @@ func TestNewDiscussionsService(t *testing.T) {
 	service := NewDiscussionsService(client)
 	if service == nil {
 		t.Fatal("Expected non-nil service")
+		return
 	}
 	if service.client != client {
 		t.Error("Expected service client to match input client")
@@ -487,6 +488,7 @@ func TestNewAnnouncementsService(t *testing.T) {
 	service := NewAnnouncementsService(client)
 	if service == nil {
 		t.Fatal("Expected non-nil service")
+		return
 	}
 	if service.client != client {
 		t.Error("Expected service client to match input client")

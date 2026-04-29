@@ -23,6 +23,7 @@ func TestNew(t *testing.T) {
 	doctor := New(cfg, nil)
 	if doctor == nil {
 		t.Fatal("expected non-nil doctor")
+		return
 	}
 
 	if doctor.config != cfg {
@@ -432,6 +433,7 @@ func TestRun_AllChecks(t *testing.T) {
 
 	if report == nil {
 		t.Fatal("expected non-nil report")
+		return
 	}
 
 	// Should have 7 checks

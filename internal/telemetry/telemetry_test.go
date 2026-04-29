@@ -25,6 +25,7 @@ func TestNew(t *testing.T) {
 
 	if client == nil {
 		t.Fatal("expected non-nil client")
+		return
 	}
 
 	if !client.enabled {

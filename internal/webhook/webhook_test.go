@@ -24,6 +24,7 @@ func TestNew(t *testing.T) {
 
 	if listener == nil {
 		t.Fatal("expected non-nil listener")
+		return
 	}
 
 	if listener.addr != "localhost:8080" {

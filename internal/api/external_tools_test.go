@@ -279,6 +279,7 @@ func TestExternalToolsService_DeleteFromCourse(t *testing.T) {
 
 	if tool == nil {
 		t.Fatal("Expected tool, got nil")
+		return
 	}
 
 	if tool.ID != 456 {

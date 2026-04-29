@@ -282,6 +282,7 @@ func TestLoad_NewConfig(t *testing.T) {
 	// Should return default config
 	if cfg == nil {
 		t.Fatal("expected non-nil config")
+		return
 	}
 
 	if cfg.Instances == nil {

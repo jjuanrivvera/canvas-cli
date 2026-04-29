@@ -54,6 +54,7 @@ func TestParsePaginationLinks(t *testing.T) {
 			links := ParsePaginationLinks(resp)
 			if links == nil {
 				t.Fatal("expected non-nil pagination links")
+				return
 			}
 
 			if links.Next != tt.wantNext {

@@ -292,6 +292,7 @@ func TestNewQuizQuestionsService(t *testing.T) {
 	service := NewQuizQuestionsService(client)
 	if service == nil {
 		t.Fatal("expected non-nil service")
+		return
 	}
 	if service.client != client {
 		t.Error("expected client to be set")

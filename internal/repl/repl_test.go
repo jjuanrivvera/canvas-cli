@@ -15,6 +15,7 @@ func TestNew(t *testing.T) {
 
 	if repl == nil {
 		t.Fatal("expected non-nil REPL")
+		return
 	}
 
 	if repl.rootCmd != rootCmd {
