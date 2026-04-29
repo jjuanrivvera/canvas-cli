@@ -111,6 +111,7 @@ Workspace setup (recommended per project):
 
 ```bash
 canvas mcp cursor enable --workspace
+canvas mcp cursor list --workspace
 ```
 
 This writes `.cursor/mcp.json` in your project.
@@ -127,6 +128,7 @@ Workspace setup:
 
 ```bash
 canvas mcp vscode enable --workspace
+canvas mcp vscode list --workspace
 ```
 
 This writes `.vscode/mcp.json` in your project.
