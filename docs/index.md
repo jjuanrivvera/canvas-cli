@@ -4,7 +4,7 @@
 
 **A powerful command-line interface for Canvas LMS**
 
-[![Go Version](https://img.shields.io/badge/Go-1.21+-00ADD8?style=flat&logo=go)](https://go.dev/)
+[![Go Version](https://img.shields.io/badge/Go-1.25+-00ADD8?style=flat&logo=go)](https://go.dev/)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Release](https://img.shields.io/github/v/release/jjuanrivvera/canvas-cli)](https://github.com/jjuanrivvera/canvas-cli/releases)
 
@@ -18,6 +18,7 @@
 - **Course Synchronization** - Sync content between Canvas instances
 - **Intelligent Caching** - Fast responses with automatic cache invalidation
 - **Secure Authentication** - OAuth 2.0 with PKCE flow
+- **MCP Integration** - Use Canvas CLI as an MCP server for AI coding assistants
 
 ## Quick Start
 

@@ -51,6 +51,6 @@ Canvas CLI is a command-line interface for interacting with Canvas LMS. It provi
 
 ## Requirements
 
-- **Go 1.21+** (if installing from source)
+- **Go 1.25+** (if installing from source)
 - **Canvas LMS** account with API access
 - **API Token** or OAuth credentials

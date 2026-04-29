@@ -395,6 +395,7 @@ canvas auth login --instance https://canvas.instructure.com --verbose
 ## Next Steps
 
 After authentication:
+- [MCP Integration](../user-guide/mcp.md) - Use the same auth setup through MCP clients
 - [Command Reference](../commands/index.md) - Learn available commands
 - [Tutorials](../tutorials/index.md) - See common use cases
 - Test your setup: `canvas courses list`

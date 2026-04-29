@@ -6,7 +6,7 @@ This guide covers all the ways to install Canvas CLI on your system.
 
 - **Operating Systems**: macOS, Linux, Windows
 - **Architecture**: amd64, arm64
-- **Go Version** (if building from source): 1.21 or later
+- **Go Version** (if building from source): 1.25 or later
 
 ## Installation Methods
 
@@ -43,6 +43,10 @@ go install github.com/jjuanrivvera/canvas-cli/cmd/canvas@v1.0.0
 # Verify installation
 canvas version
 ```
+
+!!! note "MCP + go install"
+    MCP support (`canvas mcp ...`) requires Go `1.25+` when installing with `go install`.
+    Homebrew and release binaries are not affected by local Go version.
 
 ### Method 3: Download Binary (All Platforms)
 

@@ -138,6 +138,10 @@ Sensitive flags (`--show-token`, `--config`) are automatically excluded from MCP
 
 > **Note for `go install` users**: MCP support requires Go 1.25+ due to the [MCP Go SDK](https://github.com/modelcontextprotocol/go-sdk) dependency. Homebrew and binary downloads are not affected by this requirement.
 
+For full setup (Claude Desktop, Claude Code CLI, Cursor, VS Code, OpenCode, Codex), auth precedence, and troubleshooting, see:
+
+- [MCP Integration Guide](https://jjuanrivvera.github.io/canvas-cli/user-guide/mcp/)
+
 ## Contributing
 
 We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.

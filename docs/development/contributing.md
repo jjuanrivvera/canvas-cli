@@ -6,7 +6,7 @@ Thank you for your interest in contributing to Canvas CLI! This document provide
 
 ### Prerequisites
 
-- Go 1.21 or later
+- Go 1.25 or later
 - Git
 - Make (optional, but recommended)
 

@@ -170,7 +170,7 @@ graph LR
 
 | Component | Technology |
 |-----------|------------|
-| Language | Go 1.21+ |
+| Language | Go 1.25+ |
 | CLI Framework | [Cobra](https://github.com/spf13/cobra) |
 | Configuration | [Viper](https://github.com/spf13/viper) |
 | OAuth | golang.org/x/oauth2 |

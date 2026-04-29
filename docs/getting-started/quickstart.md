@@ -98,5 +98,6 @@ Canvas CLI supports multiple output formats:
 ## Next Steps
 
 - [User Guide](../user-guide/index.md) - Learn more about configuration and features
+- [MCP Integration](../user-guide/mcp.md) - Connect Canvas CLI to AI clients via MCP
 - [Command Reference](../commands/index.md) - Complete command documentation
 - [Tutorials](../tutorials/index.md) - Step-by-step guides for common tasks

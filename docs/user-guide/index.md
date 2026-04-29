@@ -30,6 +30,14 @@ Learn how to configure and use Canvas CLI effectively.
 
     [:octicons-arrow-right-24: Shell Completion](shell-completion.md)
 
+-   :material-robot-outline:{ .lg .middle } **MCP Integration**
+
+    ---
+
+    Connect Canvas CLI as an MCP server for Claude, Cursor, VS Code, OpenCode, and Codex
+
+    [:octicons-arrow-right-24: MCP Guide](mcp.md)
+
 -   :material-link-variant:{ .lg .middle } **Command Aliases**
 
     ---

@@ -6,7 +6,7 @@ Resources for contributing to Canvas CLI development.
 
 Canvas CLI is built with:
 
-- **Go 1.21+** - Primary language
+- **Go 1.25+** - Primary language
 - **Cobra** - CLI framework
 - **Viper** - Configuration management
 
@@ -36,7 +36,7 @@ Canvas CLI is built with:
 
 ### Prerequisites
 
-- Go 1.21 or later
+- Go 1.25 or later
 - Git
 - Make (optional but recommended)
 
