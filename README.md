@@ -3,10 +3,12 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/jjuanrivvera/canvas-cli/actions/workflows/ci.yml"><img src="https://github.com/jjuanrivvera/canvas-cli/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="https://go.dev/"><img src="https://img.shields.io/badge/Go-1.25+-00ADD8?style=flat&logo=go" alt="Go Version"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License"></a>
   <a href="https://github.com/jjuanrivvera/canvas-cli/releases"><img src="https://img.shields.io/github/v/release/jjuanrivvera/canvas-cli" alt="Release"></a>
   <a href="https://goreportcard.com/report/github.com/jjuanrivvera/canvas-cli"><img src="https://goreportcard.com/badge/github.com/jjuanrivvera/canvas-cli" alt="Go Report Card"></a>
+  <a href="https://pkg.go.dev/github.com/jjuanrivvera/canvas-cli"><img src="https://pkg.go.dev/badge/github.com/jjuanrivvera/canvas-cli.svg" alt="Go Reference"></a>
 </p>
 
 <p align="center">
