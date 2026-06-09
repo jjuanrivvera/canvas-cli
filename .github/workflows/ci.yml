@@ -110,6 +110,8 @@ jobs:
         uses: codecov/codecov-action@v4
         continue-on-error: true
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: jjuanrivvera/canvas-cli
           files: ./coverage.out
           fail_ci_if_error: false
 
