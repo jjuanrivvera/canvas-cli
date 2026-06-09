@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -544,6 +545,7 @@ func TestFallbackTokenStore_Save_KeyringSucceeds(t *testing.T) {
 	fb := &FallbackTokenStore{
 		keyring: NewKeyringTokenStore(), // real keyring
 		file:    NewFileTokenStore(dir),
+		logger:  slog.Default(), // required: Save() logs on keyring fallback (e.g. headless Linux)
 	}
 	token := &oauth2.Token{AccessToken: "ks-test", Expiry: time.Now().Add(time.Hour)}
 	// If keyring is available, Save succeeds via keyring.  If not, it falls back to file.

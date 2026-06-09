@@ -15,30 +15,35 @@ func prependAPI(args []string) []string {
 	return append([]string{"api"}, args...)
 }
 
-// resetAPICmdFlags restores the global api command flag variables to their zero values
-// so tests that set --raw / --show-headers / etc. don't bleed state into later tests.
-func resetAPICmdFlags(t *testing.T) {
+// runAPICmdTest zeroes the global api flag vars, then runs the case through the
+// shared rootCmd. The api command reads package-global flags, and reusing rootCmd
+// across executions leaves them dirty (bool flags stay set when not re-passed,
+// StringArray flags append). Zeroing per subtest guarantees each test sees only
+// its own flags, which is what makes these tests deterministic in CI.
+func runAPICmdTest(t *testing.T, tc cmdtest.CommandTestCase) {
 	t.Helper()
-	origRaw := apiRawOutput
-	origHeaders := apiShowHeaders
-	origPaginate := apiPaginate
-	origData := apiData
-	origDataFile := apiDataFile
-	origQuery := apiQuery
-	origAPIHeaders := apiHeaders
+
+	// Snapshot originals and restore them after the test (hygiene for any
+	// non-api test that might inspect these globals later).
+	origData, origDataFile := apiData, apiDataFile
+	origQuery, origHeaders := apiQuery, apiHeaders
+	origPaginate, origRaw, origShow := apiPaginate, apiRawOutput, apiShowHeaders
 	t.Cleanup(func() {
-		apiRawOutput = origRaw
-		apiShowHeaders = origHeaders
-		apiPaginate = origPaginate
-		apiData = origData
-		apiDataFile = origDataFile
-		apiQuery = origQuery
-		apiHeaders = origAPIHeaders
+		apiData, apiDataFile = origData, origDataFile
+		apiQuery, apiHeaders = origQuery, origHeaders
+		apiPaginate, apiRawOutput, apiShowHeaders = origPaginate, origRaw, origShow
 	})
+
+	// Zero everything so this test is unaffected by state left on rootCmd by a
+	// previous Execute().
+	apiData, apiDataFile = "", ""
+	apiQuery, apiHeaders = nil, nil
+	apiPaginate, apiRawOutput, apiShowHeaders = false, false, false
+
+	cmdtest.RunCommandTest(t, rootCmd, tc)
 }
 
 func TestAPICmd_GetRequest(t *testing.T) {
-	resetAPICmdFlags(t)
 	tests := []cmdtest.CommandTestCase{
 		{
 			Name: "GET request returns data",
@@ -58,13 +63,12 @@ func TestAPICmd_GetRequest(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.Name, func(t *testing.T) {
-			cmdtest.RunCommandTest(t, rootCmd, tc)
+			runAPICmdTest(t, tc)
 		})
 	}
 }
 
 func TestAPICmd_PostRequest(t *testing.T) {
-	resetAPICmdFlags(t)
 	tests := []cmdtest.CommandTestCase{
 		{
 			Name: "POST request with JSON body",
@@ -84,13 +88,12 @@ func TestAPICmd_PostRequest(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.Name, func(t *testing.T) {
-			cmdtest.RunCommandTest(t, rootCmd, tc)
+			runAPICmdTest(t, tc)
 		})
 	}
 }
 
 func TestAPICmd_InvalidMethod(t *testing.T) {
-	resetAPICmdFlags(t)
 	tests := []cmdtest.CommandTestCase{
 		{
 			Name:          "unsupported HTTP method",
@@ -102,49 +105,50 @@ func TestAPICmd_InvalidMethod(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.Name, func(t *testing.T) {
-			cmdtest.RunCommandTest(t, rootCmd, tc)
+			runAPICmdTest(t, tc)
 		})
 	}
 }
 
 func TestAPICmd_InvalidJSONBody(t *testing.T) {
-	resetAPICmdFlags(t)
 	tests := []cmdtest.CommandTestCase{
 		{
-			Name:          "invalid JSON in --data",
-			Args:          prependAPI([]string{"POST", "/api/v1/courses", "--data", `not-json`}),
-			MockResponses: map[string]cmdtest.MockResponse{},
-			ExpectError:   true,
+			Name: "invalid JSON in --data",
+			Args: prependAPI([]string{"POST", "/api/v1/courses", "--data", `not-json`}),
+			MockResponses: map[string]cmdtest.MockResponse{
+				"/api/v1/accounts": accountsMockResponse,
+			},
+			ExpectError: true,
 		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.Name, func(t *testing.T) {
-			cmdtest.RunCommandTest(t, rootCmd, tc)
+			runAPICmdTest(t, tc)
 		})
 	}
 }
 
 func TestAPICmd_BothDataFlags(t *testing.T) {
-	resetAPICmdFlags(t)
 	tests := []cmdtest.CommandTestCase{
 		{
-			Name:          "cannot use both --data and --data-file",
-			Args:          prependAPI([]string{"POST", "/api/v1/courses", "--data", `{}`, "--data-file", "some.json"}),
-			MockResponses: map[string]cmdtest.MockResponse{},
-			ExpectError:   true,
+			Name: "cannot use both --data and --data-file",
+			Args: prependAPI([]string{"POST", "/api/v1/courses", "--data", `{}`, "--data-file", "some.json"}),
+			MockResponses: map[string]cmdtest.MockResponse{
+				"/api/v1/accounts": accountsMockResponse,
+			},
+			ExpectError: true,
 		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.Name, func(t *testing.T) {
-			cmdtest.RunCommandTest(t, rootCmd, tc)
+			runAPICmdTest(t, tc)
 		})
 	}
 }
 
 func TestAPICmd_QueryParams(t *testing.T) {
-	resetAPICmdFlags(t)
 	tests := []cmdtest.CommandTestCase{
 		{
 			Name: "GET with query params",
@@ -156,22 +160,24 @@ func TestAPICmd_QueryParams(t *testing.T) {
 			ExpectError: false,
 		},
 		{
-			Name:          "invalid query param format",
-			Args:          prependAPI([]string{"GET", "/api/v1/courses", "-q", "badformat"}),
-			MockResponses: map[string]cmdtest.MockResponse{},
-			ExpectError:   true,
+			Name: "invalid query param format",
+			Args: prependAPI([]string{"GET", "/api/v1/courses", "-q", "badformat"}),
+			MockResponses: map[string]cmdtest.MockResponse{
+				"/api/v1/accounts": accountsMockResponse,
+				"/api/v1/courses":  cmdtest.NewMockResponse(`[]`),
+			},
+			ExpectError: true,
 		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.Name, func(t *testing.T) {
-			cmdtest.RunCommandTest(t, rootCmd, tc)
+			runAPICmdTest(t, tc)
 		})
 	}
 }
 
 func TestAPICmd_CustomHeaders(t *testing.T) {
-	resetAPICmdFlags(t)
 	tests := []cmdtest.CommandTestCase{
 		{
 			Name: "GET with custom header",
@@ -183,22 +189,24 @@ func TestAPICmd_CustomHeaders(t *testing.T) {
 			ExpectError: false,
 		},
 		{
-			Name:          "invalid header format",
-			Args:          prependAPI([]string{"GET", "/api/v1/courses", "-H", "badheader"}),
-			MockResponses: map[string]cmdtest.MockResponse{},
-			ExpectError:   true,
+			Name: "invalid header format",
+			Args: prependAPI([]string{"GET", "/api/v1/courses", "-H", "badheader"}),
+			MockResponses: map[string]cmdtest.MockResponse{
+				"/api/v1/accounts": accountsMockResponse,
+				"/api/v1/courses":  cmdtest.NewMockResponse(`[]`),
+			},
+			ExpectError: true,
 		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.Name, func(t *testing.T) {
-			cmdtest.RunCommandTest(t, rootCmd, tc)
+			runAPICmdTest(t, tc)
 		})
 	}
 }
 
 func TestAPICmd_RawOutput(t *testing.T) {
-	resetAPICmdFlags(t)
 	tests := []cmdtest.CommandTestCase{
 		{
 			Name: "GET with raw output flag",
@@ -218,13 +226,12 @@ func TestAPICmd_RawOutput(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.Name, func(t *testing.T) {
-			cmdtest.RunCommandTest(t, rootCmd, tc)
+			runAPICmdTest(t, tc)
 		})
 	}
 }
 
 func TestAPICmd_ShowHeaders(t *testing.T) {
-	resetAPICmdFlags(t)
 	tests := []cmdtest.CommandTestCase{
 		{
 			Name: "GET with show-headers flag",
@@ -239,13 +246,12 @@ func TestAPICmd_ShowHeaders(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.Name, func(t *testing.T) {
-			cmdtest.RunCommandTest(t, rootCmd, tc)
+			runAPICmdTest(t, tc)
 		})
 	}
 }
 
 func TestAPICmd_DeleteRequest(t *testing.T) {
-	resetAPICmdFlags(t)
 	tests := []cmdtest.CommandTestCase{
 		{
 			Name: "DELETE request",
@@ -260,7 +266,7 @@ func TestAPICmd_DeleteRequest(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.Name, func(t *testing.T) {
-			cmdtest.RunCommandTest(t, rootCmd, tc)
+			runAPICmdTest(t, tc)
 		})
 	}
 }
