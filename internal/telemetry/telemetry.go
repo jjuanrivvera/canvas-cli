@@ -22,6 +22,7 @@ type Client struct {
 	mu        sync.Mutex
 	flushChan chan struct{}
 	stopChan  chan struct{}
+	done      chan struct{} // closed by flushWorker when it has exited
 	dataDir   string
 	version   string
 	anonymous bool
@@ -92,6 +93,7 @@ func New(cfg *Config) (*Client, error) {
 		events:    make([]Event, 0),
 		flushChan: make(chan struct{}, 1),
 		stopChan:  make(chan struct{}),
+		done:      make(chan struct{}),
 		dataDir:   dataDir,
 		version:   cfg.Version,
 		anonymous: cfg.Anonymous,
@@ -260,6 +262,7 @@ func (c *Client) Flush() error {
 
 // flushWorker periodically flushes events
 func (c *Client) flushWorker() {
+	defer close(c.done) // signal Close() that the final flush is done and no file handle remains
 	ticker := time.NewTicker(5 * time.Minute)
 	defer ticker.Stop()
 
@@ -283,7 +286,10 @@ func (c *Client) Close() error {
 	}
 
 	close(c.stopChan)
-	return c.Flush()
+	// Wait for flushWorker to perform its final flush and release the data file.
+	// On Windows an open handle would block the caller's temp-dir cleanup.
+	<-c.done
+	return nil
 }
 
 // IsEnabled returns whether telemetry is enabled

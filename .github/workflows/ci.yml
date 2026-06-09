@@ -92,7 +92,10 @@ jobs:
         shell: bash
         env:
           CANVAS_CLI_MACHINE_ID: test-machine-id-${{ github.run_id }}
-        run: go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
+        # -timeout 20m: the commands package has a large test suite and the
+        # race detector is ~3x slower on the Windows runner, exceeding the 10m
+        # default there.
+        run: go test -v -race -timeout 20m -coverprofile=coverage.out -covermode=atomic ./...
 
       - name: Upload coverage
         if: matrix.os == 'ubuntu-latest' && matrix.go-version == '1.25'
