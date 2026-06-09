@@ -327,11 +327,18 @@ func TestOAuthFlow_startOOBFlow_EmptyCode(t *testing.T) {
 }
 
 func TestOpenBrowser_Coverage(t *testing.T) {
-	// Test openBrowser with a fake URL
-	// This is best-effort and won't actually open a browser
-	// Just ensure it doesn't panic
+	// Stub the launcher so the test never actually opens a browser window.
+	orig := browserOpener
+	defer func() { browserOpener = orig }()
+
+	var gotURL string
+	browserOpener = func(url string) { gotURL = url }
+
 	openBrowser("https://example.com")
-	// If we get here without panic, test passes
+
+	if gotURL != "https://example.com" {
+		t.Errorf("openBrowser passed %q, want %q", gotURL, "https://example.com")
+	}
 }
 
 func TestGenerateSecureState(t *testing.T) {
