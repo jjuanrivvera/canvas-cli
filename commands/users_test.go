@@ -120,3 +120,148 @@ func TestUsersMeCmd(t *testing.T) {
 		})
 	}
 }
+
+func TestUsersSearchCmd(t *testing.T) {
+	tests := []cmdtest.CommandTestCase{
+		{
+			Name: "search users successfully",
+			Args: []string{"john"},
+			MockResponses: map[string]cmdtest.MockResponse{
+				"/api/v1/search/recipients": cmdtest.NewMockResponse(`[
+					{
+						"id": 5,
+						"name": "John Doe",
+						"email": "john@example.com",
+						"login_id": "john"
+					}
+				]`),
+			},
+			ExpectError: false,
+			ValidateOutput: func(t *testing.T, output string) {
+				if !strings.Contains(output, "John Doe") {
+					t.Error("Expected 'John Doe' in output")
+				}
+			},
+		},
+		{
+			Name:        "search users - missing search term",
+			Args:        []string{},
+			ExpectError: true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.Name, func(t *testing.T) {
+			cmd := newUsersSearchCmd()
+			cmdtest.RunCommandTest(t, cmd, tc)
+		})
+	}
+}
+
+func TestUsersCreateCmd(t *testing.T) {
+	tests := []cmdtest.CommandTestCase{
+		{
+			Name: "create user successfully",
+			Args: []string{"--account-id", "1", "--name", "New User", "--email", "new@example.com"},
+			MockResponses: map[string]cmdtest.MockResponse{
+				"/api/v1/accounts/1/users": cmdtest.NewMockResponse(`{
+					"id": 200,
+					"name": "New User",
+					"email": "new@example.com",
+					"login_id": "new@example.com"
+				}`),
+			},
+			ExpectError: false,
+			ValidateOutput: func(t *testing.T, output string) {
+				if !strings.Contains(output, "New User") {
+					t.Error("Expected 'New User' in output")
+				}
+			},
+		},
+		{
+			Name:        "create user - missing account ID",
+			Args:        []string{"--name", "New User"},
+			ExpectError: true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.Name, func(t *testing.T) {
+			cmd := newUsersCreateCmd()
+			cmdtest.RunCommandTest(t, cmd, tc)
+		})
+	}
+}
+
+func TestUsersUpdateCmd(t *testing.T) {
+	tests := []cmdtest.CommandTestCase{
+		{
+			Name: "update user successfully",
+			Args: []string{"10", "--name", "Updated Name"},
+			MockResponses: map[string]cmdtest.MockResponse{
+				"/api/v1/users/10": cmdtest.NewMockResponse(`{
+					"id": 10,
+					"name": "Updated Name",
+					"email": "user@example.com"
+				}`),
+			},
+			ExpectError: false,
+			ValidateOutput: func(t *testing.T, output string) {
+				if !strings.Contains(output, "Updated Name") {
+					t.Error("Expected 'Updated Name' in output")
+				}
+			},
+		},
+		{
+			Name:        "update user - missing user ID",
+			Args:        []string{"--name", "Updated"},
+			ExpectError: true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.Name, func(t *testing.T) {
+			cmd := newUsersUpdateCmd()
+			cmdtest.RunCommandTest(t, cmd, tc)
+		})
+	}
+}
+
+func TestUsersListCmd_AccountContext(t *testing.T) {
+	tc := cmdtest.CommandTestCase{
+		Name: "list users by account",
+		Args: []string{"--account-id", "1"},
+		MockResponses: map[string]cmdtest.MockResponse{
+			"/api/v1/accounts/1/users": cmdtest.NewMockResponse(`[
+				{
+					"id": 1,
+					"name": "Account User",
+					"email": "user@example.com"
+				}
+			]`),
+		},
+		ExpectError: false,
+		ValidateOutput: func(t *testing.T, output string) {
+			if !strings.Contains(output, "Account User") {
+				t.Error("Expected 'Account User' in output")
+			}
+		},
+	}
+
+	cmd := newUsersListCmd()
+	cmdtest.RunCommandTest(t, cmd, tc)
+}
+
+func TestUsersGetCmd_APIError(t *testing.T) {
+	tc := cmdtest.CommandTestCase{
+		Name: "get user - API error",
+		Args: []string{"999"},
+		MockResponses: map[string]cmdtest.MockResponse{
+			"/api/v1/users/999": cmdtest.NewErrorResponse(404, "user not found"),
+		},
+		ExpectError: true,
+	}
+
+	cmd := newUsersGetCmd()
+	cmdtest.RunCommandTest(t, cmd, tc)
+}

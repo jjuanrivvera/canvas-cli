@@ -601,6 +601,246 @@ func TestModulesService_DeleteItem(t *testing.T) {
 	}
 }
 
+func TestModulesService_Relock(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			handleVersionDetection(w)
+			return
+		}
+		if r.URL.Path != "/api/v1/courses/1/modules/2/relock" {
+			t.Errorf("unexpected path: %s", r.URL.Path)
+		}
+		if r.Method != http.MethodPut {
+			t.Errorf("expected PUT, got %s", r.Method)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(Module{ID: 2, Name: "M1"})
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{BaseURL: server.URL, Token: "t", RequestsPerSec: 10})
+	if err != nil {
+		t.Fatalf("NewClient: %v", err)
+	}
+	svc := NewModulesService(client)
+	mod, err := svc.Relock(context.Background(), 1, 2)
+	if err != nil {
+		t.Fatalf("Relock: %v", err)
+	}
+	if mod.ID != 2 {
+		t.Errorf("expected ID 2, got %d", mod.ID)
+	}
+}
+
+func TestModulesService_UpdateItem(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			handleVersionDetection(w)
+			return
+		}
+		if r.URL.Path != "/api/v1/courses/1/modules/2/items/3" {
+			t.Errorf("unexpected path: %s", r.URL.Path)
+		}
+		if r.Method != http.MethodPut {
+			t.Errorf("expected PUT, got %s", r.Method)
+		}
+		var body map[string]interface{}
+		json.NewDecoder(r.Body).Decode(&body)
+		itemData, ok := body["module_item"].(map[string]interface{})
+		if !ok {
+			t.Fatalf("expected module_item in body")
+		}
+		if itemData["title"] != "Updated Item" {
+			t.Errorf("expected title 'Updated Item', got %v", itemData["title"])
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(ModuleItem{ID: 3, Title: "Updated Item"})
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{BaseURL: server.URL, Token: "t", RequestsPerSec: 10})
+	if err != nil {
+		t.Fatalf("NewClient: %v", err)
+	}
+	svc := NewModulesService(client)
+	title := "Updated Item"
+	published := true
+	pos := 1
+	indent := 0
+	extURL := "https://example.com"
+	newTab := false
+	moveID := int64(5)
+	params := &UpdateModuleItemParams{
+		Title:                 &title,
+		Published:             &published,
+		Position:              &pos,
+		Indent:                &indent,
+		ExternalURL:           &extURL,
+		NewTab:                &newTab,
+		MoveToModuleID:        &moveID,
+		CompletionRequirement: &CompletionRequirementParams{Type: "must_view"},
+	}
+	item, err := svc.UpdateItem(context.Background(), 1, 2, 3, params)
+	if err != nil {
+		t.Fatalf("UpdateItem: %v", err)
+	}
+	if item.Title != "Updated Item" {
+		t.Errorf("expected 'Updated Item', got %s", item.Title)
+	}
+}
+
+func TestModulesService_MarkItemDone(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			handleVersionDetection(w)
+			return
+		}
+		if r.URL.Path != "/api/v1/courses/1/modules/2/items/3/done" {
+			t.Errorf("unexpected path: %s", r.URL.Path)
+		}
+		if r.Method != http.MethodPut {
+			t.Errorf("expected PUT, got %s", r.Method)
+		}
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{BaseURL: server.URL, Token: "t", RequestsPerSec: 10})
+	if err != nil {
+		t.Fatalf("NewClient: %v", err)
+	}
+	svc := NewModulesService(client)
+	if err := svc.MarkItemDone(context.Background(), 1, 2, 3); err != nil {
+		t.Fatalf("MarkItemDone: %v", err)
+	}
+}
+
+func TestModulesService_MarkItemNotDone(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			handleVersionDetection(w)
+			return
+		}
+		if r.URL.Path != "/api/v1/courses/1/modules/2/items/3/done" {
+			t.Errorf("unexpected path: %s", r.URL.Path)
+		}
+		if r.Method != http.MethodDelete {
+			t.Errorf("expected DELETE, got %s", r.Method)
+		}
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{BaseURL: server.URL, Token: "t", RequestsPerSec: 10})
+	if err != nil {
+		t.Fatalf("NewClient: %v", err)
+	}
+	svc := NewModulesService(client)
+	if err := svc.MarkItemNotDone(context.Background(), 1, 2, 3); err != nil {
+		t.Fatalf("MarkItemNotDone: %v", err)
+	}
+}
+
+func TestModulesService_MarkItemRead(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			handleVersionDetection(w)
+			return
+		}
+		if r.URL.Path != "/api/v1/courses/1/modules/2/items/3/mark_read" {
+			t.Errorf("unexpected path: %s", r.URL.Path)
+		}
+		if r.Method != http.MethodPost {
+			t.Errorf("expected POST, got %s", r.Method)
+		}
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{BaseURL: server.URL, Token: "t", RequestsPerSec: 10})
+	if err != nil {
+		t.Fatalf("NewClient: %v", err)
+	}
+	svc := NewModulesService(client)
+	if err := svc.MarkItemRead(context.Background(), 1, 2, 3); err != nil {
+		t.Fatalf("MarkItemRead: %v", err)
+	}
+}
+
+func TestModulesService_GetItemSequence(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			handleVersionDetection(w)
+			return
+		}
+		if r.URL.Path != "/api/v1/courses/1/module_item_sequence" {
+			t.Errorf("unexpected path: %s", r.URL.Path)
+		}
+		if r.URL.Query().Get("asset_type") != "Assignment" {
+			t.Errorf("expected asset_type=Assignment, got %q", r.URL.Query().Get("asset_type"))
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(ModuleItemSequence{
+			Items:   []ModuleItemSequenceNode{},
+			Modules: []ModuleReference{{ID: 2, Name: "Week 1"}},
+		})
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{BaseURL: server.URL, Token: "t", RequestsPerSec: 10})
+	if err != nil {
+		t.Fatalf("NewClient: %v", err)
+	}
+	svc := NewModulesService(client)
+	seq, err := svc.GetItemSequence(context.Background(), 1, "Assignment", 10)
+	if err != nil {
+		t.Fatalf("GetItemSequence: %v", err)
+	}
+	if len(seq.Modules) != 1 {
+		t.Errorf("expected 1 module, got %d", len(seq.Modules))
+	}
+}
+
+func TestModulesService_ListItems_WithOptions(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			handleVersionDetection(w)
+			return
+		}
+		q := r.URL.Query()
+		if q.Get("search_term") != "quiz" {
+			t.Errorf("expected search_term=quiz, got %q", q.Get("search_term"))
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode([]ModuleItem{{ID: 5, Title: "Quiz Item"}})
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{BaseURL: server.URL, Token: "t", RequestsPerSec: 10})
+	if err != nil {
+		t.Fatalf("NewClient: %v", err)
+	}
+	svc := NewModulesService(client)
+	opts := &ListModuleItemsOptions{
+		Include:    []string{"content_details"},
+		SearchTerm: "quiz",
+		StudentID:  "42",
+		Page:       1,
+		PerPage:    10,
+	}
+	items, err := svc.ListItems(context.Background(), 1, 2, opts)
+	if err != nil {
+		t.Fatalf("ListItems: %v", err)
+	}
+	if len(items) != 1 {
+		t.Errorf("expected 1 item, got %d", len(items))
+	}
+}
+
 func TestNewModulesService(t *testing.T) {
 	client := &Client{}
 	service := NewModulesService(client)

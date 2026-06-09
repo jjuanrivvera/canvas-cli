@@ -604,3 +604,359 @@ func TestFormatRecipients(t *testing.T) {
 		}
 	}
 }
+
+func TestConversationsService_RemoveMessages(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			handleVersionDetection(w)
+			return
+		}
+		if r.URL.Path != "/api/v1/conversations/123/remove_messages" {
+			t.Errorf("expected /api/v1/conversations/123/remove_messages, got %s", r.URL.Path)
+		}
+		if r.Method != http.MethodPost {
+			t.Errorf("expected POST, got %s", r.Method)
+		}
+		var body map[string]interface{}
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			t.Fatalf("decode body: %v", err)
+		}
+		remove, ok := body["remove"].([]interface{})
+		if !ok || len(remove) != 2 {
+			t.Errorf("expected 2 message IDs in remove, got %v", body["remove"])
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(Conversation{ID: 123, MessageCount: 3})
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{BaseURL: server.URL, Token: "test-token"})
+	if err != nil {
+		t.Fatalf("failed to create client: %v", err)
+	}
+	svc := NewConversationsService(client)
+	conv, err := svc.RemoveMessages(context.Background(), 123, []int64{10, 11})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if conv.ID != 123 {
+		t.Errorf("expected ID 123, got %d", conv.ID)
+	}
+}
+
+func TestConversationsService_MarkAllAsRead(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			handleVersionDetection(w)
+			return
+		}
+		if r.URL.Path != "/api/v1/conversations/mark_all_as_read" {
+			t.Errorf("expected mark_all_as_read path, got %s", r.URL.Path)
+		}
+		if r.Method != http.MethodPost {
+			t.Errorf("expected POST, got %s", r.Method)
+		}
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{BaseURL: server.URL, Token: "test-token"})
+	if err != nil {
+		t.Fatalf("failed to create client: %v", err)
+	}
+	svc := NewConversationsService(client)
+	if err := svc.MarkAllAsRead(context.Background()); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestConversationsService_Unarchive(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			handleVersionDetection(w)
+			return
+		}
+		if r.Method != http.MethodPut {
+			t.Errorf("expected PUT, got %s", r.Method)
+		}
+		var body map[string]interface{}
+		json.NewDecoder(r.Body).Decode(&body)
+		conv := body["conversation"].(map[string]interface{})
+		if conv["workflow_state"] != "read" {
+			t.Errorf("expected workflow_state read, got %v", conv["workflow_state"])
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(Conversation{ID: 7, WorkflowState: "read"})
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{BaseURL: server.URL, Token: "test-token"})
+	if err != nil {
+		t.Fatalf("failed to create client: %v", err)
+	}
+	svc := NewConversationsService(client)
+	conv, err := svc.Unarchive(context.Background(), 7)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if conv.WorkflowState != "read" {
+		t.Errorf("expected read, got %s", conv.WorkflowState)
+	}
+}
+
+func TestConversationsService_Unstar(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			handleVersionDetection(w)
+			return
+		}
+		var body map[string]interface{}
+		json.NewDecoder(r.Body).Decode(&body)
+		conv := body["conversation"].(map[string]interface{})
+		if conv["starred"] != false {
+			t.Errorf("expected starred false, got %v", conv["starred"])
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(Conversation{ID: 8, Starred: false})
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{BaseURL: server.URL, Token: "test-token"})
+	if err != nil {
+		t.Fatalf("failed to create client: %v", err)
+	}
+	svc := NewConversationsService(client)
+	conv, err := svc.Unstar(context.Background(), 8)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if conv.Starred {
+		t.Error("expected starred false")
+	}
+}
+
+func TestConversationsService_MarkAsRead(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			handleVersionDetection(w)
+			return
+		}
+		var body map[string]interface{}
+		json.NewDecoder(r.Body).Decode(&body)
+		conv := body["conversation"].(map[string]interface{})
+		if conv["workflow_state"] != "read" {
+			t.Errorf("expected workflow_state read, got %v", conv["workflow_state"])
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(Conversation{ID: 9, WorkflowState: "read"})
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{BaseURL: server.URL, Token: "test-token"})
+	if err != nil {
+		t.Fatalf("failed to create client: %v", err)
+	}
+	svc := NewConversationsService(client)
+	conv, err := svc.MarkAsRead(context.Background(), 9)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if conv.WorkflowState != "read" {
+		t.Errorf("expected read, got %s", conv.WorkflowState)
+	}
+}
+
+func TestConversationsService_SearchRecipients(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			handleVersionDetection(w)
+			return
+		}
+		if r.URL.Path != "/api/v1/search/recipients" {
+			t.Errorf("expected /api/v1/search/recipients, got %s", r.URL.Path)
+		}
+		q := r.URL.Query()
+		if q.Get("search") != "Alice" {
+			t.Errorf("expected search=Alice, got %q", q.Get("search"))
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode([]RecipientSearchResult{
+			{ID: "10", Name: "Alice Smith", Type: "user"},
+		})
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{BaseURL: server.URL, Token: "test-token"})
+	if err != nil {
+		t.Fatalf("failed to create client: %v", err)
+	}
+	svc := NewConversationsService(client)
+	results, err := svc.SearchRecipients(context.Background(), "Alice", "course_5", 10)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(results) != 1 {
+		t.Errorf("expected 1 result, got %d", len(results))
+	}
+	if results[0].Name != "Alice Smith" {
+		t.Errorf("expected Alice Smith, got %s", results[0].Name)
+	}
+}
+
+func TestConversationsService_Create_WithAllOptions(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			handleVersionDetection(w)
+			return
+		}
+		var body map[string]interface{}
+		json.NewDecoder(r.Body).Decode(&body)
+		if body["force_new"] != true {
+			t.Errorf("expected force_new=true")
+		}
+		if body["group_conversation"] != true {
+			t.Errorf("expected group_conversation=true")
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode([]Conversation{{ID: 99}})
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{BaseURL: server.URL, Token: "test-token"})
+	if err != nil {
+		t.Fatalf("failed to create client: %v", err)
+	}
+	svc := NewConversationsService(client)
+	params := &CreateConversationParams{
+		Recipients:        []string{"1", "2"},
+		Subject:           "Group Chat",
+		Body:              "Hello everyone",
+		ForceNew:          true,
+		GroupConversation: true,
+		AttachmentIDs:     []int64{5, 6},
+		MediaCommentID:    "m_abc",
+		MediaCommentType:  "video",
+		ContextCode:       "course_10",
+		Mode:              "sync",
+	}
+	convs, err := svc.Create(context.Background(), params)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(convs) != 1 {
+		t.Errorf("expected 1 conversation, got %d", len(convs))
+	}
+}
+
+func TestConversationsService_AddMessage_WithAllOptions(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			handleVersionDetection(w)
+			return
+		}
+		var body map[string]interface{}
+		json.NewDecoder(r.Body).Decode(&body)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(Conversation{ID: 50, MessageCount: 2})
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{BaseURL: server.URL, Token: "test-token"})
+	if err != nil {
+		t.Fatalf("failed to create client: %v", err)
+	}
+	svc := NewConversationsService(client)
+	params := &AddMessageParams{
+		Body:             "Reply with attachments",
+		AttachmentIDs:    []int64{1, 2},
+		MediaCommentID:   "m_xyz",
+		MediaCommentType: "audio",
+		IncludedMessages: []int64{100},
+		Recipients:       []string{"5"},
+	}
+	conv, err := svc.AddMessage(context.Background(), 50, params)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if conv.ID != 50 {
+		t.Errorf("expected ID 50, got %d", conv.ID)
+	}
+}
+
+func TestConversationsService_List_WithAllOptions(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			handleVersionDetection(w)
+			return
+		}
+		q := r.URL.Query()
+		if q.Get("filter_mode") != "and" {
+			t.Errorf("expected filter_mode=and, got %q", q.Get("filter_mode"))
+		}
+		if q.Get("interleave_submissions") != "true" {
+			t.Errorf("expected interleave_submissions=true")
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode([]Conversation{{ID: 1}})
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{BaseURL: server.URL, Token: "test-token"})
+	if err != nil {
+		t.Fatalf("failed to create client: %v", err)
+	}
+	svc := NewConversationsService(client)
+	opts := &ListConversationsOptions{
+		Scope:                 "inbox",
+		Filter:                []string{"course_1"},
+		FilterMode:            "and",
+		InterleaveSubmissions: true,
+		Include:               []string{"participant_avatars"},
+		Page:                  2,
+		PerPage:               10,
+	}
+	convs, err := svc.List(context.Background(), opts)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(convs) != 1 {
+		t.Errorf("expected 1, got %d", len(convs))
+	}
+}
+
+func TestConversationsService_Get_NoAutoMarkRead(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			handleVersionDetection(w)
+			return
+		}
+		if r.URL.Query().Get("auto_mark_as_read") != "false" {
+			t.Errorf("expected auto_mark_as_read=false")
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(Conversation{ID: 55})
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{BaseURL: server.URL, Token: "test-token"})
+	if err != nil {
+		t.Fatalf("failed to create client: %v", err)
+	}
+	svc := NewConversationsService(client)
+	conv, err := svc.Get(context.Background(), 55, false)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if conv.ID != 55 {
+		t.Errorf("expected 55, got %d", conv.ID)
+	}
+}

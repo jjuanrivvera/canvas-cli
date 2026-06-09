@@ -236,3 +236,66 @@ func TestSISImportsService_ListWithOptions(t *testing.T) {
 		t.Errorf("Expected 1 import, got %d", len(imports))
 	}
 }
+
+func TestSISImportsService_RestoreStates(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			handleVersionDetection(w)
+			return
+		}
+		if r.URL.Path != "/api/v1/accounts/1/sis_imports/42/restore_states" {
+			t.Errorf("unexpected path: %s", r.URL.Path)
+		}
+		if r.Method != http.MethodPut {
+			t.Errorf("expected PUT, got %s", r.Method)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(SISRestoreProgress{ID: 5, WorkflowState: "queued"})
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{BaseURL: server.URL, Token: "t", RequestsPerSec: 10})
+	if err != nil {
+		t.Fatalf("NewClient: %v", err)
+	}
+	svc := NewSISImportsService(client)
+	prog, err := svc.RestoreStates(context.Background(), 1, 42, false)
+	if err != nil {
+		t.Fatalf("RestoreStates: %v", err)
+	}
+	if prog.ID != 5 {
+		t.Errorf("expected ID 5, got %d", prog.ID)
+	}
+}
+
+func TestSISImportsService_RestoreStates_BatchMode(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			handleVersionDetection(w)
+			return
+		}
+		var body map[string]interface{}
+		json.NewDecoder(r.Body).Decode(&body)
+		if body["batch_mode"] != true {
+			t.Errorf("expected batch_mode=true, got %v", body["batch_mode"])
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(SISRestoreProgress{ID: 6, WorkflowState: "queued"})
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{BaseURL: server.URL, Token: "t", RequestsPerSec: 10})
+	if err != nil {
+		t.Fatalf("NewClient: %v", err)
+	}
+	svc := NewSISImportsService(client)
+	prog, err := svc.RestoreStates(context.Background(), 1, 42, true)
+	if err != nil {
+		t.Fatalf("RestoreStates batch: %v", err)
+	}
+	if prog.ID != 6 {
+		t.Errorf("expected ID 6, got %d", prog.ID)
+	}
+}

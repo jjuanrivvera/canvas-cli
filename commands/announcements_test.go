@@ -126,3 +126,99 @@ func TestAnnouncementsDeleteCmd(t *testing.T) {
 		})
 	}
 }
+
+func TestAnnouncementsGetCmd(t *testing.T) {
+	tests := []cmdtest.CommandTestCase{
+		{
+			Name: "get announcement successfully",
+			Args: []string{"--course-id", "1", "10"},
+			MockResponses: map[string]cmdtest.MockResponse{
+				"/api/v1/courses/1/discussion_topics/10": cmdtest.NewMockResponse(`{
+					"id": 10,
+					"title": "Class Update",
+					"message": "Important information",
+					"posted_at": "2024-01-01T00:00:00Z",
+					"is_announcement": true
+				}`),
+			},
+			ExpectError: false,
+			ValidateOutput: func(t *testing.T, output string) {
+				if !strings.Contains(output, "Class Update") {
+					t.Error("Expected 'Class Update' in output")
+				}
+			},
+		},
+		{
+			Name:        "get announcement - missing course ID",
+			Args:        []string{"10"},
+			ExpectError: true,
+		},
+		{
+			Name:        "get announcement - missing announcement ID",
+			Args:        []string{"--course-id", "1"},
+			ExpectError: true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.Name, func(t *testing.T) {
+			cmd := newAnnouncementsGetCmd()
+			cmdtest.RunCommandTest(t, cmd, tc)
+		})
+	}
+}
+
+func TestAnnouncementsUpdateCmd(t *testing.T) {
+	tests := []cmdtest.CommandTestCase{
+		{
+			Name: "update announcement title successfully",
+			Args: []string{"--course-id", "1", "10", "--title", "Updated Title"},
+			MockResponses: map[string]cmdtest.MockResponse{
+				"/api/v1/courses/1/discussion_topics/10": cmdtest.NewMockResponse(`{
+					"id": 10,
+					"title": "Updated Title",
+					"message": "Original message",
+					"posted_at": "2024-01-01T00:00:00Z",
+					"is_announcement": true
+				}`),
+			},
+			ExpectError: false,
+			ValidateOutput: func(t *testing.T, output string) {
+				if !strings.Contains(output, "Updated Title") {
+					t.Error("Expected 'Updated Title' in output")
+				}
+			},
+		},
+		{
+			Name:        "update announcement - missing announcement ID",
+			Args:        []string{"--course-id", "1", "--title", "Updated"},
+			ExpectError: true,
+		},
+		{
+			Name:        "update announcement - missing course ID",
+			Args:        []string{"10", "--title", "Updated"},
+			ExpectError: true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.Name, func(t *testing.T) {
+			cmd := newAnnouncementsUpdateCmd()
+			cmdtest.RunCommandTest(t, cmd, tc)
+		})
+	}
+}
+
+func TestAnnouncementsListCmd_APIError(t *testing.T) {
+	tc := cmdtest.CommandTestCase{
+		Name: "list announcements - API error",
+		Args: []string{"--course-id", "1"},
+		MockResponses: map[string]cmdtest.MockResponse{
+			"/api/v1/announcements": cmdtest.NewErrorResponse(500, "internal server error"),
+		},
+		ExpectError: true,
+	}
+
+	cmd := newAnnouncementsListCmd()
+	cmdtest.RunCommandTest(t, cmd, tc)
+}

@@ -494,3 +494,150 @@ func TestNewAnnouncementsService(t *testing.T) {
 		t.Error("Expected service client to match input client")
 	}
 }
+
+func TestDiscussionsService_List_WithOptions(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			handleVersionDetection(w)
+			return
+		}
+		q := r.URL.Query()
+		if q.Get("search_term") != "intro" {
+			t.Errorf("expected search_term=intro, got %q", q.Get("search_term"))
+		}
+		if q.Get("order_by") != "title" {
+			t.Errorf("expected order_by=title, got %q", q.Get("order_by"))
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode([]DiscussionTopic{{ID: 1, Title: "Intro"}})
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{BaseURL: server.URL, Token: "t", RequestsPerSec: 10})
+	if err != nil {
+		t.Fatalf("NewClient: %v", err)
+	}
+	svc := NewDiscussionsService(client)
+	opts := &ListDiscussionsOptions{
+		Include:           []string{"all_dates"},
+		OrderBy:           "title",
+		Scope:             "pinned",
+		OnlyAnnouncements: false,
+		FilterBy:          "all",
+		SearchTerm:        "intro",
+		Page:              1,
+		PerPage:           10,
+	}
+	topics, err := svc.List(context.Background(), 123, opts)
+	if err != nil {
+		t.Fatalf("List: %v", err)
+	}
+	if len(topics) != 1 {
+		t.Errorf("expected 1 topic, got %d", len(topics))
+	}
+}
+
+func TestDiscussionsService_MarkTopicRead(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			handleVersionDetection(w)
+			return
+		}
+		if r.URL.Path != "/api/v1/courses/10/discussion_topics/20/read" {
+			t.Errorf("unexpected path: %s", r.URL.Path)
+		}
+		if r.Method != http.MethodPut {
+			t.Errorf("expected PUT, got %s", r.Method)
+		}
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{BaseURL: server.URL, Token: "t", RequestsPerSec: 10})
+	if err != nil {
+		t.Fatalf("NewClient: %v", err)
+	}
+	svc := NewDiscussionsService(client)
+	if err := svc.MarkTopicRead(context.Background(), 10, 20); err != nil {
+		t.Fatalf("MarkTopicRead: %v", err)
+	}
+}
+
+func TestDiscussionsService_MarkTopicUnread(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			handleVersionDetection(w)
+			return
+		}
+		if r.URL.Path != "/api/v1/courses/10/discussion_topics/20/read" {
+			t.Errorf("unexpected path: %s", r.URL.Path)
+		}
+		if r.Method != http.MethodDelete {
+			t.Errorf("expected DELETE, got %s", r.Method)
+		}
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{BaseURL: server.URL, Token: "t", RequestsPerSec: 10})
+	if err != nil {
+		t.Fatalf("NewClient: %v", err)
+	}
+	svc := NewDiscussionsService(client)
+	if err := svc.MarkTopicUnread(context.Background(), 10, 20); err != nil {
+		t.Fatalf("MarkTopicUnread: %v", err)
+	}
+}
+
+func TestDiscussionsService_Subscribe(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			handleVersionDetection(w)
+			return
+		}
+		if r.URL.Path != "/api/v1/courses/10/discussion_topics/20/subscribed" {
+			t.Errorf("unexpected path: %s", r.URL.Path)
+		}
+		if r.Method != http.MethodPut {
+			t.Errorf("expected PUT, got %s", r.Method)
+		}
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{BaseURL: server.URL, Token: "t", RequestsPerSec: 10})
+	if err != nil {
+		t.Fatalf("NewClient: %v", err)
+	}
+	svc := NewDiscussionsService(client)
+	if err := svc.Subscribe(context.Background(), 10, 20); err != nil {
+		t.Fatalf("Subscribe: %v", err)
+	}
+}
+
+func TestDiscussionsService_Unsubscribe(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			handleVersionDetection(w)
+			return
+		}
+		if r.URL.Path != "/api/v1/courses/10/discussion_topics/20/subscribed" {
+			t.Errorf("unexpected path: %s", r.URL.Path)
+		}
+		if r.Method != http.MethodDelete {
+			t.Errorf("expected DELETE, got %s", r.Method)
+		}
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{BaseURL: server.URL, Token: "t", RequestsPerSec: 10})
+	if err != nil {
+		t.Fatalf("NewClient: %v", err)
+	}
+	svc := NewDiscussionsService(client)
+	if err := svc.Unsubscribe(context.Background(), 10, 20); err != nil {
+		t.Fatalf("Unsubscribe: %v", err)
+	}
+}

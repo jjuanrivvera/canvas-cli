@@ -169,3 +169,195 @@ func TestDiscussionsDeleteCmd(t *testing.T) {
 		})
 	}
 }
+
+func TestDiscussionsUpdateCmd(t *testing.T) {
+	tests := []cmdtest.CommandTestCase{
+		{
+			Name: "update discussion title successfully",
+			Args: []string{"--course-id", "1", "10", "--title", "Updated Discussion"},
+			MockResponses: map[string]cmdtest.MockResponse{
+				"/api/v1/courses/1": courseMock,
+				"/api/v1/courses/1/discussion_topics/10": cmdtest.NewMockResponse(`{
+					"id": 10,
+					"title": "Updated Discussion",
+					"message": "Original message"
+				}`),
+			},
+			ExpectError: false,
+			ValidateOutput: func(t *testing.T, output string) {
+				if !strings.Contains(output, "Updated Discussion") {
+					t.Error("Expected 'Updated Discussion' in output")
+				}
+			},
+		},
+		{
+			Name:        "update discussion - missing course ID",
+			Args:        []string{"10", "--title", "Updated"},
+			ExpectError: true,
+		},
+		{
+			Name:        "update discussion - missing topic ID",
+			Args:        []string{"--course-id", "1", "--title", "Updated"},
+			ExpectError: true,
+		},
+		{
+			Name: "update discussion - no changes provided (still succeeds)",
+			Args: []string{"--course-id", "1", "10"},
+			MockResponses: map[string]cmdtest.MockResponse{
+				"/api/v1/courses/1": courseMock,
+				"/api/v1/courses/1/discussion_topics/10": cmdtest.NewMockResponse(`{
+					"id": 10,
+					"title": "Unchanged Discussion",
+					"message": "Unchanged message"
+				}`),
+			},
+			ExpectError: false,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.Name, func(t *testing.T) {
+			cmd := newDiscussionsUpdateCmd()
+			cmdtest.RunCommandTest(t, cmd, tc)
+		})
+	}
+}
+
+func TestDiscussionsEntriesCmd(t *testing.T) {
+	tests := []cmdtest.CommandTestCase{
+		{
+			Name: "list discussion entries successfully",
+			Args: []string{"--course-id", "1", "10"},
+			MockResponses: map[string]cmdtest.MockResponse{
+				"/api/v1/courses/1": courseMock,
+				"/api/v1/courses/1/discussion_topics/10/entries": cmdtest.NewMockResponse(`[
+					{
+						"id": 1,
+						"message": "First entry",
+						"user_id": 100
+					}
+				]`),
+			},
+			ExpectError: false,
+			ValidateOutput: func(t *testing.T, output string) {
+				if !strings.Contains(output, "100") {
+					t.Error("Expected user_id '100' in output")
+				}
+			},
+		},
+		{
+			Name:        "list discussion entries - missing course ID",
+			Args:        []string{"10"},
+			ExpectError: true,
+		},
+		{
+			Name:        "list discussion entries - missing topic ID",
+			Args:        []string{"--course-id", "1"},
+			ExpectError: true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.Name, func(t *testing.T) {
+			cmd := newDiscussionsEntriesCmd()
+			cmdtest.RunCommandTest(t, cmd, tc)
+		})
+	}
+}
+
+func TestDiscussionsPostCmd(t *testing.T) {
+	tests := []cmdtest.CommandTestCase{
+		{
+			Name: "post discussion entry successfully",
+			Args: []string{"--course-id", "1", "10", "--message", "My reply"},
+			MockResponses: map[string]cmdtest.MockResponse{
+				"/api/v1/courses/1": courseMock,
+				"/api/v1/courses/1/discussion_topics/10/entries": cmdtest.NewMockResponse(`{
+					"id": 55,
+					"message": "My reply",
+					"user_id": 100
+				}`),
+			},
+			ExpectError: false,
+		},
+		{
+			Name:        "post discussion entry - missing course ID",
+			Args:        []string{"10", "--message", "Hi"},
+			ExpectError: true,
+		},
+		{
+			Name:        "post discussion entry - missing message",
+			Args:        []string{"--course-id", "1", "10"},
+			ExpectError: true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.Name, func(t *testing.T) {
+			cmd := newDiscussionsPostCmd()
+			cmdtest.RunCommandTest(t, cmd, tc)
+		})
+	}
+}
+
+func TestDiscussionsSubscribeCmd(t *testing.T) {
+	tests := []cmdtest.CommandTestCase{
+		{
+			Name: "subscribe to discussion successfully",
+			Args: []string{"--course-id", "1", "10"},
+			MockResponses: map[string]cmdtest.MockResponse{
+				"/api/v1/courses/1": courseMock,
+				"/api/v1/courses/1/discussion_topics/10/subscribed": cmdtest.NewMockResponse(`{}`),
+			},
+			ExpectError: false,
+		},
+		{
+			Name:        "subscribe - missing course ID",
+			Args:        []string{"10"},
+			ExpectError: true,
+		},
+		{
+			Name:        "subscribe - missing topic ID",
+			Args:        []string{"--course-id", "1"},
+			ExpectError: true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.Name, func(t *testing.T) {
+			cmd := newDiscussionsSubscribeCmd()
+			cmdtest.RunCommandTest(t, cmd, tc)
+		})
+	}
+}
+
+func TestDiscussionsUnsubscribeCmd(t *testing.T) {
+	tests := []cmdtest.CommandTestCase{
+		{
+			Name: "unsubscribe from discussion successfully",
+			Args: []string{"--course-id", "1", "10"},
+			MockResponses: map[string]cmdtest.MockResponse{
+				"/api/v1/courses/1": courseMock,
+				"/api/v1/courses/1/discussion_topics/10/subscribed": cmdtest.NewMockResponse(`{}`),
+			},
+			ExpectError: false,
+		},
+		{
+			Name:        "unsubscribe - missing course ID",
+			Args:        []string{"10"},
+			ExpectError: true,
+		},
+		{
+			Name:        "unsubscribe - missing topic ID",
+			Args:        []string{"--course-id", "1"},
+			ExpectError: true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.Name, func(t *testing.T) {
+			cmd := newDiscussionsUnsubscribeCmd()
+			cmdtest.RunCommandTest(t, cmd, tc)
+		})
+	}
+}

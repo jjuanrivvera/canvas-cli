@@ -370,6 +370,258 @@ func TestPagesService_ListRevisions(t *testing.T) {
 	}
 }
 
+func TestPagesService_UpdateFrontPage(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			handleVersionDetection(w)
+			return
+		}
+		if r.URL.Path != "/api/v1/courses/1/front_page" {
+			t.Errorf("unexpected path: %s", r.URL.Path)
+		}
+		if r.Method != http.MethodPut {
+			t.Errorf("expected PUT, got %s", r.Method)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(Page{Title: "Front Page", URL: "front-page"})
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{BaseURL: server.URL, Token: "t", RequestsPerSec: 10})
+	if err != nil {
+		t.Fatalf("NewClient: %v", err)
+	}
+	svc := NewPagesService(client)
+	title := "Front Page"
+	page, err := svc.UpdateFrontPage(context.Background(), 1, &UpdatePageParams{Title: &title})
+	if err != nil {
+		t.Fatalf("UpdateFrontPage: %v", err)
+	}
+	if page.Title != "Front Page" {
+		t.Errorf("expected 'Front Page', got %s", page.Title)
+	}
+}
+
+func TestPagesService_Duplicate(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			handleVersionDetection(w)
+			return
+		}
+		if r.URL.Path != "/api/v1/courses/1/pages/intro/duplicate" {
+			t.Errorf("unexpected path: %s", r.URL.Path)
+		}
+		if r.Method != http.MethodPost {
+			t.Errorf("expected POST, got %s", r.Method)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(Page{Title: "Copy of intro", URL: "copy-of-intro"})
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{BaseURL: server.URL, Token: "t", RequestsPerSec: 10})
+	if err != nil {
+		t.Fatalf("NewClient: %v", err)
+	}
+	svc := NewPagesService(client)
+	page, err := svc.Duplicate(context.Background(), 1, "intro")
+	if err != nil {
+		t.Fatalf("Duplicate: %v", err)
+	}
+	if page.URL != "copy-of-intro" {
+		t.Errorf("expected copy-of-intro, got %s", page.URL)
+	}
+}
+
+func TestPagesService_GetRevision(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			handleVersionDetection(w)
+			return
+		}
+		if r.URL.Path != "/api/v1/courses/1/pages/intro/revisions/3" {
+			t.Errorf("unexpected path: %s", r.URL.Path)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(PageRevision{RevisionID: 3})
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{BaseURL: server.URL, Token: "t", RequestsPerSec: 10})
+	if err != nil {
+		t.Fatalf("NewClient: %v", err)
+	}
+	svc := NewPagesService(client)
+	rev, err := svc.GetRevision(context.Background(), 1, "intro", 3, false)
+	if err != nil {
+		t.Fatalf("GetRevision: %v", err)
+	}
+	if rev.RevisionID != 3 {
+		t.Errorf("expected RevisionID 3, got %d", rev.RevisionID)
+	}
+}
+
+func TestPagesService_GetRevision_Summary(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			handleVersionDetection(w)
+			return
+		}
+		if r.URL.Query().Get("summary") != "1" {
+			t.Errorf("expected summary=1")
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(PageRevision{RevisionID: 4})
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{BaseURL: server.URL, Token: "t", RequestsPerSec: 10})
+	if err != nil {
+		t.Fatalf("NewClient: %v", err)
+	}
+	svc := NewPagesService(client)
+	rev, err := svc.GetRevision(context.Background(), 1, "intro", 4, true)
+	if err != nil {
+		t.Fatalf("GetRevision summary: %v", err)
+	}
+	if rev.RevisionID != 4 {
+		t.Errorf("expected RevisionID 4, got %d", rev.RevisionID)
+	}
+}
+
+func TestPagesService_GetLatestRevision(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			handleVersionDetection(w)
+			return
+		}
+		if r.URL.Path != "/api/v1/courses/1/pages/intro/revisions/latest" {
+			t.Errorf("unexpected path: %s", r.URL.Path)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(PageRevision{RevisionID: 10})
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{BaseURL: server.URL, Token: "t", RequestsPerSec: 10})
+	if err != nil {
+		t.Fatalf("NewClient: %v", err)
+	}
+	svc := NewPagesService(client)
+	rev, err := svc.GetLatestRevision(context.Background(), 1, "intro", false)
+	if err != nil {
+		t.Fatalf("GetLatestRevision: %v", err)
+	}
+	if rev.RevisionID != 10 {
+		t.Errorf("expected RevisionID 10, got %d", rev.RevisionID)
+	}
+}
+
+func TestPagesService_GetLatestRevision_Summary(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			handleVersionDetection(w)
+			return
+		}
+		if r.URL.Query().Get("summary") != "1" {
+			t.Errorf("expected summary=1")
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(PageRevision{RevisionID: 11})
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{BaseURL: server.URL, Token: "t", RequestsPerSec: 10})
+	if err != nil {
+		t.Fatalf("NewClient: %v", err)
+	}
+	svc := NewPagesService(client)
+	rev, err := svc.GetLatestRevision(context.Background(), 1, "intro", true)
+	if err != nil {
+		t.Fatalf("GetLatestRevision summary: %v", err)
+	}
+	if rev.RevisionID != 11 {
+		t.Errorf("expected RevisionID 11, got %d", rev.RevisionID)
+	}
+}
+
+func TestPagesService_RevertToRevision(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			handleVersionDetection(w)
+			return
+		}
+		if r.URL.Path != "/api/v1/courses/1/pages/intro/revisions/5" {
+			t.Errorf("unexpected path: %s", r.URL.Path)
+		}
+		if r.Method != http.MethodPost {
+			t.Errorf("expected POST, got %s", r.Method)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(PageRevision{RevisionID: 5})
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{BaseURL: server.URL, Token: "t", RequestsPerSec: 10})
+	if err != nil {
+		t.Fatalf("NewClient: %v", err)
+	}
+	svc := NewPagesService(client)
+	rev, err := svc.RevertToRevision(context.Background(), 1, "intro", 5)
+	if err != nil {
+		t.Fatalf("RevertToRevision: %v", err)
+	}
+	if rev.RevisionID != 5 {
+		t.Errorf("expected RevisionID 5, got %d", rev.RevisionID)
+	}
+}
+
+func TestPagesService_List_WithOptions(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			handleVersionDetection(w)
+			return
+		}
+		q := r.URL.Query()
+		if q.Get("sort") != "title" {
+			t.Errorf("expected sort=title, got %q", q.Get("sort"))
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode([]Page{{Title: "Page 1", URL: "page-1"}})
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{BaseURL: server.URL, Token: "t", RequestsPerSec: 10})
+	if err != nil {
+		t.Fatalf("NewClient: %v", err)
+	}
+	svc := NewPagesService(client)
+	published := true
+	opts := &ListPagesOptions{
+		Sort:       "title",
+		Order:      "asc",
+		SearchTerm: "page",
+		Published:  &published,
+		Page:       1,
+		PerPage:    10,
+	}
+	pages, err := svc.List(context.Background(), 1, opts)
+	if err != nil {
+		t.Fatalf("List with opts: %v", err)
+	}
+	if len(pages) != 1 {
+		t.Errorf("expected 1, got %d", len(pages))
+	}
+}
+
 func TestNewPagesService(t *testing.T) {
 	client := &Client{}
 	service := NewPagesService(client)

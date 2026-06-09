@@ -328,3 +328,207 @@ func TestGroupsCategoriesDeleteCmd(t *testing.T) {
 		})
 	}
 }
+
+func TestGroupsCategoriesUpdateCmd(t *testing.T) {
+	tests := []cmdtest.CommandTestCase{
+		{
+			Name: "update group category successfully",
+			Args: []string{"5", "--name", "Updated Category"},
+			MockResponses: map[string]cmdtest.MockResponse{
+				"/api/v1/group_categories/5": cmdtest.NewMockResponse(`{
+					"id": 5,
+					"name": "Updated Category"
+				}`),
+			},
+			ExpectError: false,
+			ValidateOutput: func(t *testing.T, output string) {
+				if !strings.Contains(output, "Updated Category") {
+					t.Error("Expected 'Updated Category' in output")
+				}
+			},
+		},
+		{
+			Name:        "update group category - missing category ID",
+			Args:        []string{"--name", "Updated"},
+			ExpectError: true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.Name, func(t *testing.T) {
+			cmd := newGroupsCategoriesUpdateCmd()
+			cmdtest.RunCommandTest(t, cmd, tc)
+		})
+	}
+}
+
+func TestGroupsCategoriesGroupsCmd(t *testing.T) {
+	tests := []cmdtest.CommandTestCase{
+		{
+			Name: "list groups in category successfully",
+			Args: []string{"5"},
+			MockResponses: map[string]cmdtest.MockResponse{
+				"/api/v1/group_categories/5/groups": cmdtest.NewMockResponse(`[
+					{
+						"id": 1,
+						"name": "Group A",
+						"group_category_id": 5
+					}
+				]`),
+			},
+			ExpectError: false,
+			ValidateOutput: func(t *testing.T, output string) {
+				if !strings.Contains(output, "Group A") {
+					t.Error("Expected 'Group A' in output")
+				}
+			},
+		},
+		{
+			Name:        "list groups in category - missing category ID",
+			Args:        []string{},
+			ExpectError: true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.Name, func(t *testing.T) {
+			cmd := newGroupsCategoriesGroupsCmd()
+			cmdtest.RunCommandTest(t, cmd, tc)
+		})
+	}
+}
+
+func TestGroupsMembersListCmd(t *testing.T) {
+	tests := []cmdtest.CommandTestCase{
+		{
+			Name: "list group members successfully",
+			Args: []string{"10"},
+			MockResponses: map[string]cmdtest.MockResponse{
+				"/api/v1/groups/10/users": cmdtest.NewMockResponse(`[
+					{
+						"id": 100,
+						"name": "Jane Member",
+						"login_id": "jane"
+					}
+				]`),
+			},
+			ExpectError: false,
+		},
+		{
+			Name:        "list group members - missing group ID",
+			Args:        []string{},
+			ExpectError: true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.Name, func(t *testing.T) {
+			cmd := newGroupsMembersListCmd()
+			cmdtest.RunCommandTest(t, cmd, tc)
+		})
+	}
+}
+
+func TestGroupsMembersAddCmd(t *testing.T) {
+	tests := []cmdtest.CommandTestCase{
+		{
+			Name: "add member to group successfully",
+			Args: []string{"10", "--user-id", "100"},
+			MockResponses: map[string]cmdtest.MockResponse{
+				"/api/v1/groups/10/memberships": cmdtest.NewMockResponse(`{
+					"id": 1,
+					"user_id": 100,
+					"group_id": 10,
+					"workflow_state": "accepted"
+				}`),
+			},
+			ExpectError: false,
+		},
+		{
+			Name:        "add member - missing group ID",
+			Args:        []string{"--user-id", "100"},
+			ExpectError: true,
+		},
+		{
+			Name:        "add member - missing user ID",
+			Args:        []string{"10"},
+			ExpectError: true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.Name, func(t *testing.T) {
+			cmd := newGroupsMembersAddCmd()
+			cmdtest.RunCommandTest(t, cmd, tc)
+		})
+	}
+}
+
+func TestGroupsMembersRemoveCmd(t *testing.T) {
+	tests := []cmdtest.CommandTestCase{
+		{
+			Name: "remove member from group successfully",
+			Args: []string{"10", "--membership-id", "55"},
+			MockResponses: map[string]cmdtest.MockResponse{
+				"/api/v1/groups/10/memberships/55": cmdtest.NewMockResponse(`{}`),
+			},
+			ExpectError: false,
+		},
+		{
+			Name:        "remove member - missing group ID",
+			Args:        []string{"--membership-id", "55"},
+			ExpectError: true,
+		},
+		{
+			Name:        "remove member - missing membership ID",
+			Args:        []string{"10"},
+			ExpectError: true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.Name, func(t *testing.T) {
+			cmd := newGroupsMembersRemoveCmd()
+			cmdtest.RunCommandTest(t, cmd, tc)
+		})
+	}
+}
+
+func TestGroupsListCmd_AccountContext(t *testing.T) {
+	tc := cmdtest.CommandTestCase{
+		Name: "list groups by account",
+		Args: []string{"--account-id", "1"},
+		MockResponses: map[string]cmdtest.MockResponse{
+			"/api/v1/accounts/1/groups": cmdtest.NewMockResponse(`[
+				{
+					"id": 5,
+					"name": "Account Group",
+					"members_count": 3
+				}
+			]`),
+		},
+		ExpectError: false,
+		ValidateOutput: func(t *testing.T, output string) {
+			if !strings.Contains(output, "Account Group") {
+				t.Error("Expected 'Account Group' in output")
+			}
+		},
+	}
+
+	cmd := newGroupsListCmd()
+	cmdtest.RunCommandTest(t, cmd, tc)
+}
+
+func TestGroupsGetCmd_APIError(t *testing.T) {
+	tc := cmdtest.CommandTestCase{
+		Name: "get group - API error",
+		Args: []string{"99"},
+		MockResponses: map[string]cmdtest.MockResponse{
+			"/api/v1/groups/99": cmdtest.NewErrorResponse(404, "group not found"),
+		},
+		ExpectError: true,
+	}
+
+	cmd := newGroupsGetCmd()
+	cmdtest.RunCommandTest(t, cmd, tc)
+}

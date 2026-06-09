@@ -297,25 +297,37 @@ func (f *OAuthFlow) ValidateToken(ctx context.Context, token *oauth2.Token) (boo
 	return resp.StatusCode == http.StatusOK, nil
 }
 
-// openBrowser attempts to open the URL in the default browser
-// This is a best-effort attempt - errors are silently ignored
-// The user can always use the printed URL if this fails
-func openBrowser(url string) {
-	var cmd *exec.Cmd
+// browserOpener launches a URL in the user's default browser. It is a package
+// variable so tests can replace it with a no-op; the real implementation shells
+// out to the OS and would pop open a browser window during `go test`.
+var browserOpener = func(url string) {
+	if cmd := browserCommand(runtime.GOOS, url); cmd != nil {
+		// Run in background, ignore errors (best effort)
+		_ = cmd.Start()
+	}
+}
 
-	switch runtime.GOOS {
+// openBrowser attempts to open the URL in the default browser.
+// This is a best-effort attempt - errors are silently ignored.
+// The user can always use the printed URL if this fails.
+func openBrowser(url string) {
+	browserOpener(url)
+}
+
+// browserCommand returns the OS-appropriate command to open url in the default
+// browser, or nil for an unsupported OS. It does not start the command, so it
+// is safe to call in tests without side effects.
+func browserCommand(goos, url string) *exec.Cmd {
+	switch goos {
 	case "darwin":
-		cmd = exec.Command("open", url)
+		return exec.Command("open", url)
 	case "linux":
 		// Try xdg-open first, fall back to sensible-browser
-		cmd = exec.Command("xdg-open", url)
+		return exec.Command("xdg-open", url)
 	case "windows":
-		cmd = exec.Command("rundll32", "url.dll,FileProtocolHandler", url)
+		return exec.Command("rundll32", "url.dll,FileProtocolHandler", url)
 	default:
 		// Unknown OS, silently fail
-		return
+		return nil
 	}
-
-	// Run in background, ignore errors (best effort)
-	_ = cmd.Start()
 }

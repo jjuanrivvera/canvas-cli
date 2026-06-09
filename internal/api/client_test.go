@@ -845,6 +845,188 @@ func TestClient_GetAllPages_SoftError(t *testing.T) {
 	}
 }
 
+func TestClient_HandleDryRun(t *testing.T) {
+	// Build a client pointing nowhere; dry-run mode intercepts before making real requests.
+	client, err := NewClient(ClientConfig{
+		BaseURL:        "https://canvas.example.com",
+		Token:          "test-token",
+		RequestsPerSec: 10,
+		DryRun:         true,
+	})
+	if err != nil {
+		t.Fatalf("NewClient: %v", err)
+	}
+
+	// A GET request in dry-run mode should succeed and return an empty array body.
+	var courses []Course
+	err = client.GetJSON(context.Background(), "/api/v1/courses", &courses)
+	if err != nil {
+		t.Fatalf("GetJSON in dry-run mode: %v", err)
+	}
+}
+
+func TestClient_HandleDryRun_WithShowToken(t *testing.T) {
+	client, err := NewClient(ClientConfig{
+		BaseURL:        "https://canvas.example.com",
+		Token:          "super-secret",
+		RequestsPerSec: 10,
+		DryRun:         true,
+		ShowToken:      true,
+	})
+	if err != nil {
+		t.Fatalf("NewClient: %v", err)
+	}
+
+	var courses []Course
+	err = client.GetJSON(context.Background(), "/api/v1/courses", &courses)
+	if err != nil {
+		t.Fatalf("GetJSON in dry-run with show-token: %v", err)
+	}
+}
+
+func TestClient_UpdateRateLimitFromHeaders(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			handleVersionDetection(w)
+			return
+		}
+		// Return X-Rate-Limit-Remaining header to drive adaptive rate limiting
+		w.Header().Set("X-Rate-Limit-Remaining", "100")
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`[]`))
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{BaseURL: server.URL, Token: "t", RequestsPerSec: 10})
+	if err != nil {
+		t.Fatalf("NewClient: %v", err)
+	}
+
+	var courses []Course
+	if err := client.GetAllPages(context.Background(), "/api/v1/courses", &courses); err != nil {
+		t.Fatalf("GetAllPages: %v", err)
+	}
+}
+
+func TestClient_UpdateRateLimitFromHeaders_LowRemaining(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			handleVersionDetection(w)
+			return
+		}
+		// Remaining below critical threshold should trigger rate slow-down
+		w.Header().Set("X-Rate-Limit-Remaining", "10")
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`[]`))
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{BaseURL: server.URL, Token: "t", RequestsPerSec: 10})
+	if err != nil {
+		t.Fatalf("NewClient: %v", err)
+	}
+
+	var courses []Course
+	if err := client.GetAllPages(context.Background(), "/api/v1/courses", &courses); err != nil {
+		t.Fatalf("GetAllPages: %v", err)
+	}
+}
+
+func TestClient_GetAllPages_NonPointerSlice(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			handleVersionDetection(w)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`[{"id":1}]`))
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{BaseURL: server.URL, Token: "t", RequestsPerSec: 10})
+	if err != nil {
+		t.Fatalf("NewClient: %v", err)
+	}
+
+	// Passing a non-pointer-to-slice should return an error
+	var notASlice string
+	err = client.GetAllPages(context.Background(), "/api/v1/courses", &notASlice)
+	if err == nil {
+		t.Error("expected error for non-slice result, got nil")
+	}
+}
+
+func TestClient_GetAllPages_WithMaxResults(t *testing.T) {
+	calls := 0
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			handleVersionDetection(w)
+			return
+		}
+		calls++
+		page := r.URL.Query().Get("page")
+		if page == "" || page == "1" {
+			w.Header().Set("Link", `<`+r.Host+r.URL.Path+`?page=2>; rel="next"`)
+			w.Header().Set("Content-Type", "application/json")
+			w.Write([]byte(`[{"id":1},{"id":2},{"id":3}]`))
+		} else {
+			w.Header().Set("Content-Type", "application/json")
+			w.Write([]byte(`[{"id":4},{"id":5}]`))
+		}
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{BaseURL: server.URL, Token: "t", RequestsPerSec: 10, MaxResults: 2})
+	if err != nil {
+		t.Fatalf("NewClient: %v", err)
+	}
+
+	var courses []Course
+	if err := client.GetAllPages(context.Background(), "/api/v1/courses", &courses); err != nil {
+		t.Fatalf("GetAllPages: %v", err)
+	}
+	if len(courses) != 2 {
+		t.Errorf("expected 2 results (MaxResults=2), got %d", len(courses))
+	}
+}
+
+func TestClient_NewClient_WithOptions(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`[]`))
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{
+		BaseURL:        server.URL,
+		Token:          "t",
+		RequestsPerSec: 5,
+		Logger:         slog.Default(),
+	})
+	if err != nil {
+		t.Fatalf("NewClient with options: %v", err)
+	}
+	if client == nil {
+		t.Fatal("expected non-nil client")
+	}
+}
+
+func TestClient_CacheStats_NilCache(t *testing.T) {
+	client, err := NewClient(ClientConfig{
+		BaseURL: "https://canvas.example.com",
+		Token:   "t",
+	})
+	if err != nil {
+		t.Fatalf("NewClient: %v", err)
+	}
+	// CacheStats should not panic with nil cache
+	stats := client.CacheStats()
+	_ = stats
+}
+
 // BenchmarkGetAllPages_Reflection benchmarks the old reflection-based GetAllPages method
 func BenchmarkGetAllPages_Reflection(b *testing.B) {
 	// Create test server with paginated data

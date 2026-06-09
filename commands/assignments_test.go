@@ -173,3 +173,59 @@ func TestAssignmentsDeleteCmd(t *testing.T) {
 		})
 	}
 }
+
+func TestAssignmentsUpdateCmd(t *testing.T) {
+	tests := []cmdtest.CommandTestCase{
+		{
+			Name: "update assignment name successfully",
+			Args: []string{"--course-id", "1", "10", "--name", "Updated Assignment"},
+			MockResponses: map[string]cmdtest.MockResponse{
+				"/api/v1/courses/1": courseMock,
+				"/api/v1/courses/1/assignments/10": cmdtest.NewMockResponse(`{
+					"id": 10,
+					"name": "Updated Assignment",
+					"points_possible": 100,
+					"published": true
+				}`),
+			},
+			ExpectError: false,
+			ValidateOutput: func(t *testing.T, output string) {
+				if !strings.Contains(output, "Updated Assignment") {
+					t.Error("Expected 'Updated Assignment' in output")
+				}
+			},
+		},
+		{
+			Name:        "update assignment - missing assignment ID",
+			Args:        []string{"--course-id", "1", "--name", "Updated"},
+			ExpectError: true,
+		},
+		{
+			Name:        "update assignment - missing course ID",
+			Args:        []string{"10", "--name", "Updated"},
+			ExpectError: true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.Name, func(t *testing.T) {
+			cmd := newAssignmentsUpdateCmd()
+			cmdtest.RunCommandTest(t, cmd, tc)
+		})
+	}
+}
+
+func TestAssignmentsListCmd_APIError(t *testing.T) {
+	tc := cmdtest.CommandTestCase{
+		Name: "list assignments - API error",
+		Args: []string{"--course-id", "1"},
+		MockResponses: map[string]cmdtest.MockResponse{
+			"/api/v1/courses/1":             courseMock,
+			"/api/v1/courses/1/assignments": cmdtest.NewErrorResponse(500, "internal server error"),
+		},
+		ExpectError: true,
+	}
+
+	cmd := newAssignmentsListCmd()
+	cmdtest.RunCommandTest(t, cmd, tc)
+}

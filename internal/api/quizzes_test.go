@@ -386,6 +386,75 @@ func TestQuizzesService_Delete(t *testing.T) {
 	}
 }
 
+func TestQuizzesService_ReorderQuizItems(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			handleVersionDetection(w)
+			return
+		}
+		if r.URL.Path != "/api/v1/courses/10/quizzes/20/reorder" {
+			t.Errorf("unexpected path: %s", r.URL.Path)
+		}
+		if r.Method != http.MethodPost {
+			t.Errorf("expected POST, got %s", r.Method)
+		}
+		var body map[string]interface{}
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			t.Fatalf("decode body: %v", err)
+		}
+		order, ok := body["order"].([]interface{})
+		if !ok || len(order) != 2 {
+			t.Errorf("expected 2 items in order, got %v", body["order"])
+		}
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{BaseURL: server.URL, Token: "t", RequestsPerSec: 10})
+	if err != nil {
+		t.Fatalf("NewClient: %v", err)
+	}
+	svc := NewQuizzesService(client)
+	order := []ReorderItem{
+		{ID: 1, Type: "question"},
+		{ID: 2, Type: "question"},
+	}
+	if err := svc.ReorderQuizItems(context.Background(), 10, 20, order); err != nil {
+		t.Fatalf("ReorderQuizItems: %v", err)
+	}
+}
+
+func TestQuizzesService_List_WithOptions(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			handleVersionDetection(w)
+			return
+		}
+		q := r.URL.Query()
+		if q.Get("per_page") != "5" {
+			t.Errorf("expected per_page=5, got %q", q.Get("per_page"))
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode([]Quiz{{ID: 1, Title: "Q1"}})
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{BaseURL: server.URL, Token: "t", RequestsPerSec: 10})
+	if err != nil {
+		t.Fatalf("NewClient: %v", err)
+	}
+	svc := NewQuizzesService(client)
+	opts := &ListQuizzesOptions{PerPage: 5, Page: 1}
+	quizzes, err := svc.List(context.Background(), 10, opts)
+	if err != nil {
+		t.Fatalf("List with opts: %v", err)
+	}
+	if len(quizzes) != 1 {
+		t.Errorf("expected 1 quiz, got %d", len(quizzes))
+	}
+}
+
 func TestNewQuizzesService(t *testing.T) {
 	client, err := NewClient(ClientConfig{
 		BaseURL: "https://canvas.example.com",

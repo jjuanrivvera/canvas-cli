@@ -373,6 +373,68 @@ func TestSoftError_ErrorMessage(t *testing.T) {
 	}
 }
 
+func TestIsForbiddenError_True(t *testing.T) {
+	apiErr := &APIError{StatusCode: http.StatusForbidden}
+	if !IsForbiddenError(apiErr) {
+		t.Error("expected IsForbiddenError to return true for 403 error")
+	}
+}
+
+func TestIsForbiddenError_False(t *testing.T) {
+	apiErr := &APIError{StatusCode: http.StatusNotFound}
+	if IsForbiddenError(apiErr) {
+		t.Error("expected IsForbiddenError to return false for non-403 error")
+	}
+}
+
+func TestIsForbiddenError_NotAPIError(t *testing.T) {
+	if IsForbiddenError(io.EOF) {
+		t.Error("expected IsForbiddenError to return false for non-APIError")
+	}
+}
+
+func TestIsServerError_True(t *testing.T) {
+	for _, code := range []int{500, 502, 503, 504} {
+		apiErr := &APIError{StatusCode: code}
+		if !IsServerError(apiErr) {
+			t.Errorf("expected IsServerError to return true for %d error", code)
+		}
+	}
+}
+
+func TestIsServerError_False(t *testing.T) {
+	apiErr := &APIError{StatusCode: http.StatusBadRequest}
+	if IsServerError(apiErr) {
+		t.Error("expected IsServerError to return false for 400 error")
+	}
+}
+
+func TestIsServerError_NotAPIError(t *testing.T) {
+	if IsServerError(io.EOF) {
+		t.Error("expected IsServerError to return false for non-APIError")
+	}
+}
+
+func TestAPIError_Error_NoErrors(t *testing.T) {
+	// When Errors slice is empty, Error() should return a descriptive message by status code
+	cases := []struct {
+		code int
+		want string
+	}{
+		{400, "Bad request"},
+		{401, "Unauthorized"},
+		{403, "Forbidden"},
+		{404, "Not found"},
+	}
+	for _, tc := range cases {
+		apiErr := &APIError{StatusCode: tc.code, Errors: nil}
+		msg := apiErr.Error()
+		if msg == "" {
+			t.Errorf("expected non-empty error message for %d", tc.code)
+		}
+	}
+}
+
 func TestAPIError_Error(t *testing.T) {
 	apiErr := &APIError{
 		StatusCode: http.StatusNotFound,

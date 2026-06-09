@@ -622,6 +622,218 @@ func TestGroupsService_DeleteCategory(t *testing.T) {
 	}
 }
 
+func TestGroupsService_ListUser(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			handleVersionDetection(w)
+			return
+		}
+		if r.URL.Path != "/api/v1/users/42/groups" {
+			t.Errorf("unexpected path: %s", r.URL.Path)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode([]Group{{ID: 10, Name: "Group A"}})
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{BaseURL: server.URL, Token: "t", RequestsPerSec: 10})
+	if err != nil {
+		t.Fatalf("NewClient: %v", err)
+	}
+	svc := NewGroupsService(client)
+	groups, err := svc.ListUser(context.Background(), 42, nil)
+	if err != nil {
+		t.Fatalf("ListUser: %v", err)
+	}
+	if len(groups) != 1 {
+		t.Errorf("expected 1 group, got %d", len(groups))
+	}
+}
+
+func TestGroupsService_ListUser_Self(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			handleVersionDetection(w)
+			return
+		}
+		if r.URL.Path != "/api/v1/users/self/groups" {
+			t.Errorf("unexpected path: %s", r.URL.Path)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode([]Group{{ID: 11}})
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{BaseURL: server.URL, Token: "t", RequestsPerSec: 10})
+	if err != nil {
+		t.Fatalf("NewClient: %v", err)
+	}
+	svc := NewGroupsService(client)
+	opts := &ListGroupsOptions{Include: []string{"context_info"}, Page: 1, PerPage: 5}
+	groups, err := svc.ListUser(context.Background(), 0, opts)
+	if err != nil {
+		t.Fatalf("ListUser self: %v", err)
+	}
+	if len(groups) != 1 {
+		t.Errorf("expected 1 group, got %d", len(groups))
+	}
+}
+
+func TestGroupsService_RemoveMember(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			handleVersionDetection(w)
+			return
+		}
+		if r.URL.Path != "/api/v1/groups/5/memberships/99" {
+			t.Errorf("unexpected path: %s", r.URL.Path)
+		}
+		if r.Method != http.MethodDelete {
+			t.Errorf("expected DELETE, got %s", r.Method)
+		}
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{BaseURL: server.URL, Token: "t", RequestsPerSec: 10})
+	if err != nil {
+		t.Fatalf("NewClient: %v", err)
+	}
+	svc := NewGroupsService(client)
+	if err := svc.RemoveMember(context.Background(), 5, 99); err != nil {
+		t.Fatalf("RemoveMember: %v", err)
+	}
+}
+
+func TestGroupsService_ListCategoriesAccount(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			handleVersionDetection(w)
+			return
+		}
+		if r.URL.Path != "/api/v1/accounts/3/group_categories" {
+			t.Errorf("unexpected path: %s", r.URL.Path)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode([]GroupCategory{{ID: 20, Name: "Cat A"}})
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{BaseURL: server.URL, Token: "t", RequestsPerSec: 10})
+	if err != nil {
+		t.Fatalf("NewClient: %v", err)
+	}
+	svc := NewGroupsService(client)
+	cats, err := svc.ListCategoriesAccount(context.Background(), 3, nil)
+	if err != nil {
+		t.Fatalf("ListCategoriesAccount: %v", err)
+	}
+	if len(cats) != 1 {
+		t.Errorf("expected 1 category, got %d", len(cats))
+	}
+}
+
+func TestGroupsService_ListCategoriesAccount_WithOptions(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			handleVersionDetection(w)
+			return
+		}
+		q := r.URL.Query()
+		if q.Get("per_page") != "10" {
+			t.Errorf("expected per_page=10, got %q", q.Get("per_page"))
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode([]GroupCategory{{ID: 21}})
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{BaseURL: server.URL, Token: "t", RequestsPerSec: 10})
+	if err != nil {
+		t.Fatalf("NewClient: %v", err)
+	}
+	svc := NewGroupsService(client)
+	cats, err := svc.ListCategoriesAccount(context.Background(), 3, &ListCategoriesOptions{Page: 1, PerPage: 10})
+	if err != nil {
+		t.Fatalf("ListCategoriesAccount with opts: %v", err)
+	}
+	if len(cats) != 1 {
+		t.Errorf("expected 1 category, got %d", len(cats))
+	}
+}
+
+func TestGroupsService_CreateCategoryAccount(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			handleVersionDetection(w)
+			return
+		}
+		if r.URL.Path != "/api/v1/accounts/3/group_categories" {
+			t.Errorf("unexpected path: %s", r.URL.Path)
+		}
+		if r.Method != http.MethodPost {
+			t.Errorf("expected POST, got %s", r.Method)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(GroupCategory{ID: 30, Name: "New Category"})
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{BaseURL: server.URL, Token: "t", RequestsPerSec: 10})
+	if err != nil {
+		t.Fatalf("NewClient: %v", err)
+	}
+	svc := NewGroupsService(client)
+	params := &CreateCategoryParams{
+		Name:               "New Category",
+		SelfSignup:         "enabled",
+		AutoLeader:         "first",
+		GroupLimit:         5,
+		SISGroupCategoryID: "sis-123",
+	}
+	cat, err := svc.CreateCategoryAccount(context.Background(), 3, params)
+	if err != nil {
+		t.Fatalf("CreateCategoryAccount: %v", err)
+	}
+	if cat.ID != 30 {
+		t.Errorf("expected ID 30, got %d", cat.ID)
+	}
+}
+
+func TestGroupsService_ListGroupsInCategory(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			handleVersionDetection(w)
+			return
+		}
+		if r.URL.Path != "/api/v1/group_categories/5/groups" {
+			t.Errorf("unexpected path: %s", r.URL.Path)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode([]Group{{ID: 100, Name: "Group X"}, {ID: 101, Name: "Group Y"}})
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{BaseURL: server.URL, Token: "t", RequestsPerSec: 10})
+	if err != nil {
+		t.Fatalf("NewClient: %v", err)
+	}
+	svc := NewGroupsService(client)
+	groups, err := svc.ListGroupsInCategory(context.Background(), 5)
+	if err != nil {
+		t.Fatalf("ListGroupsInCategory: %v", err)
+	}
+	if len(groups) != 2 {
+		t.Errorf("expected 2 groups, got %d", len(groups))
+	}
+}
+
 func TestNewGroupsService(t *testing.T) {
 	client, err := NewClient(ClientConfig{
 		BaseURL: "https://canvas.example.com",

@@ -165,3 +165,92 @@ func TestAdminsRolesListCmd(t *testing.T) {
 		})
 	}
 }
+
+func TestRolesGetCmd(t *testing.T) {
+	tests := []cmdtest.CommandTestCase{
+		{
+			Name: "get role successfully",
+			Args: []string{"5", "--account-id", "1"},
+			MockResponses: map[string]cmdtest.MockResponse{
+				"/api/v1/accounts/1/roles/5": cmdtest.NewMockResponse(`{
+					"id": 5,
+					"label": "Custom Teacher",
+					"base_role_type": "TeacherEnrollment",
+					"workflow_state": "active"
+				}`),
+			},
+			ExpectError: false,
+			ValidateOutput: func(t *testing.T, output string) {
+				if !strings.Contains(output, "Custom Teacher") {
+					t.Error("Expected 'Custom Teacher' in output")
+				}
+			},
+		},
+		{
+			Name:        "get role - missing role ID",
+			Args:        []string{"--account-id", "1"},
+			ExpectError: true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.Name, func(t *testing.T) {
+			cmd := newRolesGetCmd()
+			cmdtest.RunCommandTest(t, cmd, tc)
+		})
+	}
+}
+
+func TestRolesCreateCmd(t *testing.T) {
+	tests := []cmdtest.CommandTestCase{
+		{
+			Name: "create role successfully",
+			Args: []string{"--account-id", "1", "--label", "Custom Role", "--base-type", "TeacherEnrollment"},
+			MockResponses: map[string]cmdtest.MockResponse{
+				"/api/v1/accounts/1/roles": cmdtest.NewMockResponse(`{
+					"id": 20,
+					"label": "Custom Role",
+					"base_role_type": "TeacherEnrollment",
+					"workflow_state": "active"
+				}`),
+			},
+			ExpectError: false,
+			ValidateOutput: func(t *testing.T, output string) {
+				if !strings.Contains(output, "Role created successfully") {
+					t.Error("Expected 'Role created successfully' in output")
+				}
+			},
+		},
+		{
+			Name:        "create role - missing account ID",
+			Args:        []string{"--label", "Custom Role", "--base-type", "TeacherEnrollment"},
+			ExpectError: true,
+		},
+		{
+			Name:        "create role - missing label",
+			Args:        []string{"--account-id", "1", "--base-type", "TeacherEnrollment"},
+			ExpectError: true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.Name, func(t *testing.T) {
+			cmd := newRolesCreateCmd()
+			cmdtest.RunCommandTest(t, cmd, tc)
+		})
+	}
+}
+
+func TestAdminsListCmd_APIError(t *testing.T) {
+	tc := cmdtest.CommandTestCase{
+		Name: "list admins - API error",
+		Args: []string{"--account-id", "1"},
+		MockResponses: map[string]cmdtest.MockResponse{
+			"/api/v1/accounts/1/admins": cmdtest.NewErrorResponse(403, "forbidden"),
+		},
+		ExpectError: true,
+	}
+
+	cmd := newAdminsListCmd()
+	cmdtest.RunCommandTest(t, cmd, tc)
+}

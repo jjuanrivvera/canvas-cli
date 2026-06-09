@@ -396,3 +396,131 @@ func TestExternalToolsService_ListWithOptions(t *testing.T) {
 		t.Errorf("Expected 1 tool, got %d", len(tools))
 	}
 }
+
+func TestExternalToolsService_GetByAccount(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			handleVersionDetection(w)
+			return
+		}
+		if r.URL.Path != "/api/v1/accounts/5/external_tools/99" {
+			t.Errorf("unexpected path: %s", r.URL.Path)
+		}
+		if r.Method != http.MethodGet {
+			t.Errorf("expected GET, got %s", r.Method)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(ExternalTool{ID: 99, Name: "Account Tool"})
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{BaseURL: server.URL, Token: "t", RequestsPerSec: 10})
+	if err != nil {
+		t.Fatalf("NewClient: %v", err)
+	}
+	svc := NewExternalToolsService(client)
+	tool, err := svc.GetByAccount(context.Background(), 5, 99)
+	if err != nil {
+		t.Fatalf("GetByAccount: %v", err)
+	}
+	if tool.ID != 99 {
+		t.Errorf("expected ID 99, got %d", tool.ID)
+	}
+}
+
+func TestExternalToolsService_CreateInAccount(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			handleVersionDetection(w)
+			return
+		}
+		if r.URL.Path != "/api/v1/accounts/5/external_tools" {
+			t.Errorf("unexpected path: %s", r.URL.Path)
+		}
+		if r.Method != http.MethodPost {
+			t.Errorf("expected POST, got %s", r.Method)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(ExternalTool{ID: 200, Name: "New Account Tool"})
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{BaseURL: server.URL, Token: "t", RequestsPerSec: 10})
+	if err != nil {
+		t.Fatalf("NewClient: %v", err)
+	}
+	svc := NewExternalToolsService(client)
+	params := &CreateExternalToolParams{Name: "New Account Tool", PrivacyLevel: "public"}
+	tool, err := svc.CreateInAccount(context.Background(), 5, params)
+	if err != nil {
+		t.Fatalf("CreateInAccount: %v", err)
+	}
+	if tool.ID != 200 {
+		t.Errorf("expected ID 200, got %d", tool.ID)
+	}
+}
+
+func TestExternalToolsService_UpdateInAccount(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			handleVersionDetection(w)
+			return
+		}
+		if r.URL.Path != "/api/v1/accounts/5/external_tools/99" {
+			t.Errorf("unexpected path: %s", r.URL.Path)
+		}
+		if r.Method != http.MethodPut {
+			t.Errorf("expected PUT, got %s", r.Method)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(ExternalTool{ID: 99, Name: "Updated Account Tool"})
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{BaseURL: server.URL, Token: "t", RequestsPerSec: 10})
+	if err != nil {
+		t.Fatalf("NewClient: %v", err)
+	}
+	svc := NewExternalToolsService(client)
+	name := "Updated Account Tool"
+	params := &UpdateExternalToolParams{Name: &name}
+	tool, err := svc.UpdateInAccount(context.Background(), 5, 99, params)
+	if err != nil {
+		t.Fatalf("UpdateInAccount: %v", err)
+	}
+	if tool.Name != "Updated Account Tool" {
+		t.Errorf("expected Updated Account Tool, got %s", tool.Name)
+	}
+}
+
+func TestExternalToolsService_DeleteFromAccount(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			handleVersionDetection(w)
+			return
+		}
+		if r.URL.Path != "/api/v1/accounts/5/external_tools/99" {
+			t.Errorf("unexpected path: %s", r.URL.Path)
+		}
+		if r.Method != http.MethodDelete {
+			t.Errorf("expected DELETE, got %s", r.Method)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(ExternalTool{ID: 99})
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{BaseURL: server.URL, Token: "t", RequestsPerSec: 10})
+	if err != nil {
+		t.Fatalf("NewClient: %v", err)
+	}
+	svc := NewExternalToolsService(client)
+	_, err = svc.DeleteFromAccount(context.Background(), 5, 99)
+	if err != nil {
+		t.Fatalf("DeleteFromAccount: %v", err)
+	}
+}

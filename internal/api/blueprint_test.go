@@ -263,6 +263,142 @@ func TestBlueprintService_ListMigrations(t *testing.T) {
 	}
 }
 
+func TestBlueprintService_SetRestriction(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			handleVersionDetection(w)
+			return
+		}
+		if r.URL.Path != "/api/v1/courses/10/blueprint_templates/default/restrict_item" {
+			t.Errorf("unexpected path: %s", r.URL.Path)
+		}
+		if r.Method != http.MethodPut {
+			t.Errorf("expected PUT, got %s", r.Method)
+		}
+		var body map[string]interface{}
+		json.NewDecoder(r.Body).Decode(&body)
+		if body["content_type"] != "assignment" {
+			t.Errorf("expected content_type=assignment, got %v", body["content_type"])
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": true})
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{BaseURL: server.URL, Token: "t", RequestsPerSec: 10})
+	if err != nil {
+		t.Fatalf("NewClient: %v", err)
+	}
+	svc := NewBlueprintService(client)
+	restricted := true
+	err = svc.SetRestriction(context.Background(), 10, "", &SetRestrictionParams{
+		ContentType: "assignment",
+		ContentID:   99,
+		Restricted:  &restricted,
+	})
+	if err != nil {
+		t.Fatalf("SetRestriction: %v", err)
+	}
+}
+
+func TestBlueprintService_SetRestriction_WithRestrictions(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			handleVersionDetection(w)
+			return
+		}
+		var body map[string]interface{}
+		json.NewDecoder(r.Body).Decode(&body)
+		if body["restrictions"] == nil {
+			t.Error("expected restrictions in body")
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(map[string]interface{}{})
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{BaseURL: server.URL, Token: "t", RequestsPerSec: 10})
+	if err != nil {
+		t.Fatalf("NewClient: %v", err)
+	}
+	svc := NewBlueprintService(client)
+	err = svc.SetRestriction(context.Background(), 10, "default", &SetRestrictionParams{
+		ContentType: "quiz",
+		ContentID:   50,
+		Restrictions: &BlueprintRestriction{
+			Content:           true,
+			Points:            true,
+			DueDates:          false,
+			AvailabilityDates: false,
+		},
+	})
+	if err != nil {
+		t.Fatalf("SetRestriction with restrictions: %v", err)
+	}
+}
+
+func TestBlueprintService_ListMigrations_WithOptions(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			handleVersionDetection(w)
+			return
+		}
+		q := r.URL.Query()
+		if q.Get("per_page") != "5" {
+			t.Errorf("expected per_page=5, got %q", q.Get("per_page"))
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode([]BlueprintMigration{{ID: 1}})
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{BaseURL: server.URL, Token: "t", RequestsPerSec: 10})
+	if err != nil {
+		t.Fatalf("NewClient: %v", err)
+	}
+	svc := NewBlueprintService(client)
+	migrations, err := svc.ListMigrations(context.Background(), 10, "default", &ListMigrationsOptions{Page: 1, PerPage: 5})
+	if err != nil {
+		t.Fatalf("ListMigrations: %v", err)
+	}
+	if len(migrations) != 1 {
+		t.Errorf("expected 1, got %d", len(migrations))
+	}
+}
+
+func TestBlueprintService_ListAssociatedCourses_WithOptions(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			handleVersionDetection(w)
+			return
+		}
+		q := r.URL.Query()
+		if q.Get("per_page") != "20" {
+			t.Errorf("expected per_page=20, got %q", q.Get("per_page"))
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode([]AssociatedCourse{{ID: 5, Name: "Art"}})
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{BaseURL: server.URL, Token: "t", RequestsPerSec: 10})
+	if err != nil {
+		t.Fatalf("NewClient: %v", err)
+	}
+	svc := NewBlueprintService(client)
+	courses, err := svc.ListAssociatedCourses(context.Background(), 10, "default", &ListAssociatedCoursesOptions{Page: 1, PerPage: 20})
+	if err != nil {
+		t.Fatalf("ListAssociatedCourses: %v", err)
+	}
+	if len(courses) != 1 {
+		t.Errorf("expected 1, got %d", len(courses))
+	}
+}
+
 func TestBlueprintService_GetMigration(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/api/v1/accounts" {
