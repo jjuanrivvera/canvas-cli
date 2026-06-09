@@ -12,6 +12,7 @@ func setupConfigTestHome(t *testing.T) {
 	t.Helper()
 	tmpDir := t.TempDir()
 	t.Setenv("HOME", tmpDir)
+	t.Setenv("USERPROFILE", tmpDir) // Windows: os.UserHomeDir() reads %USERPROFILE%
 	config.ResetCache()
 	t.Cleanup(config.ResetCache)
 }
