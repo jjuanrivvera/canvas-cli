@@ -118,6 +118,15 @@ func RunCommandTest(t *testing.T, cmd *cobra.Command, tc CommandTestCase) {
 	// Setup command with test args
 	cmd.SetArgs(tc.Args)
 
+	// Redirect os.Stdin to an immediately-EOF reader so commands that prompt
+	// (e.g. confirmDelete reads os.Stdin without a TTY check) get EOF instead of
+	// blocking. On Unix CI stdin is already EOF, but on the Windows runner a real
+	// console handle blocks forever and hangs the whole package.
+	oldStdin := os.Stdin
+	rIn, wIn, _ := os.Pipe()
+	wIn.Close() // closing the write end makes reads on rIn return EOF
+	os.Stdin = rIn
+
 	// Capture output - Need to redirect os.Stdout since formatOutput writes directly to it
 	oldStdout := os.Stdout
 	oldStderr := os.Stderr
@@ -128,6 +137,14 @@ func RunCommandTest(t *testing.T, cmd *cobra.Command, tc CommandTestCase) {
 	os.Stdout = wOut
 	os.Stderr = wErr
 
+	// Drain the pipes concurrently. Reading only after execution would deadlock
+	// if a command writes more than the OS pipe buffer (notably smaller on
+	// Windows): the write blocks with no reader and hangs the whole package.
+	outCh := make(chan []byte, 1)
+	errCh := make(chan []byte, 1)
+	go func() { b, _ := io.ReadAll(rOut); outCh <- b }()
+	go func() { b, _ := io.ReadAll(rErr); errCh <- b }()
+
 	// Capture cobra's output as well
 	stdout := &bytes.Buffer{}
 	stderr := &bytes.Buffer{}
@@ -137,15 +154,18 @@ func RunCommandTest(t *testing.T, cmd *cobra.Command, tc CommandTestCase) {
 	// Execute command
 	err = cmd.ExecuteContext(context.Background())
 
-	// Restore stdout/stderr and close pipes
+	// Restore stdout/stderr/stdin; closing the write ends lets the drain
+	// goroutines see EOF and finish.
 	wOut.Close()
 	wErr.Close()
 	os.Stdout = oldStdout
 	os.Stderr = oldStderr
+	os.Stdin = oldStdin
+	rIn.Close()
 
-	// Read captured output
-	outputBytes, _ := io.ReadAll(rOut)
-	stderrBytes, _ := io.ReadAll(rErr)
+	// Collect the drained output
+	outputBytes := <-outCh
+	stderrBytes := <-errCh
 
 	output := string(outputBytes) + stdout.String()
 	stderrOutput := string(stderrBytes) + stderr.String()
