@@ -23,6 +23,7 @@ type Client struct {
 	flushChan chan struct{}
 	stopChan  chan struct{}
 	done      chan struct{} // closed by flushWorker when it has exited
+	flushErr  error         // result of the final flush; read by Close() after <-done
 	dataDir   string
 	version   string
 	anonymous bool
@@ -273,7 +274,7 @@ func (c *Client) flushWorker() {
 		case <-c.flushChan:
 			c.Flush()
 		case <-c.stopChan:
-			c.Flush() // Final flush
+			c.flushErr = c.Flush() // final flush; surfaced by Close() after <-done
 			return
 		}
 	}
@@ -287,9 +288,10 @@ func (c *Client) Close() error {
 
 	close(c.stopChan)
 	// Wait for flushWorker to perform its final flush and release the data file.
-	// On Windows an open handle would block the caller's temp-dir cleanup.
+	// On Windows an open handle would block the caller's temp-dir cleanup. The
+	// <-c.done receive synchronizes with the worker's flushErr write.
 	<-c.done
-	return nil
+	return c.flushErr
 }
 
 // IsEnabled returns whether telemetry is enabled
