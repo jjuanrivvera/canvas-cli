@@ -97,6 +97,14 @@ jobs:
         # default there.
         run: go test -v -race -timeout 20m -coverprofile=coverage.out -covermode=atomic ./...
 
+      - name: Coverage gate (>= 80%)
+        if: matrix.os == 'ubuntu-latest' && matrix.go-version == '1.25'
+        shell: bash
+        run: |
+          total=$(go tool cover -func=coverage.out | awk '/^total:/ {print substr($3, 1, length($3)-1)}')
+          echo "Total coverage: ${total}%"
+          awk -v c="$total" 'BEGIN { if (c+0 < 80.0) { print "FAIL: total coverage below 80%"; exit 1 } }'
+
       - name: Upload coverage
         if: matrix.os == 'ubuntu-latest' && matrix.go-version == '1.25'
         uses: codecov/codecov-action@v4
