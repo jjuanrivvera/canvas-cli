@@ -33,11 +33,12 @@ jobs:
         run: go vet ./...
 
       - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@v6
-        with:
-          version: latest
-          install-mode: goinstall
-          args: --timeout=5m
+        # Install from source with the repo's Go toolchain. Prebuilt release
+        # binaries are built with an older Go and refuse to run against a newer
+        # go.mod target; this also pins the v2 line that matches .golangci.yml.
+        run: |
+          go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.1.6
+          golangci-lint run
 
   # Security scanning
   security:
