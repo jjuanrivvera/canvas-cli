@@ -1,58 +1,75 @@
+version: "2"
 run:
-  timeout: 5m
-  tests: true
   modules-download-mode: readonly
-
+  tests: true
+output:
+  formats:
+    text:
+      path: stdout
+      print-linter-name: true
+      print-issued-lines: true
 linters:
-  disable-all: true
+  default: none
   enable:
-    # Default linters
-    - gosimple
+    - errcheck
     - govet
     - ineffassign
-    - staticcheck
-    - typecheck
-    - unused
-    # Formatting
-    - gofmt
-    - goimports
     - misspell
-    # Error handling
-    - errcheck
-    # Code quality
+    - staticcheck
     - unconvert
-
-linters-settings:
-  gofmt:
-    simplify: true
-
-  goimports:
-    local-prefixes: github.com/jjuanrivvera/canvas-cli
-
-  errcheck:
-    exclude-functions:
-      - (io.Closer).Close
-      - (*github.com/spf13/cobra.Command).MarkFlagRequired
-      - github.com/spf13/viper.BindPFlag
-      - (*net/http.Server).Shutdown
-      - fmt.Scanln
-      - fmt.Sscanf
-      - fmt.Println
-      - fmt.Printf
-      - fmt.Fprintln
-      - fmt.Fprintf
-
+    - unused
+  settings:
+    staticcheck:
+      # QF* are optional "quickfix" refactoring hints that became default when v2
+      # merged gosimple/stylecheck into staticcheck. The v1 setup never enforced
+      # them, so keep them off to preserve the established lint contract.
+      checks:
+        - all
+        - -QF1003
+        - -QF1008
+    errcheck:
+      exclude-functions:
+        - (io.Closer).Close
+        - (*github.com/spf13/cobra.Command).MarkFlagRequired
+        - github.com/spf13/viper.BindPFlag
+        - (*net/http.Server).Shutdown
+        - fmt.Scanln
+        - fmt.Sscanf
+        - fmt.Println
+        - fmt.Printf
+        - fmt.Fprintln
+        - fmt.Fprintf
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      - linters:
+          - errcheck
+        path: _test\.go
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
 issues:
   max-issues-per-linter: 0
   max-same-issues: 0
-  exclude-rules:
-    # Exclude errcheck in test files
-    - path: _test\.go
-      linters:
-        - errcheck
-
-output:
-  formats:
-    - format: colored-line-number
-  print-issued-lines: true
-  print-linter-name: true
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  settings:
+    gofmt:
+      simplify: true
+    goimports:
+      local-prefixes:
+        - github.com/jjuanrivvera/canvas-cli
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
