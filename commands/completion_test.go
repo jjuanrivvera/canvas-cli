@@ -10,16 +10,28 @@ import (
 // captureCompletionOutput captures os.Stdout during execution of fn.
 // GenBashCompletionV2 and friends write to os.Stdout (the real fd), not
 // the cobra writer, so we must intercept the fd.
+//
+// The pipe is drained concurrently: completion scripts are large (the bash
+// script is ~16KB) and reading only after fn() returns would deadlock once the
+// output exceeds the OS pipe buffer, which is far smaller on Windows than the
+// 64KB on Linux/macOS — the write blocks forever with no reader. This was the
+// cause of a ~22-minute Windows CI hang.
 func captureCompletionOutput(fn func()) string {
 	r, w, _ := os.Pipe()
 	old := os.Stdout
 	os.Stdout = w
+
+	outCh := make(chan string, 1)
+	go func() {
+		var buf bytes.Buffer
+		_, _ = buf.ReadFrom(r)
+		outCh <- buf.String()
+	}()
+
 	fn()
 	w.Close()
 	os.Stdout = old
-	var buf bytes.Buffer
-	_, _ = buf.ReadFrom(r)
-	return buf.String()
+	return <-outCh
 }
 
 func TestCompletionCmd_Bash(t *testing.T) {
