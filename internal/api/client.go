@@ -161,6 +161,10 @@ type ClientConfig struct {
 	MaxResults     int    // Max results for paginated requests (0 = unlimited)
 	DryRun         bool   // Print curl commands instead of executing requests
 	ShowToken      bool   // Show actual token in dry-run output (default: redacted)
+	// RetryInitialBackoff overrides the retry policy's initial backoff. Tests set
+	// a tiny value (e.g. 1ms) so retryable-error cases don't spend ~7s sleeping
+	// through the default 1s/2s/4s exponential backoff. Zero uses the default.
+	RetryInitialBackoff time.Duration
 }
 
 // NewClient creates a new Canvas API client
@@ -201,6 +205,14 @@ func NewClient(config ClientConfig) (*Client, error) {
 		ExpectContinueTimeout: 1 * time.Second,
 	}
 
+	retryPolicy := DefaultRetryPolicy()
+	if config.RetryInitialBackoff > 0 {
+		retryPolicy.InitialBackoff = config.RetryInitialBackoff
+		if maxBackoff := config.RetryInitialBackoff * 8; maxBackoff < retryPolicy.MaxBackoff {
+			retryPolicy.MaxBackoff = maxBackoff
+		}
+	}
+
 	client := &Client{
 		httpClient: &http.Client{
 			Timeout:   config.Timeout,
@@ -211,7 +223,7 @@ func NewClient(config ClientConfig) (*Client, error) {
 		tokenSource:  config.TokenSource,
 		asUserID:     config.AsUserID,
 		rateLimiter:  NewAdaptiveRateLimiter(config.RequestsPerSec),
-		retryPolicy:  DefaultRetryPolicy(),
+		retryPolicy:  retryPolicy,
 		logger:       config.Logger,
 		quotaTotal:   defaultQuotaTotal, // Will be updated from headers if available
 		cache:        config.Cache,

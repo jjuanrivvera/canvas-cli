@@ -12,6 +12,7 @@ import (
 	"sort"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/spf13/cobra"
 
@@ -94,10 +95,11 @@ func RunCommandTest(t *testing.T, cmd *cobra.Command, tc CommandTestCase) {
 
 	// Create test API client pointing to mock server
 	client, err := api.NewClient(api.ClientConfig{
-		BaseURL:        server.URL,
-		Token:          "test-token",
-		RequestsPerSec: 100, // High rate for tests
-		UserAgent:      "canvas-cli-test",
+		BaseURL:             server.URL,
+		Token:               "test-token",
+		RequestsPerSec:      100, // High rate for tests
+		UserAgent:           "canvas-cli-test",
+		RetryInitialBackoff: time.Millisecond, // avoid ~7s exponential backoff on retryable-error cases
 	})
 	if err != nil {
 		t.Fatalf("Failed to create test client: %v", err)

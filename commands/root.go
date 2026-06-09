@@ -41,6 +41,11 @@ var (
 	// check (a real network call) would both slow them down and race on shared
 	// updater state under `go test -race`. A real CLI process runs rootCmd once.
 	disableAutoUpdate bool
+
+	// testRetryBackoff, when > 0, overrides the API client's retry initial
+	// backoff. Test seam only: it lets the suite exercise retryable-error paths
+	// without spending ~7s per test sleeping through the 1s/2s/4s backoff.
+	testRetryBackoff time.Duration
 )
 
 // rootCmd represents the base command when called without any subcommands

@@ -3,6 +3,7 @@ package commands
 import (
 	"os"
 	"testing"
+	"time"
 )
 
 // TestMain disables the background auto-updater for the whole test binary.
@@ -20,5 +21,8 @@ import (
 // doctor command, legitimately inspect the real environment.)
 func TestMain(m *testing.M) {
 	disableAutoUpdate = true
+	// Use a near-zero retry backoff so retryable-error tests don't each sleep
+	// through the default 1s/2s/4s exponential backoff (~7s/test).
+	testRetryBackoff = time.Millisecond
 	os.Exit(m.Run())
 }

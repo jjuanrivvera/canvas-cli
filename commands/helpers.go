@@ -47,16 +47,17 @@ func getAPIClient() (*api.Client, error) {
 		}
 
 		client, err := api.NewClient(api.ClientConfig{
-			BaseURL:        envURL,
-			Token:          envToken,
-			RequestsPerSec: requestsPerSec,
-			AsUserID:       asUserID,
-			Cache:          apiCache,
-			CacheEnabled:   cacheEnabled,
-			UserAgent:      getUserAgent(),
-			MaxResults:     globalLimit,
-			DryRun:         dryRun,
-			ShowToken:      showToken,
+			BaseURL:             envURL,
+			Token:               envToken,
+			RequestsPerSec:      requestsPerSec,
+			AsUserID:            asUserID,
+			Cache:               apiCache,
+			CacheEnabled:        cacheEnabled,
+			UserAgent:           getUserAgent(),
+			MaxResults:          globalLimit,
+			DryRun:              dryRun,
+			ShowToken:           showToken,
+			RetryInitialBackoff: testRetryBackoff, // 0 in production; tests set a tiny value
 		})
 		if err != nil {
 			return nil, fmt.Errorf("failed to create API client from environment: %w", err)
