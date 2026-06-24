@@ -132,6 +132,11 @@ release:
 
     ### Installation
 
+    **Quick install (macOS/Linux)**
+    ```bash
+    curl -fsSL https://raw.githubusercontent.com/jjuanrivvera/canvas-cli/main/install.sh | sh
+    ```
+
     **Homebrew (macOS/Linux)**
     ```bash
     brew tap jjuanrivvera/canvas-cli
@@ -145,6 +150,11 @@ release:
 
     **Binary Download**
     Download the appropriate archive for your platform below.
+
+  # Ship a pinned copy of the install script with every release, alongside the
+  # always-current one on main (raw.githubusercontent.com/.../main/install.sh).
+  extra_files:
+    - glob: ./install.sh
 
 brews:
   - name: canvas-cli

@@ -40,6 +40,14 @@
 
 ## Installation
 
+### Quick Install (macOS/Linux)
+
+Auto-detects your platform and verifies the checksum:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/jjuanrivvera/canvas-cli/main/install.sh | sh
+```
+
 ### Homebrew (macOS/Linux)
 
 ```bash
