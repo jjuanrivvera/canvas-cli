@@ -587,21 +587,25 @@ func TestClient_TrackError_NilProperties(t *testing.T) {
 	if err != nil {
 		t.Fatalf("New failed: %v", err)
 	}
-	defer client.Close()
-
-	// Track error with nil properties
+	// Track error with nil properties.
 	client.TrackError("validation_error", "Invalid input", nil)
 
-	client.mu.Lock()
-	defer client.mu.Unlock()
-
-	if len(client.events) != 1 {
-		t.Errorf("expected 1 event, got %d", len(client.events))
+	// TrackError signals the flush worker, which may drain client.events to
+	// disk at any moment — asserting on the in-memory slice is racy. Close()
+	// performs the final flush, so the event is guaranteed to be on disk after
+	// it returns; assert on the flushed files instead.
+	if err := client.Close(); err != nil {
+		t.Fatalf("Close failed: %v", err)
 	}
 
-	event := client.events[0]
+	events := readFlushedEvents(t, tempDir)
+	if len(events) != 1 {
+		t.Fatalf("expected 1 flushed event, got %d", len(events))
+	}
+
+	event := events[0]
 	if event.Properties == nil {
-		t.Error("expected properties to be initialized")
+		t.Fatal("expected properties to be initialized")
 	}
 
 	if event.Properties["error_type"] != "validation_error" {
