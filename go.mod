@@ -4,7 +4,7 @@ module github.com/jjuanrivvera/canvas-cli
 // the go directive but not a toolchain directive. Keep this on the latest
 // 1.25.x patch — the blocking govulncheck job fails on stdlib vulnerabilities
 // fixed in patch releases.
-go 1.25.11
+go 1.25.12
 
 require (
 	github.com/chzyer/readline v1.5.1
