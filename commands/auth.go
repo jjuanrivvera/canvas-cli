@@ -75,6 +75,10 @@ Examples:
   # Login with custom OAuth credentials
   canvas auth login --instance prod --client-id YOUR_ID --client-secret YOUR_SECRET
 
+  # Login with a public client (PKCE only, no client secret; requires a
+  # developer key provisioned with client_type "public" by Instructure)
+  canvas auth login --instance prod --client-id YOUR_ID --public-client
+
   # Force out-of-band mode (for headless systems)
   canvas auth login --instance prod --mode oob`,
 		Args: cobra.MaximumNArgs(1),
@@ -93,6 +97,7 @@ Examples:
 	cmd.Flags().StringVar(&opts.OAuthMode, "mode", "auto", "OAuth mode: auto, local, oob")
 	cmd.Flags().StringVar(&opts.ClientID, "client-id", "", "OAuth client ID")
 	cmd.Flags().StringVar(&opts.ClientSecret, "client-secret", "", "OAuth client secret")
+	cmd.Flags().BoolVar(&opts.PublicClient, "public-client", false, "Authenticate as a public client (PKCE only, no client secret)")
 
 	return cmd
 }
@@ -240,6 +245,9 @@ func runAuthLogin(ctx context.Context, opts *options.AuthLoginOptions) error {
 			if opts.ClientSecret == "" && inst.ClientSecret != "" {
 				opts.ClientSecret = inst.ClientSecret
 			}
+			if inst.PublicClient {
+				opts.PublicClient = true
+			}
 		}
 	}
 
@@ -296,8 +304,15 @@ func runAuthLogin(ctx context.Context, opts *options.AuthLoginOptions) error {
 		fmt.Scanln(&opts.ClientID) // #nosec G104 -- Scanln EOF on Enter is expected; empty input is caught by the check below
 	}
 
+	// Public clients (Canvas developer keys with client_type = "public")
+	// exchange the code with PKCE only; a stored secret would conflict.
+	if opts.PublicClient && opts.ClientSecret != "" {
+		return fmt.Errorf("--client-secret cannot be used with --public-client (public clients authenticate with PKCE only)")
+	}
+
 	// If client ID is provided, also require client secret for OAuth
-	if opts.ClientID != "" && opts.ClientSecret == "" {
+	// (unless this is a public client)
+	if opts.ClientID != "" && opts.ClientSecret == "" && !opts.PublicClient {
 		secret, err := terminal.ReadSecret("Enter OAuth Client Secret: ")
 		if err != nil {
 			return fmt.Errorf("read client secret: %w", err)
@@ -345,6 +360,7 @@ func runAuthLogin(ctx context.Context, opts *options.AuthLoginOptions) error {
 		URL:          normalizedURL,
 		ClientID:     opts.ClientID,
 		ClientSecret: opts.ClientSecret,
+		PublicClient: opts.PublicClient,
 	}
 
 	if _, exists := cfg.Instances[opts.InstanceName]; exists {

@@ -43,6 +43,16 @@ func TestAuthLoginOptions_Validate(t *testing.T) {
 			opts:    &AuthLoginOptions{InstanceURL: "https://canvas.example.com", OAuthMode: "invalid"},
 			wantErr: true,
 		},
+		{
+			name:    "valid public client without secret",
+			opts:    &AuthLoginOptions{InstanceURL: "https://canvas.example.com", ClientID: "client123", PublicClient: true},
+			wantErr: false,
+		},
+		{
+			name:    "public client with secret is rejected",
+			opts:    &AuthLoginOptions{InstanceURL: "https://canvas.example.com", ClientID: "client123", ClientSecret: "secret456", PublicClient: true},
+			wantErr: true,
+		},
 	}
 
 	for _, tt := range tests {

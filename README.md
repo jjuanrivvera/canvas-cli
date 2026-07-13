@@ -27,7 +27,7 @@
 
 ## Features
 
-- **Secure Authentication** - OAuth 2.0 with PKCE, system keyring integration
+- **Secure Authentication** - OAuth 2.0 with PKCE (confidential or secret-less public clients), system keyring integration
 - **Multi-Instance** - Manage multiple Canvas instances from one CLI
 - **Smart Rate Limiting** - Adaptive throttling based on API quotas
 - **Multiple Outputs** - Table, JSON, YAML, and CSV formats

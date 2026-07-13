@@ -17,7 +17,7 @@
 - **Bulk Operations** - Grade submissions in bulk from CSV files
 - **Course Synchronization** - Sync content between Canvas instances
 - **Intelligent Caching** - Fast responses with automatic cache invalidation
-- **Secure Authentication** - OAuth 2.0 with PKCE flow, tokens stored in your system keyring
+- **Secure Authentication** - OAuth 2.0 with PKCE flow (confidential or secret-less public clients), tokens stored in your system keyring
 - **MCP Integration** - Use Canvas CLI as an MCP server for AI coding assistants
 - **AI Agent Skill** - Bundled skill that teaches Claude Code, Cursor, and other agents how to drive the CLI
 - **Agent Safety** - `canvas agent guard` generates safety config so AI agents can read freely but need approval to write

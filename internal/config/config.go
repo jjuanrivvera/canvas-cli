@@ -45,10 +45,15 @@ type Context struct {
 
 // Instance represents a Canvas instance configuration
 type Instance struct {
-	Name             string `yaml:"name"`
-	URL              string `yaml:"url"`
-	ClientID         string `yaml:"client_id,omitempty"`
-	ClientSecret     string `yaml:"client_secret,omitempty"`
+	Name         string `yaml:"name"`
+	URL          string `yaml:"url"`
+	ClientID     string `yaml:"client_id,omitempty"`
+	ClientSecret string `yaml:"client_secret,omitempty"`
+	// PublicClient marks the developer key as a Canvas public client
+	// (client_type = "public"): token exchange and refresh use PKCE only,
+	// with no client secret. Requires a key provisioned as public by
+	// Instructure (or via the Rails console on self-hosted Canvas).
+	PublicClient     bool   `yaml:"public_client,omitempty"`
 	Token            string `yaml:"token,omitempty"` // API access token (alternative to OAuth)
 	Description      string `yaml:"description,omitempty"`
 	DefaultAccountID int64  `yaml:"default_account_id,omitempty"` // Default account ID for API calls
@@ -59,9 +64,10 @@ func (i *Instance) HasToken() bool {
 	return i.Token != ""
 }
 
-// HasOAuth returns true if the instance has OAuth credentials configured
+// HasOAuth returns true if the instance has OAuth credentials configured.
+// Public clients authenticate with PKCE only, so a client ID is enough.
 func (i *Instance) HasOAuth() bool {
-	return i.ClientID != "" && i.ClientSecret != ""
+	return i.ClientID != "" && (i.ClientSecret != "" || i.PublicClient)
 }
 
 // AuthType returns a string describing the authentication type

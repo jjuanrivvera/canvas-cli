@@ -9,6 +9,7 @@ type AuthLoginOptions struct {
 	OAuthMode    string
 	ClientID     string
 	ClientSecret string
+	PublicClient bool
 }
 
 // Validate validates the options
@@ -18,6 +19,9 @@ func (o *AuthLoginOptions) Validate() error {
 	}
 	if o.OAuthMode != "" && o.OAuthMode != "auto" && o.OAuthMode != "local" && o.OAuthMode != "oob" {
 		return fmt.Errorf("invalid OAuth mode: %s (must be auto, local, or oob)", o.OAuthMode)
+	}
+	if o.PublicClient && o.ClientSecret != "" {
+		return fmt.Errorf("--client-secret cannot be used with --public-client (public clients authenticate with PKCE only)")
 	}
 	return nil
 }

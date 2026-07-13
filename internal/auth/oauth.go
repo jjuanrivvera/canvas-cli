@@ -92,8 +92,9 @@ func NewOAuthFlow(config *OAuthFlowConfig) (*OAuthFlow, error) {
 		ClientID:     config.ClientID,
 		ClientSecret: config.ClientSecret,
 		Endpoint: oauth2.Endpoint{
-			AuthURL:  config.BaseURL + "/login/oauth2/auth",
-			TokenURL: config.BaseURL + "/login/oauth2/token",
+			AuthURL:   config.BaseURL + "/login/oauth2/auth",
+			TokenURL:  config.BaseURL + "/login/oauth2/token",
+			AuthStyle: canvasAuthStyle(config.ClientSecret),
 		},
 		RedirectURL: config.RedirectURL,
 		Scopes:      config.Scopes,

@@ -448,6 +448,63 @@ func TestValidateInstance_ClientIDTooShort(t *testing.T) {
 	}
 }
 
+func TestValidateInstance_PublicClient(t *testing.T) {
+	inst := &Instance{
+		Name:         "test",
+		URL:          "https://canvas.example.com",
+		ClientID:     "1234567890abcdef",
+		PublicClient: true,
+	}
+	if err := ValidateInstance(inst); err != nil {
+		t.Errorf("unexpected error for public client without secret: %v", err)
+	}
+}
+
+func TestValidateInstance_PublicClientWithSecret(t *testing.T) {
+	inst := &Instance{
+		Name:         "test",
+		URL:          "https://canvas.example.com",
+		ClientID:     "1234567890abcdef",
+		ClientSecret: "secret1234567890",
+		PublicClient: true,
+	}
+	if err := ValidateInstance(inst); err == nil {
+		t.Error("expected error when public_client is combined with client_secret")
+	}
+}
+
+func TestValidateInstance_PublicClientWithoutClientID(t *testing.T) {
+	inst := &Instance{
+		Name:         "test",
+		URL:          "https://canvas.example.com",
+		PublicClient: true,
+	}
+	if err := ValidateInstance(inst); err == nil {
+		t.Error("expected error when public_client is set without client_id")
+	}
+}
+
+func TestInstance_PublicClient_HasOAuthAndAuthType(t *testing.T) {
+	inst := &Instance{
+		Name:         "test",
+		URL:          "https://canvas.example.com",
+		ClientID:     "1234567890abcdef",
+		PublicClient: true,
+	}
+	if !inst.HasOAuth() {
+		t.Error("HasOAuth() = false for public client with client ID, want true")
+	}
+	if got := inst.AuthType(); got != "oauth" {
+		t.Errorf("AuthType() = %q for public client, want %q", got, "oauth")
+	}
+
+	// Without the public-client marker a bare client ID is still not OAuth.
+	inst.PublicClient = false
+	if inst.HasOAuth() {
+		t.Error("HasOAuth() = true for bare client ID without public_client, want false")
+	}
+}
+
 func TestValidateInstance_NegativeAccountID(t *testing.T) {
 	inst := &Instance{
 		Name:             "test",

@@ -86,9 +86,9 @@ Output:
 
 ## OAuth 2.0 Setup
 
-### Step 1: Create a Developer Key (Optional)
+### Step 1: Create a Developer Key
 
-By default, Canvas CLI uses embedded OAuth credentials. For enhanced security or custom integrations, you can create your own:
+OAuth requires a developer key on your Canvas instance (Canvas CLI ships no credentials of its own). Ask your Canvas administrator to create one:
 
 1. Log into Canvas as an administrator
 2. Navigate to **Admin > Developer Keys**
@@ -102,20 +102,33 @@ By default, Canvas CLI uses embedded OAuth credentials. For enhanced security or
 
 ### Step 2: Authenticate
 
-#### Using Embedded Credentials (Easiest)
-
-```bash
-canvas auth login --instance https://canvas.instructure.com
-```
-
-#### Using Your Own Credentials
-
 ```bash
 canvas auth login \
   --instance https://canvas.instructure.com \
   --client-id YOUR_CLIENT_ID \
   --client-secret YOUR_CLIENT_SECRET
 ```
+
+#### Public Clients (PKCE Only, No Secret)
+
+Canvas supports secret-less OAuth for developer keys provisioned with
+`client_type = "public"`: the token exchange is protected by PKCE instead of
+a client secret, so nothing sensitive needs to be stored. Use `--public-client`:
+
+```bash
+canvas auth login \
+  --instance https://canvas.instructure.com \
+  --client-id YOUR_CLIENT_ID \
+  --public-client
+```
+
+!!! note "Public-client keys are not self-service"
+    The Canvas Developer Keys UI and API always create *confidential* keys
+    (secret required). To get a public-client key on hosted Canvas, ask
+    Instructure support or your CSM; on self-hosted Canvas an operator can
+    set `client_type` from the Rails console. Public-client tokens are
+    short-lived by design (roughly a 2-hour rolling refresh window) — Canvas
+    CLI refreshes them automatically.
 
 ### Step 3: Verify Authentication
 

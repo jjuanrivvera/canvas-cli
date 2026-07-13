@@ -100,8 +100,21 @@ func CreateOAuth2ConfigForInstance(baseURL, clientID, clientSecret string) *oaut
 		ClientID:     clientID,
 		ClientSecret: clientSecret,
 		Endpoint: oauth2.Endpoint{
-			AuthURL:  baseURL + "/login/oauth2/auth",
-			TokenURL: baseURL + "/login/oauth2/token",
+			AuthURL:   baseURL + "/login/oauth2/auth",
+			TokenURL:  baseURL + "/login/oauth2/token",
+			AuthStyle: canvasAuthStyle(clientSecret),
 		},
 	}
+}
+
+// canvasAuthStyle picks how client credentials are sent to the token endpoint.
+// For public clients (no secret) the credentials must go in the POST body so
+// that client_secret is omitted entirely: the default auto-detection would
+// first try HTTP Basic auth with an empty password, and Canvas only takes the
+// PKCE public-client path when the secret is truly absent.
+func canvasAuthStyle(clientSecret string) oauth2.AuthStyle {
+	if clientSecret == "" {
+		return oauth2.AuthStyleInParams
+	}
+	return oauth2.AuthStyleAutoDetect
 }

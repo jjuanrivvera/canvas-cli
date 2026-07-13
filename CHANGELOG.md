@@ -10,6 +10,16 @@ sync by `make docs-gen` and the documentation workflow.
 
 ## [Unreleased]
 
+### Added
+
+- `auth login --public-client`: secret-less OAuth for Canvas developer keys provisioned with
+  `client_type = "public"` — the token exchange and refresh are protected by PKCE only, and the
+  request omits `client_secret` entirely. Canvas validates PKCE on hosted instances since the
+  March 2026 release; public-client keys must currently be provisioned by Instructure (they are
+  not self-service in the Developer Keys UI). Instances persist this as `public_client: true`
+  in `config.yaml`. ([#48](https://github.com/jjuanrivvera/canvas-cli/issues/48),
+  [#51](https://github.com/jjuanrivvera/canvas-cli/issues/51))
+
 ### Planned
 
 - Canvas Studio integration

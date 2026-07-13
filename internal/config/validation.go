@@ -90,9 +90,17 @@ func ValidateInstance(instance *Instance) error {
 		}
 	}
 
-	// Validate OAuth credentials if configured
-	if instance.ClientID != "" && instance.ClientSecret == "" {
-		return fmt.Errorf("client_secret is required when client_id is set")
+	// Validate OAuth credentials if configured. Public clients (Canvas
+	// developer keys with client_type = "public") authenticate with PKCE
+	// only and must not carry a secret.
+	if instance.PublicClient && instance.ClientSecret != "" {
+		return fmt.Errorf("client_secret must not be set when public_client is true (public clients authenticate with PKCE only)")
+	}
+	if instance.PublicClient && instance.ClientID == "" {
+		return fmt.Errorf("client_id is required when public_client is true")
+	}
+	if instance.ClientID != "" && instance.ClientSecret == "" && !instance.PublicClient {
+		return fmt.Errorf("client_secret is required when client_id is set (or set public_client: true for a PKCE-only public client)")
 	}
 	if instance.ClientSecret != "" && instance.ClientID == "" {
 		return fmt.Errorf("client_id is required when client_secret is set")
