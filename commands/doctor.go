@@ -11,8 +11,19 @@ import (
 
 	"github.com/jjuanrivvera/canvas-cli/commands/internal/logging"
 	"github.com/jjuanrivvera/canvas-cli/commands/internal/options"
+	"github.com/jjuanrivvera/canvas-cli/internal/api"
+	"github.com/jjuanrivvera/canvas-cli/internal/config"
 	"github.com/jjuanrivvera/canvas-cli/internal/diagnostics"
 )
+
+// newDoctorRunner builds the diagnostics runner used by `canvas doctor`. It is a
+// package var (not a direct call to diagnostics.New) so tests can inject a
+// deterministic fake runner in place of the production runner, whose checks
+// depend on live network, local credentials, and host filesystem state. The
+// production default is unchanged for real users.
+var newDoctorRunner = func(cfg *config.Config, client *api.Client) diagnostics.Runner {
+	return diagnostics.New(cfg, client)
+}
 
 func init() {
 	rootCmd.AddCommand(newDoctorCmd())
@@ -88,8 +99,8 @@ func runDoctor(ctx context.Context, opts *options.DoctorOptions) error {
 		client = nil
 	}
 
-	// Create doctor instance
-	doctor := diagnostics.New(cfg, client)
+	// Create doctor instance (injectable seam; see newDoctorRunner)
+	doctor := newDoctorRunner(cfg, client)
 
 	// Run diagnostics
 	if !opts.JSON {

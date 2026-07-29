@@ -43,6 +43,14 @@ type Report struct {
 	SkipCount int
 }
 
+// Runner runs diagnostic checks and produces a Report. The concrete *Doctor
+// implements it; the interface is the seam that lets callers (notably the
+// `canvas doctor` command) inject a deterministic fake in tests instead of
+// exercising the real environment, network, and filesystem checks.
+type Runner interface {
+	Run(ctx context.Context) (*Report, error)
+}
+
 // Doctor performs system diagnostics
 type Doctor struct {
 	config *config.Config

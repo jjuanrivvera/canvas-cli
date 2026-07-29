@@ -15,6 +15,17 @@ sync by `make docs-gen` and the documentation workflow.
 - Canvas Studio integration
 - GraphQL API support
 
+### Changed
+
+- `canvas doctor`: the command now resolves its diagnostics runner through an
+  injectable `diagnostics.Runner` seam (`newDoctorRunner`) instead of calling
+  `diagnostics.New` directly. Runtime behavior is unchanged for users; the seam
+  lets the command tests drive deterministic fake reports so
+  `go test ./commands -run TestDoctorCmd` no longer depends on live network,
+  host permissions, or real credentials — and no longer skips under CI. The
+  real end-to-end path remains covered by an opt-in smoke test gated behind
+  `CANVAS_DOCTOR_LIVE=1`. ([#28](https://github.com/jjuanrivvera/canvas-cli/issues/28))
+
 ## [1.11.0] - 2026-07-13
 
 ### Added
