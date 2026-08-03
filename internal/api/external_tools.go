@@ -2,10 +2,44 @@ package api
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/url"
 	"strconv"
+	"strings"
 )
+
+// CommaSeparatedList decodes a Canvas field that may arrive either as a JSON
+// array of strings or as a single comma-separated string. Canvas is inconsistent
+// here — e.g. a placement's required_permissions comes back as "a,b,c" on some
+// account-level tools but as ["a","b","c"] elsewhere — and modelling it as a plain
+// []string makes the whole list decode fail. It always round-trips as an array.
+type CommaSeparatedList []string
+
+// UnmarshalJSON accepts both the array and comma-separated-string shapes.
+func (c *CommaSeparatedList) UnmarshalJSON(b []byte) error {
+	// Preferred (documented) shape: a JSON array of strings.
+	var arr []string
+	if err := json.Unmarshal(b, &arr); err == nil {
+		*c = arr
+		return nil
+	}
+	// Fallback: a single comma-separated string.
+	var s string
+	if err := json.Unmarshal(b, &s); err != nil {
+		return err
+	}
+	if strings.TrimSpace(s) == "" {
+		*c = nil
+		return nil
+	}
+	parts := strings.Split(s, ",")
+	for i := range parts {
+		parts[i] = strings.TrimSpace(parts[i])
+	}
+	*c = parts
+	return nil
+}
 
 // ExternalToolsService handles external tool-related API calls
 type ExternalToolsService struct {
@@ -56,23 +90,23 @@ type ExternalTool struct {
 
 // ToolPlacement represents a tool placement configuration
 type ToolPlacement struct {
-	Enabled             bool              `json:"enabled,omitempty"`
-	URL                 string            `json:"url,omitempty"`
-	MessageType         string            `json:"message_type,omitempty"`
-	Text                string            `json:"text,omitempty"`
-	IconURL             string            `json:"icon_url,omitempty"`
-	SelectionWidth      int               `json:"selection_width,omitempty"`
-	SelectionHeight     int               `json:"selection_height,omitempty"`
-	Labels              map[string]string `json:"labels,omitempty"`
-	Visibility          string            `json:"visibility,omitempty"`
-	DisplayType         string            `json:"display_type,omitempty"`
-	LaunchWidth         int               `json:"launch_width,omitempty"`
-	LaunchHeight        int               `json:"launch_height,omitempty"`
-	WindowTarget        string            `json:"windowTarget,omitempty"`
-	Default             string            `json:"default,omitempty"`
-	AcceptMediaTypes    string            `json:"accept_media_types,omitempty"`
-	CanvasIconClass     string            `json:"canvas_icon_class,omitempty"`
-	RequiredPermissions []string          `json:"required_permissions,omitempty"`
+	Enabled             bool               `json:"enabled,omitempty"`
+	URL                 string             `json:"url,omitempty"`
+	MessageType         string             `json:"message_type,omitempty"`
+	Text                string             `json:"text,omitempty"`
+	IconURL             string             `json:"icon_url,omitempty"`
+	SelectionWidth      int                `json:"selection_width,omitempty"`
+	SelectionHeight     int                `json:"selection_height,omitempty"`
+	Labels              map[string]string  `json:"labels,omitempty"`
+	Visibility          string             `json:"visibility,omitempty"`
+	DisplayType         string             `json:"display_type,omitempty"`
+	LaunchWidth         int                `json:"launch_width,omitempty"`
+	LaunchHeight        int                `json:"launch_height,omitempty"`
+	WindowTarget        string             `json:"windowTarget,omitempty"`
+	Default             string             `json:"default,omitempty"`
+	AcceptMediaTypes    string             `json:"accept_media_types,omitempty"`
+	CanvasIconClass     string             `json:"canvas_icon_class,omitempty"`
+	RequiredPermissions CommaSeparatedList `json:"required_permissions,omitempty"`
 }
 
 // SessionlessLaunchURL represents the response from sessionless launch

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"testing"
 )
 
@@ -466,5 +467,106 @@ func TestExternalToolsService_DeleteFromAccount(t *testing.T) {
 	_, err = svc.DeleteFromAccount(context.Background(), 5, 99)
 	if err != nil {
 		t.Fatalf("DeleteFromAccount: %v", err)
+	}
+}
+
+func TestCommaSeparatedList_UnmarshalJSON(t *testing.T) {
+	tests := []struct {
+		name string
+		in   string
+		want CommaSeparatedList
+	}{
+		{"array", `["a","b","c"]`, CommaSeparatedList{"a", "b", "c"}},
+		{"comma string", `"a,b,c"`, CommaSeparatedList{"a", "b", "c"}},
+		{"comma string with spaces", `"a, b ,c"`, CommaSeparatedList{"a", "b", "c"}},
+		{"single string", `"only"`, CommaSeparatedList{"only"}},
+		{"empty string", `""`, nil},
+		{"empty array", `[]`, CommaSeparatedList{}},
+		{"null", `null`, nil},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var got CommaSeparatedList
+			if err := json.Unmarshal([]byte(tt.in), &got); err != nil {
+				t.Fatalf("Unmarshal(%s): %v", tt.in, err)
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Unmarshal(%s) = %#v, want %#v", tt.in, got, tt.want)
+			}
+		})
+	}
+
+	// A non-string, non-array value is still an error.
+	var bad CommaSeparatedList
+	if err := json.Unmarshal([]byte(`123`), &bad); err == nil {
+		t.Errorf("expected error unmarshalling a number, got nil")
+	}
+}
+
+// Regression for #55: Canvas returns required_permissions on account-level
+// placements as a comma-separated string, which previously failed the whole
+// list decode. The list must now succeed and parse the field into a slice.
+func TestExternalToolsService_ListByAccount_RequiredPermissionsString(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			handleVersionDetection(w)
+			return
+		}
+		if r.URL.Path != "/api/v1/accounts/1/external_tools" {
+			t.Errorf("Expected path /api/v1/accounts/1/external_tools, got %s", r.URL.Path)
+		}
+		// required_permissions as a comma-separated STRING (the bug repro).
+		w.Write([]byte(`[
+			{"id": 1, "name": "Plain Tool", "url": "https://a.example.com"},
+			{"id": 2, "name": "Perm Tool", "account_navigation": {"enabled": true, "required_permissions": "manage_courses,manage_account_settings"}}
+		]`))
+	}))
+	defer server.Close()
+
+	client := newTestClient(t, server.URL)
+	service := NewExternalToolsService(client)
+
+	tools, err := service.ListByAccount(context.Background(), 1, nil)
+	if err != nil {
+		t.Fatalf("ListByAccount failed (regression #55): %v", err)
+	}
+	if len(tools) != 2 {
+		t.Fatalf("Expected 2 tools, got %d", len(tools))
+	}
+	got := tools[1].AccountNavigation.RequiredPermissions
+	want := CommaSeparatedList{"manage_courses", "manage_account_settings"}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("RequiredPermissions = %#v, want %#v", got, want)
+	}
+}
+
+// A single malformed element must not sink the whole page: it is skipped
+// (with a warning) and the well-formed elements still come back (#55 bonus).
+func TestExternalToolsService_ListByAccount_SkipsMalformedElement(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			handleVersionDetection(w)
+			return
+		}
+		// The second element has a non-numeric id, which cannot decode into int64.
+		w.Write([]byte(`[
+			{"id": 1, "name": "Good Tool"},
+			{"id": "not-a-number", "name": "Broken Tool"}
+		]`))
+	}))
+	defer server.Close()
+
+	client := newTestClient(t, server.URL)
+	service := NewExternalToolsService(client)
+
+	tools, err := service.ListByAccount(context.Background(), 1, nil)
+	if err != nil {
+		t.Fatalf("ListByAccount should not fail on one bad element: %v", err)
+	}
+	if len(tools) != 1 {
+		t.Fatalf("Expected 1 surviving tool, got %d", len(tools))
+	}
+	if tools[0].Name != "Good Tool" {
+		t.Errorf("Expected the well-formed tool, got %q", tools[0].Name)
 	}
 }

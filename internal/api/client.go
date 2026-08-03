@@ -848,11 +848,15 @@ func (c *Client) GetAllPages(ctx context.Context, path string, result interface{
 	sliceValue := resultValue.Elem()
 	elemType := sliceValue.Type().Elem()
 
-	for _, raw := range allResults {
+	for i, raw := range allResults {
 		// Create a new element of the slice's element type
 		elem := reflect.New(elemType)
 		if err := json.Unmarshal(raw, elem.Interface()); err != nil {
-			return fmt.Errorf("failed to unmarshal element: %w", err)
+			// Degrade gracefully: one malformed element shouldn't discard the
+			// whole page. Warn and skip it so the command stays useful.
+			c.logger.Warn("skipping list element that failed to decode",
+				"index", i, "error", err)
+			continue
 		}
 		sliceValue = reflect.Append(sliceValue, elem.Elem())
 	}
