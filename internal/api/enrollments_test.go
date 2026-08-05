@@ -733,3 +733,50 @@ func TestEnrollmentsService_EnrollUser_WithAllOptions(t *testing.T) {
 		t.Errorf("Expected enrollment ID 999, got %d", enrollment.ID)
 	}
 }
+
+// Regression for #56: some Canvas deployments answer an enrollment create with
+// an array (a single-element array, or an empty [] on success) instead of a
+// single object. EnrollUser must handle both without reporting a false failure.
+func TestEnrollmentsService_EnrollUser_ArrayResponse(t *testing.T) {
+	t.Run("single-element array", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.URL.Path == "/api/v1/accounts" {
+				handleVersionDetection(w)
+				return
+			}
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte(`[{"id":42,"user_id":789,"course_id":123,"type":"StudentEnrollment","enrollment_state":"active"}]`))
+		}))
+		defer server.Close()
+
+		service := NewEnrollmentsService(newTestClient(t, server.URL))
+		enr, err := service.EnrollUser(context.Background(), 123, &EnrollUserParams{UserID: 789, Type: "StudentEnrollment", EnrollmentState: "active"})
+		if err != nil {
+			t.Fatalf("EnrollUser should handle an array response: %v", err)
+		}
+		if enr == nil || enr.ID != 42 {
+			t.Fatalf("expected enrollment id 42, got %+v", enr)
+		}
+	})
+
+	t.Run("empty array is success", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.URL.Path == "/api/v1/accounts" {
+				handleVersionDetection(w)
+				return
+			}
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte(`[]`))
+		}))
+		defer server.Close()
+
+		service := NewEnrollmentsService(newTestClient(t, server.URL))
+		enr, err := service.EnrollUser(context.Background(), 123, &EnrollUserParams{UserID: 789, Type: "StudentEnrollment", EnrollmentState: "active"})
+		if err != nil {
+			t.Fatalf("EnrollUser must not fail on an empty-array success response: %v", err)
+		}
+		if enr == nil {
+			t.Fatalf("expected a non-nil enrollment on success")
+		}
+	})
+}

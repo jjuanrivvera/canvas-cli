@@ -516,6 +516,50 @@ func (c *Client) Delete(ctx context.Context, path string) (*http.Response, error
 	return resp, nil
 }
 
+// unmarshalTolerant decodes body into result, tolerating Canvas endpoints that
+// occasionally return a single object wrapped in an array (e.g. some deployments
+// answer an enrollment create with [] or [obj] instead of obj). When the body is
+// a JSON array and result targets a single (non-slice) value, the first element
+// is used; an empty array leaves result zero-valued and is treated as success.
+// Any other decode error is returned unchanged, and slice targets keep normal
+// semantics.
+func unmarshalTolerant(body []byte, result interface{}) error {
+	err := json.Unmarshal(body, result)
+	if err == nil {
+		return nil
+	}
+
+	// Only attempt the array fallback when the body actually is a JSON array.
+	trimmed := bytes.TrimSpace(body)
+	if len(trimmed) == 0 || trimmed[0] != '[' {
+		return err
+	}
+
+	rv := reflect.ValueOf(result)
+	if rv.Kind() != reflect.Pointer || rv.IsNil() {
+		return err
+	}
+	elemType := rv.Elem().Type()
+	if elemType.Kind() == reflect.Slice {
+		// Target already expects a slice; the original error stands.
+		return err
+	}
+
+	slicePtr := reflect.New(reflect.SliceOf(elemType))
+	if e := json.Unmarshal(body, slicePtr.Interface()); e != nil {
+		// Not an array of the target type — surface the original error.
+		return err
+	}
+	slice := slicePtr.Elem()
+	if slice.Len() > 0 {
+		rv.Elem().Set(slice.Index(0))
+	} else {
+		// Empty array: reset result to its zero value and treat as success.
+		rv.Elem().Set(reflect.Zero(elemType))
+	}
+	return nil
+}
+
 // DeleteJSON performs a DELETE request and decodes the JSON response body into
 // result. If result is nil the body is discarded. This is the preferred method
 // when the Canvas DELETE endpoint returns a meaningful JSON body.
@@ -532,7 +576,7 @@ func (c *Client) DeleteJSON(ctx context.Context, path string, result interface{}
 	}
 
 	if result != nil {
-		return json.Unmarshal(bodyBytes, result)
+		return unmarshalTolerant(bodyBytes, result)
 	}
 	return nil
 }
@@ -566,7 +610,7 @@ func (c *Client) GetJSON(ctx context.Context, path string, result interface{}) e
 	}
 
 	// Decode the response
-	if err := json.Unmarshal(body, result); err != nil {
+	if err := unmarshalTolerant(body, result); err != nil {
 		return err
 	}
 
@@ -602,7 +646,7 @@ func (c *Client) PostJSON(ctx context.Context, path string, body interface{}, re
 	}
 
 	if result != nil {
-		return json.Unmarshal(bodyBytes, result)
+		return unmarshalTolerant(bodyBytes, result)
 	}
 
 	return nil
@@ -631,7 +675,7 @@ func (c *Client) PutJSON(ctx context.Context, path string, body interface{}, res
 	}
 
 	if result != nil {
-		return json.Unmarshal(bodyBytes, result)
+		return unmarshalTolerant(bodyBytes, result)
 	}
 
 	return nil
@@ -661,7 +705,7 @@ func (c *Client) PatchJSON(ctx context.Context, path string, body interface{}, r
 	}
 
 	if result != nil {
-		return json.Unmarshal(bodyBytes, result)
+		return unmarshalTolerant(bodyBytes, result)
 	}
 
 	return nil

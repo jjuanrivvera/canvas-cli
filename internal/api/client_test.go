@@ -1107,3 +1107,65 @@ func BenchmarkGetAllPages_LargeDataset_Generics(b *testing.B) {
 		}
 	}
 }
+
+func TestUnmarshalTolerant(t *testing.T) {
+	type item struct {
+		ID   int64  `json:"id"`
+		Name string `json:"name"`
+	}
+
+	t.Run("single object", func(t *testing.T) {
+		var got item
+		if err := unmarshalTolerant([]byte(`{"id":1,"name":"a"}`), &got); err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if got.ID != 1 || got.Name != "a" {
+			t.Errorf("got %+v", got)
+		}
+	})
+
+	t.Run("array uses first element", func(t *testing.T) {
+		var got item
+		if err := unmarshalTolerant([]byte(`[{"id":2,"name":"b"},{"id":3,"name":"c"}]`), &got); err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if got.ID != 2 || got.Name != "b" {
+			t.Errorf("expected first element, got %+v", got)
+		}
+	})
+
+	t.Run("empty array is success and leaves zero value", func(t *testing.T) {
+		got := item{ID: 99, Name: "pre"}
+		if err := unmarshalTolerant([]byte(`[]`), &got); err != nil {
+			t.Fatalf("empty array should not error: %v", err)
+		}
+		if got.ID != 0 || got.Name != "" {
+			t.Errorf("expected zero value, got %+v", got)
+		}
+	})
+
+	t.Run("slice target keeps normal semantics", func(t *testing.T) {
+		var got []item
+		if err := unmarshalTolerant([]byte(`[{"id":4,"name":"d"}]`), &got); err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if len(got) != 1 || got[0].ID != 4 {
+			t.Errorf("got %+v", got)
+		}
+	})
+
+	t.Run("non-array decode error is returned", func(t *testing.T) {
+		var got item
+		if err := unmarshalTolerant([]byte(`"a string"`), &got); err == nil {
+			t.Errorf("expected error decoding a string into a struct, got nil")
+		}
+	})
+
+	t.Run("array of wrong type surfaces original error", func(t *testing.T) {
+		var got item
+		// Array whose elements can't decode into item -> original error stands.
+		if err := unmarshalTolerant([]byte(`["x","y"]`), &got); err == nil {
+			t.Errorf("expected error, got nil")
+		}
+	})
+}
