@@ -748,8 +748,13 @@ func TestClassifyCanvasCommands_RealTree_SanityCheck(t *testing.T) {
 		}
 	}
 
-	// Verify "api" command is excluded.
+	// Verify the raw "api" escape hatch is excluded — except the GET-only
+	// "api get" sibling, which is a genuine read and must classify as one (#60).
+	assertContainsPath(t, "read", read, "api get")
 	for _, gc := range append(append(read, writes...), irreversible...) {
+		if gc.cli == "api get" {
+			continue
+		}
 		if strings.HasPrefix(gc.cli, "api ") || gc.cli == "api" {
 			t.Errorf("raw api command leaked through: %q", gc.cli)
 		}
