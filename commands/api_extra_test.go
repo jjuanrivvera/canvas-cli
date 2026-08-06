@@ -262,3 +262,36 @@ func TestAPICmd_DeleteRequest(t *testing.T) {
 		})
 	}
 }
+
+// TestAPIGetCmd_ReadOnly covers the GET-only "canvas api get" sibling (#60):
+// it dispatches, returns data, and — unlike "canvas api" — does not accept a
+// request body.
+func TestAPIGetCmd_ReadOnly(t *testing.T) {
+	tests := []cmdtest.CommandTestCase{
+		{
+			Name: "api get returns data",
+			Args: prependAPI([]string{"get", "/api/v1/courses"}),
+			MockResponses: map[string]cmdtest.MockResponse{
+				"/api/v1/accounts": accountsMockResponse,
+				"/api/v1/courses":  cmdtest.NewMockResponse(`[{"id":1,"name":"Test Course"}]`),
+			},
+			ExpectError: false,
+			ValidateOutput: func(t *testing.T, output string) {
+				if !strings.Contains(output, "Test Course") && !strings.Contains(output, "status_code") {
+					t.Errorf("expected course data in output, got: %s", output)
+				}
+			},
+		},
+		{
+			Name:        "api get rejects a body flag",
+			Args:        prependAPI([]string{"get", "/api/v1/courses", "--data", `{"x":1}`}),
+			ExpectError: true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.Name, func(t *testing.T) {
+			runAPICmdTest(t, tc)
+		})
+	}
+}

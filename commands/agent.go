@@ -299,6 +299,12 @@ func classifyCanvasCommand(root, sub *cobra.Command) (canvasClass, canvasGuardCm
 	// The "api" raw-escape command is documented separately in the hook script
 	// header and cannot be safely classified by verb.
 	if group == "api" || sub.Name() == "api" {
+		// "canvas api get" is a GET-only sibling that never mutates state, so it
+		// is a genuine read for both the guard and the MCP readOnlyHint. The
+		// general "canvas api" escape hatch (any HTTP verb) stays skipped.
+		if group == "api" && sub.Name() == "get" {
+			return canvasClassRead, gc
+		}
 		return canvasClassSkip, gc
 	}
 

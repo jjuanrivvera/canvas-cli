@@ -70,6 +70,55 @@ Examples:
 	cmd.Flags().BoolVar(&opts.RawOutput, "raw", false, "Output raw response without formatting")
 	cmd.Flags().BoolVar(&opts.ShowHeaders, "show-headers", false, "Include response headers in output")
 
+	cmd.AddCommand(newAPIGetCmd())
+
+	return cmd
+}
+
+// newAPIGetCmd is a GET-only sibling of "canvas api". Because it can never
+// mutate state, it is safe to advertise to read-only MCP clients: the shared
+// classifier (classifyCanvasCommand) buckets "api get" as a read, so it carries
+// readOnlyHint=true while the general "canvas api" escape hatch (any HTTP verb)
+// stays unannotated. It gives broad Canvas read coverage from a single tool
+// schema instead of allowlisting every typed read tool. See issue #60.
+func newAPIGetCmd() *cobra.Command {
+	opts := &options.APIOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "get <PATH>",
+		Short: "Make a read-only GET request to Canvas",
+		Long: `Make a raw GET request to any Canvas API endpoint.
+
+A GET-only sibling of "canvas api": it never mutates state, so it is exposed to
+read-only MCP clients (it carries the readOnlyHint annotation). For other verbs,
+use "canvas api <METHOD> <PATH>".
+
+Examples:
+  # List all courses
+  canvas api get /api/v1/courses
+
+  # Search users with query parameters
+  canvas api get /api/v1/users -q "search_term=john" -q "per_page=50"
+
+  # Follow pagination
+  canvas api get /api/v1/courses --paginate`,
+		Args: ExactArgsWithUsage(1, "path"),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+			// Force the method to GET; reuse the shared runner.
+			return runAPICommand(cmd, []string{"GET", args[0]}, client, opts)
+		},
+	}
+
+	cmd.Flags().StringArrayVarP(&opts.Query, "query", "q", nil, "Query parameters (key=value, repeatable)")
+	cmd.Flags().StringArrayVarP(&opts.Headers, "header", "H", nil, "Custom headers (key:value, repeatable)")
+	cmd.Flags().BoolVar(&opts.Paginate, "paginate", false, "Follow pagination links")
+	cmd.Flags().BoolVar(&opts.RawOutput, "raw", false, "Output raw response without formatting")
+	cmd.Flags().BoolVar(&opts.ShowHeaders, "show-headers", false, "Include response headers in output")
+
 	return cmd
 }
 

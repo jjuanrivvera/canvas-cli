@@ -787,3 +787,27 @@ func assertNotContainsPath(t *testing.T, bucket string, cs []canvasGuardCmd, pat
 		}
 	}
 }
+
+// TestClassifyCanvasCommand_APIGetIsRead pins the #60 exception: the GET-only
+// "api get" sibling classifies as a read (so it can advertise readOnlyHint and
+// survive read-only MCP clients), while the general "api" escape hatch stays
+// skipped/unannotated.
+func TestClassifyCanvasCommand_APIGetIsRead(t *testing.T) {
+	root := rootCmd
+
+	apiCmd := findCmd(root, "api")
+	if apiCmd == nil {
+		t.Fatal(`"canvas api" not found`)
+	}
+	if class, _ := classifyCanvasCommand(root, apiCmd); class != canvasClassSkip {
+		t.Errorf(`"canvas api" must be canvasClassSkip, got %v`, class)
+	}
+
+	apiGet := findCmd(root, "api get")
+	if apiGet == nil {
+		t.Fatal(`"canvas api get" not found`)
+	}
+	if class, _ := classifyCanvasCommand(root, apiGet); class != canvasClassRead {
+		t.Errorf(`"canvas api get" must be canvasClassRead, got %v`, class)
+	}
+}

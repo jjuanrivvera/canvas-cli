@@ -106,8 +106,17 @@ func TestApplyMCPAnnotations_APIEscapeHatchUnannotated(t *testing.T) {
 	if _, ok := annotationOf(apiCmd, ophis.AnnotationReadOnly); ok {
 		t.Error(`"canvas api" must not carry a readOnlyHint`)
 	}
+	// Every api subcommand stays unannotated EXCEPT the GET-only "api get"
+	// sibling, which is a genuine read and must advertise readOnlyHint=true (#60).
 	for _, sub := range apiCmd.Commands() {
-		if _, ok := annotationOf(sub, ophis.AnnotationReadOnly); ok {
+		v, ok := annotationOf(sub, ophis.AnnotationReadOnly)
+		if sub.Name() == "get" {
+			if !ok || v != "true" {
+				t.Errorf("%q must carry readOnlyHint=true, got %q (present=%v)", sub.CommandPath(), v, ok)
+			}
+			continue
+		}
+		if ok {
 			t.Errorf("%q must not carry a readOnlyHint", sub.CommandPath())
 		}
 	}
