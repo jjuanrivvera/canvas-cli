@@ -376,6 +376,75 @@ func TestQuizzesQuestionsDeleteOptions_Validate(t *testing.T) {
 	}
 }
 
+func TestQuizzesSubmissionsUpdateOptions_Validate(t *testing.T) {
+	tests := []struct {
+		name    string
+		opts    *QuizzesSubmissionsUpdateOptions
+		wantErr bool
+	}{
+		{
+			name:    "valid fudge points only",
+			opts:    &QuizzesSubmissionsUpdateOptions{CourseID: 1, QuizID: 2, SubmissionID: 3, Attempt: 1, FudgePointsSet: true},
+			wantErr: false,
+		},
+		{
+			name: "valid question score and comment",
+			opts: &QuizzesSubmissionsUpdateOptions{CourseID: 1, QuizID: 2, SubmissionID: 3, Attempt: 1,
+				QuestionScores: []string{"11=2.5"}, QuestionComments: []string{"11=nice=work"}},
+			wantErr: false,
+		},
+		{
+			name:    "nothing to update",
+			opts:    &QuizzesSubmissionsUpdateOptions{CourseID: 1, QuizID: 2, SubmissionID: 3, Attempt: 1},
+			wantErr: true,
+		},
+		{
+			name:    "missing attempt",
+			opts:    &QuizzesSubmissionsUpdateOptions{CourseID: 1, QuizID: 2, SubmissionID: 3, FudgePointsSet: true},
+			wantErr: true,
+		},
+		{
+			name:    "bad score value",
+			opts:    &QuizzesSubmissionsUpdateOptions{CourseID: 1, QuizID: 2, SubmissionID: 3, Attempt: 1, QuestionScores: []string{"11=abc"}},
+			wantErr: true,
+		},
+		{
+			name:    "score without equals",
+			opts:    &QuizzesSubmissionsUpdateOptions{CourseID: 1, QuizID: 2, SubmissionID: 3, Attempt: 1, QuestionScores: []string{"11"}},
+			wantErr: true,
+		},
+		{
+			name:    "comment with non-numeric question id",
+			opts:    &QuizzesSubmissionsUpdateOptions{CourseID: 1, QuizID: 2, SubmissionID: 3, Attempt: 1, QuestionComments: []string{"q=hi"}},
+			wantErr: true,
+		},
+		{
+			name:    "zero course ID",
+			opts:    &QuizzesSubmissionsUpdateOptions{CourseID: 0, QuizID: 2, SubmissionID: 3, Attempt: 1, FudgePointsSet: true},
+			wantErr: true,
+		},
+		{
+			name:    "zero quiz ID",
+			opts:    &QuizzesSubmissionsUpdateOptions{CourseID: 1, QuizID: 0, SubmissionID: 3, Attempt: 1, FudgePointsSet: true},
+			wantErr: true,
+		},
+		{
+			name:    "zero submission ID",
+			opts:    &QuizzesSubmissionsUpdateOptions{CourseID: 1, QuizID: 2, SubmissionID: 0, Attempt: 1, FudgePointsSet: true},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.opts.Validate()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("QuizzesSubmissionsUpdateOptions.Validate() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
 func TestQuizzesSubmissionsListOptions_Validate(t *testing.T) {
 	tests := []struct {
 		name    string
