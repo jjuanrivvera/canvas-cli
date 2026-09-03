@@ -114,12 +114,32 @@ func (s *QuizSubmissionsService) Get(ctx context.Context, courseID, quizID, subm
 	return &response.QuizSubmissions[0], nil
 }
 
-// UpdateQuizSubmissionParams holds parameters for updating a quiz submission
+// QuizSubmissionQuestionScore is one entry of quiz_submissions[][questions]:
+// the score and/or comment for a single answered question, keyed by the quiz
+// question ID in UpdateQuizSubmissionParams.Questions.
+//
+// Canvas API, "Update student question scores and comments"
+// (https://canvas.instructure.com/doc/api/quiz_submissions.html#method.quizzes/quiz_submissions_api.update):
+// "A set of scores and comments for each question answered by the student.
+// The keys are the question IDs, and the values are hashes of score and
+// comment entries."
+type QuizSubmissionQuestionScore struct {
+	Score   *float64 `json:"score,omitempty"`
+	Comment *string  `json:"comment,omitempty"`
+}
+
+// UpdateQuizSubmissionParams holds parameters for updating a quiz submission.
+//
+// Attempt is required by Canvas for the documented score/comment update
+// ("The attempt number of the quiz submission that should be updated. This
+// attempt MUST be already completed.") and is sent whenever set.
 type UpdateQuizSubmissionParams struct {
-	ExtraAttempts    *int     `json:"extra_attempts,omitempty"`
-	ExtraTime        *int     `json:"extra_time,omitempty"`
-	ManuallyUnlocked *bool    `json:"manually_unlocked,omitempty"`
-	FudgePoints      *float64 `json:"fudge_points,omitempty"`
+	Attempt          *int                                  `json:"attempt,omitempty"`
+	ExtraAttempts    *int                                  `json:"extra_attempts,omitempty"`
+	ExtraTime        *int                                  `json:"extra_time,omitempty"`
+	ManuallyUnlocked *bool                                 `json:"manually_unlocked,omitempty"`
+	FudgePoints      *float64                              `json:"fudge_points,omitempty"`
+	Questions        map[int64]QuizSubmissionQuestionScore `json:"questions,omitempty"`
 }
 
 // Update updates a quiz submission (for grading adjustments)
@@ -139,6 +159,10 @@ func (s *QuizSubmissionsService) Update(ctx context.Context, courseID, quizID, s
 
 	submissionData := submissions[0]
 
+	if params.Attempt != nil {
+		submissionData["attempt"] = *params.Attempt
+	}
+
 	if params.ExtraAttempts != nil {
 		submissionData["extra_attempts"] = *params.ExtraAttempts
 	}
@@ -153,6 +177,12 @@ func (s *QuizSubmissionsService) Update(ctx context.Context, courseID, quizID, s
 
 	if params.FudgePoints != nil {
 		submissionData["fudge_points"] = *params.FudgePoints
+	}
+
+	if len(params.Questions) > 0 {
+		// encoding/json renders int64 map keys as decimal strings, which is
+		// the {"<question_id>": {...}} shape Canvas documents.
+		submissionData["questions"] = params.Questions
 	}
 
 	var response QuizSubmissionsResponse
