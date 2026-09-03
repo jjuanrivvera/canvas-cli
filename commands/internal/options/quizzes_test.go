@@ -276,6 +276,68 @@ func TestQuizzesQuestionsCreateOptions_Validate(t *testing.T) {
 	}
 }
 
+func TestQuizzesQuestionsUpdateOptions_Validate(t *testing.T) {
+	tests := []struct {
+		name    string
+		opts    *QuizzesQuestionsUpdateOptions
+		wantErr bool
+	}{
+		{
+			name:    "valid with no field flags",
+			opts:    &QuizzesQuestionsUpdateOptions{CourseID: 1, QuizID: 2, QuestionID: 3},
+			wantErr: false,
+		},
+		{
+			name: "valid answers JSON",
+			opts: &QuizzesQuestionsUpdateOptions{
+				CourseID: 1, QuizID: 2, QuestionID: 3,
+				AnswersJSON: `[{"id":10,"weight":100},{"id":11,"weight":0}]`, AnswersJSONSet: true,
+			},
+			wantErr: false,
+		},
+		{
+			name: "answers JSON not an array",
+			opts: &QuizzesQuestionsUpdateOptions{
+				CourseID: 1, QuizID: 2, QuestionID: 3,
+				AnswersJSON: `{"id":10}`, AnswersJSONSet: true,
+			},
+			wantErr: true,
+		},
+		{
+			name: "answers JSON malformed",
+			opts: &QuizzesQuestionsUpdateOptions{
+				CourseID: 1, QuizID: 2, QuestionID: 3,
+				AnswersJSON: `[{"id":10,`, AnswersJSONSet: true,
+			},
+			wantErr: true,
+		},
+		{
+			name:    "zero course ID",
+			opts:    &QuizzesQuestionsUpdateOptions{CourseID: 0, QuizID: 2, QuestionID: 3},
+			wantErr: true,
+		},
+		{
+			name:    "zero quiz ID",
+			opts:    &QuizzesQuestionsUpdateOptions{CourseID: 1, QuizID: 0, QuestionID: 3},
+			wantErr: true,
+		},
+		{
+			name:    "zero question ID",
+			opts:    &QuizzesQuestionsUpdateOptions{CourseID: 1, QuizID: 2, QuestionID: 0},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.opts.Validate()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("QuizzesQuestionsUpdateOptions.Validate() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
 func TestQuizzesQuestionsDeleteOptions_Validate(t *testing.T) {
 	tests := []struct {
 		name    string
