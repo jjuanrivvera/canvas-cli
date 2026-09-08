@@ -502,11 +502,16 @@ func formatValue(v interface{}) string {
 		// For structs, try to find a name/title/id field to display
 		return formatStructCompact(val)
 	case reflect.Pointer:
-		// Handle pointers to structs
-		if !val.IsNil() && val.Elem().Kind() == reflect.Struct {
+		// Nil pointers are handled above, so Elem() is always safe here.
+		// Pointers to structs get the compact struct representation;
+		// pointers to everything else (int64, float64, string, bool, ...)
+		// are dereferenced and formatted like their non-pointer value,
+		// instead of falling through to "%v" and printing the memory
+		// address.
+		if val.Elem().Kind() == reflect.Struct {
 			return formatStructCompact(val.Elem())
 		}
-		return fmt.Sprintf("%v", v)
+		return formatValue(val.Elem().Interface())
 	default:
 		return fmt.Sprintf("%v", v)
 	}

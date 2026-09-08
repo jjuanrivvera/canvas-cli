@@ -397,6 +397,79 @@ func TestFormatValue_PtrToStruct_NonNil(t *testing.T) {
 	}
 }
 
+// ------------------- Ptr-to-scalar branch in formatValue -------------------
+//
+// Non-nil pointers to non-struct kinds (int64, float64, string, bool, ...)
+// must render the pointed-to value, not the pointer's memory address.
+
+func TestFormatValue_PtrInt64_NonNil(t *testing.T) {
+	v := int64(42)
+	got := formatValue(&v)
+	want := formatValue(v)
+	if got != "42" || got != want {
+		t.Errorf("formatValue(&int64(42)) = %q, want %q", got, "42")
+	}
+}
+
+func TestFormatValue_PtrInt64_Nil(t *testing.T) {
+	var v *int64
+	got := formatValue(v)
+	if got != "" {
+		t.Errorf("formatValue(nil *int64) = %q, want empty string", got)
+	}
+}
+
+func TestFormatValue_PtrFloat64_NonNil(t *testing.T) {
+	v := 3.14159
+	got := formatValue(&v)
+	want := formatValue(v)
+	if got != "3.14" || got != want {
+		t.Errorf("formatValue(&float64(3.14159)) = %q, want %q", got, "3.14")
+	}
+}
+
+func TestFormatValue_PtrFloat64_Nil(t *testing.T) {
+	var v *float64
+	got := formatValue(v)
+	if got != "" {
+		t.Errorf("formatValue(nil *float64) = %q, want empty string", got)
+	}
+}
+
+func TestFormatValue_PtrString_NonNil(t *testing.T) {
+	v := "assignment"
+	got := formatValue(&v)
+	want := formatValue(v)
+	if got != "assignment" || got != want {
+		t.Errorf("formatValue(&string(\"assignment\")) = %q, want %q", got, "assignment")
+	}
+}
+
+func TestFormatValue_PtrString_Nil(t *testing.T) {
+	var v *string
+	got := formatValue(v)
+	if got != "" {
+		t.Errorf("formatValue(nil *string) = %q, want empty string", got)
+	}
+}
+
+func TestFormatValue_PtrBool_NonNil(t *testing.T) {
+	v := true
+	got := formatValue(&v)
+	want := formatValue(v)
+	if got != "true" || got != want {
+		t.Errorf("formatValue(&bool(true)) = %q, want %q", got, "true")
+	}
+}
+
+func TestFormatValue_PtrBool_Nil(t *testing.T) {
+	var v *bool
+	got := formatValue(v)
+	if got != "" {
+		t.Errorf("formatValue(nil *bool) = %q, want empty string", got)
+	}
+}
+
 // ------------------- WriteWithOptions -------------------
 
 func TestWriteWithOptions_Verbose(t *testing.T) {
