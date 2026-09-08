@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/url"
 	"strconv"
+	"strings"
 )
 
 // AnalyticsService handles analytics-related API calls
@@ -39,7 +40,7 @@ type AssignmentAnalytics struct {
 	MedianScore          float64         `json:"median"`
 	FirstQuartile        float64         `json:"first_quartile"`
 	ThirdQuartile        float64         `json:"third_quartile"`
-	Tardiness            *TardinessStats `json:"tardiness,omitempty"`
+	Tardiness            *TardinessStats `json:"tardiness_breakdown,omitempty"`
 }
 
 // TardinessStats represents tardiness breakdown
@@ -51,16 +52,41 @@ type TardinessStats struct {
 	Total    int `json:"total"`
 }
 
+// AnalyticsLevel is an integer that Canvas's analytics endpoints usually send
+// as a JSON string (e.g. "page_views_level": "1") but may also send as a bare
+// number. UnmarshalJSON accepts either, plus null (decoded as 0).
+type AnalyticsLevel int
+
+// UnmarshalJSON implements json.Unmarshaler, accepting a quoted integer, a
+// bare integer, or null.
+func (l *AnalyticsLevel) UnmarshalJSON(data []byte) error {
+	s := strings.TrimSpace(string(data))
+	if s == "null" {
+		*l = 0
+		return nil
+	}
+
+	s = strings.Trim(s, `"`)
+
+	n, err := strconv.Atoi(s)
+	if err != nil {
+		return fmt.Errorf("analytics level: invalid value %s: %w", data, err)
+	}
+
+	*l = AnalyticsLevel(n)
+	return nil
+}
+
 // StudentSummary represents a student's course summary
 type StudentSummary struct {
 	ID                  int64           `json:"id"`
 	PageViews           int             `json:"page_views"`
 	MaxPageViews        int             `json:"max_page_views,omitempty"`
-	PageViewsLevel      int             `json:"page_views_level,omitempty"`
+	PageViewsLevel      AnalyticsLevel  `json:"page_views_level,omitempty"`
 	Participations      int             `json:"participations"`
 	MaxParticipations   int             `json:"max_participations,omitempty"`
-	ParticipationsLevel int             `json:"participations_level,omitempty"`
-	Tardiness           *TardinessStats `json:"tardiness,omitempty"`
+	ParticipationsLevel AnalyticsLevel  `json:"participations_level,omitempty"`
+	Tardiness           *TardinessStats `json:"tardiness_breakdown,omitempty"`
 	CurrentScore        float64         `json:"current_score,omitempty"`
 	FinalScore          float64         `json:"final_score,omitempty"`
 	CurrentGrade        string          `json:"current_grade,omitempty"`
