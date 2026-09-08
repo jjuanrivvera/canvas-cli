@@ -460,6 +460,46 @@ func (c *Client) cacheKey(path string) string {
 	return hex.EncodeToString(hash[:])
 }
 
+// cacheActive reports whether the response cache may be read from or
+// written to for the current request. Dry-run responses are placeholders
+// (an empty JSON array printed alongside a curl command, never real Canvas
+// data) so they must never be stored under a real cache key, and a dry run
+// must never be served real data back from an earlier cache entry either.
+// cacheEnabled is mutable via SetCacheEnabled, so it is read under the same
+// lock IsCacheEnabled uses; dryRun is set once at construction and never
+// mutated, so it needs no lock.
+func (c *Client) cacheActive() bool {
+	c.mu.RLock()
+	enabled := c.cacheEnabled
+	c.mu.RUnlock()
+	return enabled && c.cache != nil && !c.dryRun
+}
+
+// cacheReadJSON decodes the cached bytes stored under key into a fresh value
+// of result's type and only assigns that value to result once the decode
+// succeeds in full. encoding/json populates slices and structs incrementally
+// as it decodes, so decoding straight into the caller's result (as
+// c.cache.GetJSON(key, result) does) leaves result holding whatever it
+// managed to decode before a per-element error on a cache miss-that-isn't:
+// a caller that then falls through to a live fetch and appends to that same
+// value ends up with duplicated rows and fabricated zero-valued records from
+// the wreckage of the failed decode. Decoding into a scratch value first
+// keeps a failed cache read from ever touching the caller's value.
+func (c *Client) cacheReadJSON(key string, result interface{}) error {
+	rv := reflect.ValueOf(result)
+	if rv.Kind() != reflect.Pointer || rv.IsNil() {
+		return fmt.Errorf("cacheReadJSON: result must be a non-nil pointer")
+	}
+
+	scratch := reflect.New(rv.Elem().Type())
+	if err := c.cache.GetJSON(key, scratch.Interface()); err != nil {
+		return err
+	}
+
+	rv.Elem().Set(scratch.Elem())
+	return nil
+}
+
 // IsCacheEnabled returns whether caching is enabled
 func (c *Client) IsCacheEnabled() bool {
 	c.mu.RLock()
@@ -589,9 +629,9 @@ func (c *Client) DeleteJSON(ctx context.Context, path string, result interface{}
 // If caching is enabled, cached responses will be returned when available
 func (c *Client) GetJSON(ctx context.Context, path string, result interface{}) error {
 	// Check cache first if enabled
-	if c.cacheEnabled && c.cache != nil {
+	if c.cacheActive() {
 		key := c.cacheKey(path)
-		if err := c.cache.GetJSON(key, result); err == nil {
+		if err := c.cacheReadJSON(key, result); err == nil {
 			return nil // Cache hit
 		}
 	}
@@ -619,7 +659,7 @@ func (c *Client) GetJSON(ctx context.Context, path string, result interface{}) e
 	}
 
 	// Cache the response if caching is enabled
-	if c.cacheEnabled && c.cache != nil {
+	if c.cacheActive() {
 		key := c.cacheKey(path)
 		c.cache.Set(key, body)
 	}
@@ -726,7 +766,7 @@ const maxPaginationPages = 10_000
 // If maxResults is set, stops fetching when limit is reached
 func GetAllPagesGeneric[T any](c *Client, ctx context.Context, path string) ([]T, error) {
 	// Check cache first if enabled (only if no limit set, as cached results might exceed limit)
-	if c.cacheEnabled && c.cache != nil && c.maxResults == 0 {
+	if c.cacheActive() && c.maxResults == 0 {
 		key := c.cacheKey("pages:" + path)
 		var cached []T
 		if err := c.cache.GetJSON(key, &cached); err == nil {
@@ -798,7 +838,7 @@ func GetAllPagesGeneric[T any](c *Client, ctx context.Context, path string) ([]T
 	}
 
 	// Cache the combined result if caching is enabled
-	if c.cacheEnabled && c.cache != nil {
+	if c.cacheActive() {
 		key := c.cacheKey("pages:" + path)
 		// Marshal for caching
 		allJSON, err := json.Marshal(allResults)
@@ -817,9 +857,9 @@ func GetAllPagesGeneric[T any](c *Client, ctx context.Context, path string) ([]T
 // If maxResults is set, stops fetching when limit is reached
 func (c *Client) GetAllPages(ctx context.Context, path string, result interface{}) error {
 	// Check cache first if enabled (only if no limit set, as cached results might exceed limit)
-	if c.cacheEnabled && c.cache != nil && c.maxResults == 0 {
+	if c.cacheActive() && c.maxResults == 0 {
 		key := c.cacheKey("pages:" + path)
-		if err := c.cache.GetJSON(key, result); err == nil {
+		if err := c.cacheReadJSON(key, result); err == nil {
 			return nil // Cache hit
 		}
 	}
@@ -913,7 +953,7 @@ func (c *Client) GetAllPages(ctx context.Context, path string, result interface{
 	resultValue.Elem().Set(sliceValue)
 
 	// Cache the combined result if caching is enabled
-	if c.cacheEnabled && c.cache != nil {
+	if c.cacheActive() {
 		key := c.cacheKey("pages:" + path)
 		// Marshal once for caching only
 		allJSON, err := json.Marshal(allResults)
