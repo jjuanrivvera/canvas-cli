@@ -2,6 +2,7 @@ package commands
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strconv"
 
@@ -106,12 +107,14 @@ func init() {
 	quizzesQuestionsCmd.AddCommand(newQuizzesQuestionsListCmd())
 	quizzesQuestionsCmd.AddCommand(newQuizzesQuestionsGetCmd())
 	quizzesQuestionsCmd.AddCommand(newQuizzesQuestionsCreateCmd())
+	quizzesQuestionsCmd.AddCommand(newQuizzesQuestionsUpdateCmd())
 	quizzesQuestionsCmd.AddCommand(newQuizzesQuestionsDeleteCmd())
 
 	// Submissions subcommands
 	quizzesSubmissionsCmd.AddCommand(newQuizzesSubmissionsListCmd())
 	quizzesSubmissionsCmd.AddCommand(newQuizzesSubmissionsGetCmd())
 	quizzesSubmissionsCmd.AddCommand(newQuizzesSubmissionsCreateCmd())
+	quizzesSubmissionsCmd.AddCommand(newQuizzesSubmissionsUpdateCmd())
 
 	// Question groups subcommands
 	quizzesGroupsCmd.AddCommand(newQuizzesGroupsGetCmd())
@@ -479,6 +482,70 @@ Examples:
 	cmd.Flags().StringVar(&opts.CorrectComments, "correct-comments", "", "Comments for correct answer")
 	cmd.Flags().StringVar(&opts.IncorrectComments, "incorrect-comments", "", "Comments for incorrect answer")
 	mustMarkRequired(cmd, "course-id", "quiz-id", "text")
+
+	return cmd
+}
+
+func newQuizzesQuestionsUpdateCmd() *cobra.Command {
+	opts := &options.QuizzesQuestionsUpdateOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "update <question-id>",
+		Short: "Update a question",
+		Long: `Update an existing question in a quiz. Only the flags you pass are sent;
+other fields keep their current values.
+
+--answers-json takes a JSON array in the same shape "questions get" returns
+(id, text, weight, comments, ...). For multiple-choice and true/false
+questions the correct answer has weight 100 and every other answer weight 0.
+
+Examples:
+  canvas quizzes questions update 789 --course-id 123 --quiz-id 456 --points 5
+  canvas quizzes questions update 789 --course-id 123 --quiz-id 456 --text "What is 2+2?" --name "Arithmetic"
+  canvas quizzes questions update 789 --course-id 123 --quiz-id 456 \
+    --answers-json '[{"id":1001,"text":"4","weight":100},{"id":1002,"text":"5","weight":0}]'`,
+		Args: ExactArgsWithUsage(1, "question-id"),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			questionID, err := strconv.ParseInt(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid question ID: %s", args[0])
+			}
+			opts.QuestionID = questionID
+
+			// Track which flags were set
+			opts.QuestionNameSet = cmd.Flags().Changed("name")
+			opts.QuestionTextSet = cmd.Flags().Changed("text")
+			opts.QuestionTypeSet = cmd.Flags().Changed("type")
+			opts.PointsPossibleSet = cmd.Flags().Changed("points")
+			opts.CorrectCommentsSet = cmd.Flags().Changed("correct-comments")
+			opts.IncorrectCommentsSet = cmd.Flags().Changed("incorrect-comments")
+			opts.PositionSet = cmd.Flags().Changed("position")
+			opts.AnswersJSONSet = cmd.Flags().Changed("answers-json")
+
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+
+			return runQuizzesQuestionsUpdate(cmd.Context(), client, opts)
+		},
+	}
+
+	cmd.Flags().Int64Var(&opts.CourseID, "course-id", 0, "Course ID (required)")
+	cmd.Flags().Int64Var(&opts.QuizID, "quiz-id", 0, "Quiz ID (required)")
+	cmd.Flags().StringVar(&opts.QuestionName, "name", "", "Question name")
+	cmd.Flags().StringVar(&opts.QuestionText, "text", "", "Question text")
+	cmd.Flags().StringVar(&opts.QuestionType, "type", "", "Question type")
+	cmd.Flags().Float64Var(&opts.PointsPossible, "points", 0, "Points possible")
+	cmd.Flags().StringVar(&opts.CorrectComments, "correct-comments", "", "Comments for correct answer")
+	cmd.Flags().StringVar(&opts.IncorrectComments, "incorrect-comments", "", "Comments for incorrect answer")
+	cmd.Flags().IntVar(&opts.Position, "position", 0, "Position of the question in the quiz")
+	cmd.Flags().StringVar(&opts.AnswersJSON, "answers-json", "", "Answers as a JSON array (replaces all answers)")
+	mustMarkRequired(cmd, "course-id", "quiz-id")
 
 	return cmd
 }
@@ -925,6 +992,84 @@ func runQuizzesQuestionsCreate(ctx context.Context, client *api.Client, opts *op
 	return nil
 }
 
+func runQuizzesQuestionsUpdate(ctx context.Context, client *api.Client, opts *options.QuizzesQuestionsUpdateOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+
+	logger.LogCommandStart(ctx, "quizzes.questions.update", map[string]interface{}{
+		"course_id":   opts.CourseID,
+		"quiz_id":     opts.QuizID,
+		"question_id": opts.QuestionID,
+	})
+
+	params, err := buildUpdateQuizQuestionParams(opts)
+	if err != nil {
+		return err
+	}
+
+	service := api.NewQuizQuestionsService(client)
+
+	question, err := service.Update(ctx, opts.CourseID, opts.QuizID, opts.QuestionID, params)
+	if err != nil {
+		logger.LogCommandError(ctx, "quizzes.questions.update", err, map[string]interface{}{
+			"course_id":   opts.CourseID,
+			"quiz_id":     opts.QuizID,
+			"question_id": opts.QuestionID,
+		})
+		return fmt.Errorf("failed to update question: %w", err)
+	}
+
+	// In dry-run mode the client has printed the curl command and answered
+	// with an empty body; there is no updated question to report.
+	if dryRun {
+		return nil
+	}
+
+	printInfo("Question updated successfully (ID: %d)\n", question.ID)
+	if err := formatOutput(question, nil); err != nil {
+		return fmt.Errorf("failed to print results: %w", err)
+	}
+
+	logger.LogCommandComplete(ctx, "quizzes.questions.update", 1)
+	return nil
+}
+
+// buildUpdateQuizQuestionParams maps the explicitly-set flags onto the
+// pointer-typed update params so unset fields are omitted from the request.
+func buildUpdateQuizQuestionParams(opts *options.QuizzesQuestionsUpdateOptions) (*api.UpdateQuizQuestionParams, error) {
+	params := &api.UpdateQuizQuestionParams{}
+
+	if opts.QuestionNameSet {
+		params.QuestionName = &opts.QuestionName
+	}
+	if opts.QuestionTextSet {
+		params.QuestionText = &opts.QuestionText
+	}
+	if opts.QuestionTypeSet {
+		params.QuestionType = &opts.QuestionType
+	}
+	if opts.PointsPossibleSet {
+		params.PointsPossible = &opts.PointsPossible
+	}
+	if opts.CorrectCommentsSet {
+		params.CorrectComments = &opts.CorrectComments
+	}
+	if opts.IncorrectCommentsSet {
+		params.IncorrectComments = &opts.IncorrectComments
+	}
+	if opts.PositionSet {
+		params.Position = &opts.Position
+	}
+	if opts.AnswersJSONSet {
+		var answers []api.QuizAnswer
+		if err := json.Unmarshal([]byte(opts.AnswersJSON), &answers); err != nil {
+			return nil, fmt.Errorf("invalid --answers-json: %w", err)
+		}
+		params.Answers = &answers
+	}
+
+	return params, nil
+}
+
 func runQuizzesQuestionsDelete(ctx context.Context, client *api.Client, opts *options.QuizzesQuestionsDeleteOptions) error {
 	logger := logging.NewCommandLogger(verbose)
 
@@ -1082,6 +1227,142 @@ func runQuizzesSubmissionsCreate(ctx context.Context, client *api.Client, opts *
 
 	logger.LogCommandComplete(ctx, "quizzes.submissions.create", 1)
 	return nil
+}
+
+// ---- Quiz Submissions: Update (scores, comments, fudge points) ----
+
+func newQuizzesSubmissionsUpdateCmd() *cobra.Command {
+	opts := &options.QuizzesSubmissionsUpdateOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "update <submission-id>",
+		Short: "Update question scores, comments or fudge points on a quiz submission",
+		Long: `Update a completed quiz submission's per-question scores and comments,
+and/or its fudge points (Canvas "Update student question scores and comments").
+
+--attempt is required by Canvas and must refer to an already completed attempt.
+--question-score and --question-comment take <question-id>=<value> and may be
+repeated. Only the questions you name are touched.
+
+Examples:
+  canvas quizzes submissions update 789 --course-id 123 --quiz-id 456 --attempt 1 --fudge-points 2
+  canvas quizzes submissions update 789 --course-id 123 --quiz-id 456 --attempt 1 \
+    --question-score 1001=2.5 --question-comment 1001="Partial credit"
+  canvas quizzes submissions update 789 --course-id 123 --quiz-id 456 --attempt 2 \
+    --question-score 1001=0 --question-score 1002=5`,
+		Args: ExactArgsWithUsage(1, "submission-id"),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			submissionID, err := strconv.ParseInt(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid submission ID: %s", args[0])
+			}
+			opts.SubmissionID = submissionID
+			opts.FudgePointsSet = cmd.Flags().Changed("fudge-points")
+
+			if err := opts.Validate(); err != nil {
+				return err
+			}
+
+			client, err := getAPIClient()
+			if err != nil {
+				return err
+			}
+
+			return runQuizzesSubmissionsUpdate(cmd.Context(), client, opts)
+		},
+	}
+
+	cmd.Flags().Int64Var(&opts.CourseID, "course-id", 0, "Course ID (required)")
+	cmd.Flags().Int64Var(&opts.QuizID, "quiz-id", 0, "Quiz ID (required)")
+	cmd.Flags().IntVar(&opts.Attempt, "attempt", 0, "Attempt number to update; must already be completed (required)")
+	cmd.Flags().Float64Var(&opts.FudgePoints, "fudge-points", 0, "Points to fudge the total score by (positive or negative)")
+	cmd.Flags().StringArrayVar(&opts.QuestionScores, "question-score", nil, "Per-question score as <question-id>=<score> (repeatable)")
+	cmd.Flags().StringArrayVar(&opts.QuestionComments, "question-comment", nil, "Per-question comment as <question-id>=<text> (repeatable)")
+	mustMarkRequired(cmd, "course-id", "quiz-id", "attempt")
+
+	return cmd
+}
+
+func runQuizzesSubmissionsUpdate(ctx context.Context, client *api.Client, opts *options.QuizzesSubmissionsUpdateOptions) error {
+	logger := logging.NewCommandLogger(verbose)
+
+	logger.LogCommandStart(ctx, "quizzes.submissions.update", map[string]interface{}{
+		"course_id":     opts.CourseID,
+		"quiz_id":       opts.QuizID,
+		"submission_id": opts.SubmissionID,
+		"attempt":       opts.Attempt,
+	})
+
+	params, err := buildUpdateQuizSubmissionParams(opts)
+	if err != nil {
+		return err
+	}
+
+	service := api.NewQuizSubmissionsService(client)
+
+	submission, err := service.Update(ctx, opts.CourseID, opts.QuizID, opts.SubmissionID, params)
+	if err != nil {
+		// In dry-run mode the client prints the curl command and answers with
+		// an empty body, which has no quiz_submissions envelope. Nothing was
+		// sent, so there is nothing to report as a failure.
+		if dryRun {
+			return nil
+		}
+		logger.LogCommandError(ctx, "quizzes.submissions.update", err, map[string]interface{}{
+			"course_id":     opts.CourseID,
+			"quiz_id":       opts.QuizID,
+			"submission_id": opts.SubmissionID,
+		})
+		return fmt.Errorf("failed to update quiz submission: %w", err)
+	}
+
+	printInfo("Quiz submission updated successfully (ID: %d, score: %g)\n", submission.ID, submission.Score)
+	if err := formatOutput(submission, nil); err != nil {
+		return fmt.Errorf("failed to print results: %w", err)
+	}
+
+	logger.LogCommandComplete(ctx, "quizzes.submissions.update", 1)
+	return nil
+}
+
+// buildUpdateQuizSubmissionParams maps the CLI flags onto the documented
+// quiz_submissions[] entry: attempt, optional fudge_points, and a questions
+// hash keyed by question ID with score and/or comment.
+func buildUpdateQuizSubmissionParams(opts *options.QuizzesSubmissionsUpdateOptions) (*api.UpdateQuizSubmissionParams, error) {
+	scores, err := options.ParseQuestionScores(opts.QuestionScores)
+	if err != nil {
+		return nil, err
+	}
+	comments, err := options.ParseQuestionComments(opts.QuestionComments)
+	if err != nil {
+		return nil, err
+	}
+
+	attempt := opts.Attempt
+	params := &api.UpdateQuizSubmissionParams{Attempt: &attempt}
+
+	if opts.FudgePointsSet {
+		fudge := opts.FudgePoints
+		params.FudgePoints = &fudge
+	}
+
+	if len(scores) > 0 || len(comments) > 0 {
+		params.Questions = make(map[int64]api.QuizSubmissionQuestionScore, len(scores)+len(comments))
+		for id, score := range scores {
+			s := score
+			entry := params.Questions[id]
+			entry.Score = &s
+			params.Questions[id] = entry
+		}
+		for id, comment := range comments {
+			c := comment
+			entry := params.Questions[id]
+			entry.Comment = &c
+			params.Questions[id] = entry
+		}
+	}
+
+	return params, nil
 }
 
 // ---- Quiz Question Groups ----

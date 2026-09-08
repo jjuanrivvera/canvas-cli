@@ -1,6 +1,9 @@
 package options
 
-import "fmt"
+import (
+	"encoding/json"
+	"fmt"
+)
 
 // QuizzesListOptions contains options for listing quizzes
 type QuizzesListOptions struct {
@@ -214,6 +217,53 @@ func (o *QuizzesQuestionsCreateOptions) Validate() error {
 	return nil
 }
 
+// QuizzesQuestionsUpdateOptions contains options for updating a quiz question.
+// The *Set fields record which flags were explicitly passed so that only those
+// fields are sent to Canvas (an unset flag must not clear the existing value).
+type QuizzesQuestionsUpdateOptions struct {
+	CourseID   int64
+	QuizID     int64
+	QuestionID int64
+
+	QuestionName      string
+	QuestionText      string
+	QuestionType      string
+	PointsPossible    float64
+	CorrectComments   string
+	IncorrectComments string
+	Position          int
+	AnswersJSON       string // JSON array of answer objects (same shape Canvas returns)
+
+	QuestionNameSet      bool
+	QuestionTextSet      bool
+	QuestionTypeSet      bool
+	PointsPossibleSet    bool
+	CorrectCommentsSet   bool
+	IncorrectCommentsSet bool
+	PositionSet          bool
+	AnswersJSONSet       bool
+}
+
+// Validate validates the options
+func (o *QuizzesQuestionsUpdateOptions) Validate() error {
+	if o.CourseID <= 0 {
+		return fmt.Errorf("course-id is required and must be greater than 0")
+	}
+	if o.QuizID <= 0 {
+		return fmt.Errorf("quiz-id is required and must be greater than 0")
+	}
+	if o.QuestionID <= 0 {
+		return fmt.Errorf("question-id is required and must be greater than 0")
+	}
+	if o.AnswersJSONSet {
+		var probe []json.RawMessage
+		if err := json.Unmarshal([]byte(o.AnswersJSON), &probe); err != nil {
+			return fmt.Errorf("answers-json must be a JSON array of answer objects: %w", err)
+		}
+	}
+	return nil
+}
+
 // QuizzesQuestionsDeleteOptions contains options for deleting a quiz question
 type QuizzesQuestionsDeleteOptions struct {
 	CourseID   int64
@@ -288,6 +338,47 @@ func (o *QuizzesSubmissionsCreateOptions) Validate() error {
 	}
 	if o.QuizID <= 0 {
 		return fmt.Errorf("quiz-id is required and must be greater than 0")
+	}
+	return nil
+}
+
+// QuizzesSubmissionsUpdateOptions contains options for updating a quiz
+// submission's question scores, comments and fudge points.
+type QuizzesSubmissionsUpdateOptions struct {
+	CourseID     int64
+	QuizID       int64
+	SubmissionID int64
+	Attempt      int
+
+	FudgePoints    float64
+	FudgePointsSet bool
+
+	QuestionScores   []string // "<question-id>=<score>" entries
+	QuestionComments []string // "<question-id>=<text>" entries
+}
+
+// Validate validates the options
+func (o *QuizzesSubmissionsUpdateOptions) Validate() error {
+	if o.CourseID <= 0 {
+		return fmt.Errorf("course-id is required and must be greater than 0")
+	}
+	if o.QuizID <= 0 {
+		return fmt.Errorf("quiz-id is required and must be greater than 0")
+	}
+	if o.SubmissionID <= 0 {
+		return fmt.Errorf("submission-id is required and must be greater than 0")
+	}
+	if o.Attempt <= 0 {
+		return fmt.Errorf("attempt is required and must be greater than 0")
+	}
+	if !o.FudgePointsSet && len(o.QuestionScores) == 0 && len(o.QuestionComments) == 0 {
+		return fmt.Errorf("nothing to update: pass --fudge-points, --question-score or --question-comment")
+	}
+	if _, err := ParseQuestionScores(o.QuestionScores); err != nil {
+		return err
+	}
+	if _, err := ParseQuestionComments(o.QuestionComments); err != nil {
+		return err
 	}
 	return nil
 }

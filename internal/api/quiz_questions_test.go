@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 )
 
@@ -296,5 +297,26 @@ func TestNewQuizQuestionsService(t *testing.T) {
 	}
 	if service.client != client {
 		t.Error("expected client to be set")
+	}
+}
+
+// TestQuizAnswer_WeightZeroIsExplicit pins that a zero weight is neither
+// dropped from output nor from request bodies: Canvas encodes "wrong answer"
+// as weight 0, so a consumer must be able to tell 0 from "unknown".
+func TestQuizAnswer_WeightZeroIsExplicit(t *testing.T) {
+	data, err := json.Marshal(QuizAnswer{ID: 7, Text: "wrong", Weight: 0})
+	if err != nil {
+		t.Fatalf("Marshal: %v", err)
+	}
+	if !strings.Contains(string(data), `"weight":0`) {
+		t.Errorf("weight 0 was dropped from JSON: %s", data)
+	}
+
+	var back QuizAnswer
+	if err := json.Unmarshal([]byte(`{"id":7,"text":"wrong"}`), &back); err != nil {
+		t.Fatalf("Unmarshal: %v", err)
+	}
+	if back.Weight != 0 {
+		t.Errorf("missing weight should decode as 0, got %v", back.Weight)
 	}
 }

@@ -351,3 +351,86 @@ func TestNewQuizSubmissionsService(t *testing.T) {
 		t.Error("expected client to be set")
 	}
 }
+
+// TestQuizSubmissionsService_Update_QuestionScores checks the documented
+// "Update student question scores and comments" body shape:
+// quiz_submissions[][attempt], [fudge_points], [questions][<qid>][score|comment].
+func TestQuizSubmissionsService_Update_QuestionScores(t *testing.T) {
+	var got map[string]interface{}
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/accounts" {
+			handleVersionDetection(w)
+			return
+		}
+		if r.Method != http.MethodPut {
+			t.Errorf("expected PUT, got %s", r.Method)
+		}
+		if r.URL.Path != "/api/v1/courses/123/quizzes/456/submissions/789" {
+			t.Errorf("unexpected path %s", r.URL.Path)
+		}
+		if err := json.NewDecoder(r.Body).Decode(&got); err != nil {
+			t.Fatalf("failed to decode body: %v", err)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(QuizSubmissionsResponse{
+			QuizSubmissions: []QuizSubmission{{ID: 789, QuizID: 456, Attempt: 2, Score: 7.5, WorkflowState: "complete"}},
+		})
+	}))
+	defer server.Close()
+
+	client, err := NewClient(ClientConfig{BaseURL: server.URL, Token: "test-token"})
+	if err != nil {
+		t.Fatalf("Failed to create client: %v", err)
+	}
+
+	attempt := 2
+	fudge := -1.5
+	score := 2.5
+	zero := 0.0
+	comment := "Regraded: answer key corrected"
+	params := &UpdateQuizSubmissionParams{
+		Attempt:     &attempt,
+		FudgePoints: &fudge,
+		Questions: map[int64]QuizSubmissionQuestionScore{
+			11: {Score: &score, Comment: &comment},
+			12: {Score: &zero},
+		},
+	}
+
+	sub, err := NewQuizSubmissionsService(client).Update(context.Background(), 123, 456, 789, params)
+	if err != nil {
+		t.Fatalf("Update() error = %v", err)
+	}
+	if sub.ID != 789 || sub.Score != 7.5 {
+		t.Errorf("unexpected submission returned: %+v", sub)
+	}
+
+	subs, ok := got["quiz_submissions"].([]interface{})
+	if !ok || len(subs) != 1 {
+		t.Fatalf("expected one quiz_submissions entry, got %v", got["quiz_submissions"])
+	}
+	entry, _ := subs[0].(map[string]interface{})
+	if entry["attempt"] != float64(2) {
+		t.Errorf("attempt = %v, want 2", entry["attempt"])
+	}
+	if entry["fudge_points"] != float64(-1.5) {
+		t.Errorf("fudge_points = %v, want -1.5", entry["fudge_points"])
+	}
+	questions, ok := entry["questions"].(map[string]interface{})
+	if !ok {
+		t.Fatalf("questions missing or not an object: %v", entry["questions"])
+	}
+	q11, _ := questions["11"].(map[string]interface{})
+	if q11["score"] != float64(2.5) || q11["comment"] != comment {
+		t.Errorf("questions[11] = %v, want score 2.5 and comment", q11)
+	}
+	q12, _ := questions["12"].(map[string]interface{})
+	if q12["score"] != float64(0) {
+		t.Errorf("questions[12].score = %v, want explicit 0", q12["score"])
+	}
+	if _, present := q12["comment"]; present {
+		t.Errorf("questions[12] should have no comment key, got %v", q12)
+	}
+}

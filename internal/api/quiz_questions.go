@@ -43,12 +43,15 @@ type QuizQuestion struct {
 
 // QuizAnswer represents an answer choice for a quiz question
 type QuizAnswer struct {
-	ID            int64   `json:"id,omitempty"`
-	Text          string  `json:"text,omitempty"`
-	HTML          string  `json:"html,omitempty"`
-	Comments      string  `json:"comments,omitempty"`
-	CommentsHTML  string  `json:"comments_html,omitempty"`
-	Weight        float64 `json:"weight,omitempty"`
+	ID           int64  `json:"id,omitempty"`
+	Text         string `json:"text,omitempty"`
+	HTML         string `json:"html,omitempty"`
+	Comments     string `json:"comments,omitempty"`
+	CommentsHTML string `json:"comments_html,omitempty"`
+	// Weight is intentionally not omitempty: Canvas uses 0 for a wrong
+	// answer and 100 for the correct one, so 0 must survive both directions
+	// (printed in JSON output, and sent explicitly on create/update).
+	Weight        float64 `json:"weight"`
 	BlankID       string  `json:"blank_id,omitempty"`
 	MatchID       int64   `json:"match_id,omitempty"`
 	Left          string  `json:"left,omitempty"`

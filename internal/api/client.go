@@ -196,7 +196,11 @@ func NewClient(config ClientConfig) (*Client, error) {
 	}
 
 	// Create HTTP transport with connection pool configuration
+	// Proxy must be set explicitly: a zero-value http.Transport ignores
+	// HTTP_PROXY / HTTPS_PROXY / NO_PROXY. Only http.DefaultTransport wires
+	// ProxyFromEnvironment in by default.
 	transport := &http.Transport{
+		Proxy:                 http.ProxyFromEnvironment,
 		MaxIdleConns:          10,
 		MaxIdleConnsPerHost:   5,
 		IdleConnTimeout:       90 * time.Second,
