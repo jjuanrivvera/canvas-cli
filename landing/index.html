@@ -1,0 +1,711 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Canvas CLI — Your entire LMS. Under command.</title>
+    <meta
+      name="description"
+      content="The open-source command line for Canvas LMS. Bulk grade from CSV, pipe course data to JSON, work across instances, and connect AI agents through MCP. One Go binary."
+    />
+    <meta name="theme-color" content="#090a10" />
+    <meta property="og:type" content="website" />
+    <meta
+      property="og:title"
+      content="Canvas CLI — Your entire LMS. Under command."
+    />
+    <meta
+      property="og:description"
+      content="One binary. Human commands, automated pipelines, AI tools. Put the Canvas API to work from your terminal."
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <!-- Deployment metadata is injected by build.mjs when SITE_URL is provided. -->
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="assets/style.css" />
+    <script src="assets/app.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <div class="page-grid" aria-hidden="true"></div>
+    <div class="scroll-progress" aria-hidden="true"></div>
+    <header class="header">
+      <div class="wrap nav-inner">
+        <a class="brand" href="./" aria-label="Canvas CLI home"
+          ><img src="assets/logo.svg" width="175" height="40" alt="Canvas CLI"
+        /></a>
+        <nav aria-label="Main navigation">
+          <a href="#console">Workflows</a
+          ><a href="#architecture">Under the hood</a
+          ><a href="https://jjuanrivvera.github.io/canvas-cli/"
+            >Docs <span aria-hidden="true">↗</span></a
+          >
+        </nav>
+        <div class="nav-actions">
+          <button
+            class="motion-toggle"
+            aria-pressed="false"
+            aria-label="Pause animations"
+            title="Pause animations"
+          >
+            <span aria-hidden="true">Ⅱ</span></button
+          ><a
+            class="github-link"
+            href="https://github.com/jjuanrivvera/canvas-cli"
+            ><svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                fill="currentColor"
+                d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.86c-2.78.6-3.37-1.18-3.37-1.18-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.89 1.53 2.34 1.09 2.91.83.09-.65.35-1.09.64-1.34-2.22-.25-4.56-1.11-4.56-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.02A9.6 9.6 0 0 1 12 6.82c.85 0 1.71.11 2.51.34 1.91-1.29 2.75-1.02 2.75-1.02.55 1.38.2 2.4.1 2.65.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.69-4.57 4.94.36.31.68.92.68 1.85v2.75c0 .27.18.58.69.48A10 10 0 0 0 12 2Z"
+              /></svg
+            ><span>Source code</span> ↗</a
+          >
+        </div>
+      </div>
+    </header>
+    <main id="main">
+      <section class="hero wrap" aria-labelledby="hero-title">
+        <div class="hero-topline">
+          <span
+            ><i class="live-dot"></i> CANVAS LMS / COMMAND-LINE INTERFACE</span
+          ><span class="hero-build"
+            >GO BINARY <b>·</b> MIT LICENSE <b>·</b> ZERO CLICK TAX</span
+          >
+        </div>
+        <div class="hero-layout">
+          <div class="hero-copy">
+            <h1 id="hero-title">
+              Your entire LMS.<br /><span>Under command.</span
+              ><span class="title-cursor" aria-hidden="true">_</span>
+            </h1>
+            <p class="hero-lead">
+              The power of the Canvas API.<br />The precision of your terminal.
+            </p>
+            <p class="hero-description">
+              Bulk grade a class. Pipe course data into a script. Give your AI
+              agent the tools to do both. One open-source binary, built for the
+              way you actually work.
+            </p>
+            <div class="hero-actions">
+              <a class="button primary" href="#install"
+                ><span aria-hidden="true">❯_</span> Install Canvas CLI
+                <span aria-hidden="true">↗</span></a
+              ><a class="button secondary" href="#console"
+                >See it in action <span aria-hidden="true">↓</span></a
+              >
+            </div>
+            <div class="hero-platforms">
+              <span>macOS</span><span>Linux</span><span>Windows</span
+              ><span class="platform-divider">/</span
+              ><span>Homebrew · Go · Docker</span>
+            </div>
+          </div>
+          <div
+            class="signal-map"
+            role="img"
+            aria-label="Canvas CLI connects terminal commands, scripts, and AI agents to the Canvas API"
+          >
+            <div class="signal-grid" aria-hidden="true"></div>
+            <svg
+              class="signal-lines"
+              viewBox="0 0 500 400"
+              fill="none"
+              aria-hidden="true"
+            >
+              <defs>
+                <linearGradient id="signal-gradient">
+                  <stop stop-color="#8860d8" />
+                  <stop offset="1" stop-color="#ffc857" />
+                </linearGradient>
+              </defs>
+              <g stroke="#343044">
+                <path d="M40 80H140L250 200 365 80H470" />
+                <path d="M20 200H480" />
+                <path d="M40 320H140L250 200 365 320H470" />
+              </g>
+              <g stroke="url(#signal-gradient)" class="signal-packets">
+                <path d="M40 80H140L250 200 365 80H470" />
+                <path d="M20 200H480" />
+                <path d="M40 320H140L250 200 365 320H470" />
+              </g></svg
+            ><span class="map-label map-terminal">❯_ TERMINAL</span
+            ><span class="map-label map-scripts">{ } SCRIPTS</span
+            ><span class="map-label map-agents">✳ AI AGENTS</span
+            ><span class="map-label map-courses">courses</span
+            ><span class="map-label map-grades">submissions</span
+            ><span class="map-label map-users">enrollments</span>
+            <div class="core-orbit" aria-hidden="true"></div>
+            <div class="core">
+              <img
+                src="assets/logo-icon.svg"
+                width="94"
+                height="94"
+                alt=""
+              /><span>canvas</span>
+            </div>
+            <div class="signal-caption">
+              <span class="live-dot"></span> ONE BINARY. EVERY WORKFLOW.
+            </div>
+          </div>
+        </div>
+        <div class="hero-bottom">
+          <span>BUILT FOR EDUCATORS. WIRED FOR DEVELOPERS.</span
+          ><a href="#console"
+            >EXPLORE THE WORKFLOWS <span aria-hidden="true">↓</span></a
+          >
+        </div>
+      </section>
+      <section
+        class="console-section wrap"
+        id="console"
+        aria-labelledby="console-title"
+      >
+        <div class="section-index reveal">
+          <span>01 / WORKFLOW WALKTHROUGH</span><span class="index-line"></span
+          ><span>ANIMATED EXAMPLES</span>
+        </div>
+        <div class="section-heading reveal">
+          <h2 id="console-title">
+            See it in action.<br /><span>One workflow at a time.</span>
+          </h2>
+          <p>
+            Explore real commands and illustrative output.<br />Choose a
+            workflow to see how it fits together.
+          </p>
+        </div>
+        <div class="workbench reveal">
+          <div class="workbench-bar">
+            <div class="window-dots" aria-hidden="true">
+              <i></i><i></i><i></i>
+            </div>
+            <span>canvas-workspace</span
+            ><span class="demo-badge"><i></i> ILLUSTRATIVE OUTPUT</span>
+          </div>
+          <div class="workbench-main">
+            <aside class="workflow-sidebar" aria-label="Example workflows">
+              <span class="sidebar-heading">WORKFLOWS</span
+              ><button
+                class="workflow active"
+                data-workflow="courses"
+                aria-pressed="true"
+              >
+                <span class="workflow-number">01</span
+                ><span
+                  >Inspect your courses<small
+                    >Query → structured data</small
+                  ></span
+                ><span class="workflow-arrow">↗</span></button
+              ><button
+                class="workflow"
+                data-workflow="grades"
+                aria-pressed="false"
+              >
+                <span class="workflow-number">02</span
+                ><span>Grade in bulk<small>CSV → submissions</small></span
+                ><span class="workflow-arrow">↗</span></button
+              ><button
+                class="workflow"
+                data-workflow="pipeline"
+                aria-pressed="false"
+              >
+                <span class="workflow-number">03</span
+                ><span
+                  >Build a data pipeline<small>Canvas → JSON → jq</small></span
+                ><span class="workflow-arrow">↗</span></button
+              ><button
+                class="workflow"
+                data-workflow="agents"
+                aria-pressed="false"
+              >
+                <span class="workflow-number">04</span
+                ><span
+                  >Connect your AI agent<small>CLI → MCP → tools</small></span
+                ><span class="workflow-arrow">↗</span>
+              </button>
+              <div class="sidebar-footer">
+                <span>~/canvas-workspace</span
+                ><span><i class="live-dot"></i> workflow examples</span>
+              </div>
+            </aside>
+            <div class="console-main">
+              <div class="console-tabs">
+                <span>❯_ terminal</span
+                ><span id="console-context">READ / COURSES</span>
+              </div>
+              <div class="terminal-body">
+                <p class="terminal-comment" id="terminal-comment">
+                  # Every course you can access. One command.
+                </p>
+                <div class="terminal-command">
+                  <span class="prompt-symbol">❯</span
+                  ><code id="demo-command"
+                    >canvas courses list --output json</code
+                  >
+                </div>
+                <div class="terminal-output" id="demo-output">
+                  <pre><code><span class="syntax-dim">[</span>
+  { <span class="syntax-purple">"id"</span>: <span class="syntax-amber">1042</span>, <span class="syntax-purple">"name"</span>: <span class="syntax-green">"Design Fundamentals"</span>,
+    <span class="syntax-purple">"workflow_state"</span>: <span class="syntax-green">"available"</span> },
+  { <span class="syntax-purple">"id"</span>: <span class="syntax-amber">1043</span>, <span class="syntax-purple">"name"</span>: <span class="syntax-green">"Creative Coding"</span>,
+    <span class="syntax-purple">"workflow_state"</span>: <span class="syntax-green">"available"</span> }
+<span class="syntax-dim">]</span></code></pre>
+                  <p class="terminal-result">
+                    <span>✓</span> Structured output. Ready for whatever comes
+                    next.
+                  </p>
+                </div>
+                <div class="terminal-idle" aria-hidden="true">
+                  ❯ <span class="block-cursor"></span>
+                </div>
+              </div>
+              <div class="console-bottom">
+                <span
+                  ><i class="live-dot"></i>
+                  <span id="demo-state">Example shown</span></span
+                ><span>ILLUSTRATIVE OUTPUT <b>·</b> canvas</span>
+              </div>
+            </div>
+          </div>
+          <div class="workflow-insight">
+            <span class="insight-label">WHY IT MATTERS</span>
+            <p id="workflow-insight">
+              Stop copying data out of the browser. Get consistent, structured
+              output you can filter, save, and reuse.
+            </p>
+            <a
+              id="workflow-docs"
+              href="https://jjuanrivvera.github.io/canvas-cli/user-guide/output-formats/"
+              >Workflow docs ↗</a
+            >
+          </div>
+        </div>
+        <p class="demo-disclaimer">
+          Animated walkthroughs with sample data. Commands are not executed, and
+          no Canvas account is connected.
+        </p>
+      </section>
+      <section class="coverage-section wrap" aria-labelledby="coverage-title">
+        <div class="coverage-intro reveal">
+          <div>
+            <div class="section-index"><span>02 / API SURFACE</span></div>
+            <h2 id="coverage-title">
+              A serious surface.<br /><span>For serious workflows.</span>
+            </h2>
+          </div>
+          <p>
+            From course content to institution-level admin.<br />A broad Canvas
+            API surface, with endpoint paths<br />validated against the official
+            spec in CI.
+          </p>
+        </div>
+        <div class="coverage-layout reveal">
+          <div class="coverage-numbers">
+            <strong>876<span>/ 1,086</span></strong>
+            <p>documented API endpoints implemented</p>
+            <div
+              class="coverage-track"
+              role="img"
+              aria-label="Approximately 80.7 percent API coverage"
+            >
+              <span></span>
+            </div>
+            <div class="coverage-small">
+              <span><b>93</b> command groups</span
+              ><span><b>4</b> output formats</span>
+            </div>
+            <a
+              href="https://jjuanrivvera.github.io/canvas-cli/development/api-coverage/"
+              >Inspect API coverage ↗</a
+            >
+          </div>
+          <div class="resource-browser">
+            <label for="resource-search"
+              ><span aria-hidden="true">⌕</span
+              ><input
+                id="resource-search"
+                type="search"
+                placeholder="Find your resource…"
+                autocomplete="off"
+              /><kbd>/</kbd></label
+            >
+            <div class="resource-list" id="resource-list">
+              <a href="https://jjuanrivvera.github.io/canvas-cli/commands/"
+                >courses ↗</a
+              ><a href="https://jjuanrivvera.github.io/canvas-cli/commands/"
+                >assignments ↗</a
+              ><a href="https://jjuanrivvera.github.io/canvas-cli/commands/"
+                >submissions ↗</a
+              ><a href="https://jjuanrivvera.github.io/canvas-cli/commands/"
+                >enrollments ↗</a
+              >
+            </div>
+            <p class="resource-count" id="resource-count" role="status">
+              Explore the command reference
+            </p>
+          </div>
+        </div>
+      </section>
+      <section class="architecture-section" id="architecture">
+        <div class="wrap">
+          <div class="section-index reveal">
+            <span>03 / ENGINEERED TO COMPOSE</span
+            ><span class="index-line"></span><span>HUMAN → SCRIPT → AGENT</span>
+          </div>
+          <div class="architecture-heading reveal">
+            <h2>One binary.<br /><span>Three ways to ship.</span></h2>
+            <p>
+              The same Canvas operations, wherever you work.<br />No separate
+              integration to maintain for your agent.
+            </p>
+          </div>
+          <div
+            class="interface-switch reveal"
+            role="tablist"
+            aria-label="Canvas CLI interfaces"
+          >
+            <button
+              id="interface-human"
+              role="tab"
+              aria-selected="true"
+              aria-controls="interface-panel"
+              data-interface="human"
+            >
+              <span>01</span> Human <code>❯_</code></button
+            ><button
+              id="interface-script"
+              role="tab"
+              aria-selected="false"
+              tabindex="-1"
+              aria-controls="interface-panel"
+              data-interface="script"
+            >
+              <span>02</span> Script <code>{ }</code></button
+            ><button
+              id="interface-agent"
+              role="tab"
+              aria-selected="false"
+              tabindex="-1"
+              aria-controls="interface-panel"
+              data-interface="agent"
+            >
+              <span>03</span> Agent <code>✳</code>
+            </button>
+          </div>
+          <div
+            class="interface-panel reveal"
+            id="interface-panel"
+            role="tabpanel"
+            aria-labelledby="interface-human"
+            tabindex="0"
+          >
+            <div class="interface-copy">
+              <span class="eyebrow" id="interface-eyebrow"
+                >YOUR TERMINAL, SUPERCHARGED</span
+              >
+              <h3 id="interface-title">
+                Less remembering.<br />More executing.
+              </h3>
+              <p id="interface-description">
+                Explore Canvas in the interactive shell, with command history
+                and completion. Set a course context once and stop repeating the
+                same flags.
+              </p>
+              <a
+                id="interface-link"
+                href="https://jjuanrivvera.github.io/canvas-cli/user-guide/context/"
+                >Explore context management ↗</a
+              >
+            </div>
+            <div class="interface-code">
+              <div>
+                <span id="interface-file">session.sh</span
+                ><span aria-hidden="true">● ● ●</span>
+              </div>
+              <pre><code id="interface-code"># Start an interactive session
+canvas repl
+
+# Set your working course
+canvas context set course 123
+
+# Use it across commands
+canvas assignments list</code></pre>
+            </div>
+          </div>
+          <div class="engineering-grid reveal">
+            <article>
+              <span class="engineering-icon" aria-hidden="true">↻</span>
+              <h3>Let the client do the plumbing.</h3>
+              <p>
+                Automatic pagination, adaptive rate limiting, and
+                exponential-backoff retries. Focus your scripts on the task, not
+                the HTTP housekeeping.
+              </p>
+              <span class="engineering-tag">PAGINATION / RETRIES / QUOTAS</span>
+            </article>
+            <article>
+              <span class="engineering-icon" aria-hidden="true">⌘</span>
+              <h3>Keep your environments explicit.</h3>
+              <p>
+                Named Canvas instances and a per-command
+                <code>--instance</code> flag. Work across production and sandbox
+                without swapping configuration files.
+              </p>
+              <span class="engineering-tag">MULTI-INSTANCE / CONTEXT</span>
+            </article>
+            <article>
+              <span class="engineering-icon" aria-hidden="true">⊞</span>
+              <h3>Know what you're running.</h3>
+              <p>
+                OAuth 2.0 with PKCE, system keyring integration, and
+                cosign-signed release checksums with SBOMs. Inspect the source.
+                Verify the binary.
+              </p>
+              <a
+                class="engineering-tag"
+                href="https://jjuanrivvera.github.io/canvas-cli/security/"
+                >READ THE SECURITY DOCS ↗</a
+              >
+            </article>
+          </div>
+        </div>
+      </section>
+      <section class="install-section wrap" id="install">
+        <div class="section-index reveal">
+          <span>04 / BOOT SEQUENCE</span><span class="index-line"></span
+          ><span>YOUR TERMINAL IS NEXT</span>
+        </div>
+        <div class="install-grid">
+          <div class="install-copy reveal">
+            <img
+              src="assets/logo-icon.svg"
+              width="60"
+              height="60"
+              alt="Canvas CLI logo"
+            />
+            <h2>
+              Ready when<br /><span>you are<span class="amber">_</span></span>
+            </h2>
+            <p>
+              Install. Authenticate. Execute.<br />Works with the permissions
+              you already have in Canvas.
+            </p>
+            <a href="https://github.com/jjuanrivvera/canvas-cli/releases"
+              >Download a signed release ↗</a
+            >
+            <div class="install-platforms">
+              DARWIN <span>/</span> LINUX <span>/</span> WINDOWS
+            </div>
+          </div>
+          <div class="boot-terminal reveal">
+            <div
+              class="install-tabs"
+              role="tablist"
+              aria-label="Installation method"
+            >
+              <button
+                id="tab-homebrew"
+                role="tab"
+                aria-selected="true"
+                aria-controls="install-code"
+                data-install="homebrew"
+              >
+                Homebrew</button
+              ><button
+                id="tab-go"
+                role="tab"
+                aria-selected="false"
+                tabindex="-1"
+                aria-controls="install-code"
+                data-install="go"
+              >
+                Go</button
+              ><button
+                id="tab-docker"
+                role="tab"
+                aria-selected="false"
+                tabindex="-1"
+                aria-controls="install-code"
+                data-install="docker"
+              >
+                Docker</button
+              ><button
+                id="tab-windows"
+                role="tab"
+                aria-selected="false"
+                tabindex="-1"
+                aria-controls="install-code"
+                data-install="windows"
+              >
+                Windows
+              </button>
+            </div>
+            <div class="boot-step">
+              <span class="step-number">01</span>
+              <div>
+                <h3>Get the binary</h3>
+                <div
+                  id="install-code"
+                  role="tabpanel"
+                  aria-labelledby="tab-homebrew"
+                  tabindex="0"
+                >
+                  <pre><code id="install-command">brew tap jjuanrivvera/canvas-cli
+brew install canvas-cli</code></pre>
+                </div>
+                <button id="copy-install">
+                  Copy command <span aria-hidden="true">⧉</span>
+                </button>
+                <p class="copy-status" id="copy-status" role="status"></p>
+                <p class="install-note" id="install-note">
+                  For macOS and Linux with Homebrew installed.
+                </p>
+              </div>
+            </div>
+            <div class="boot-step">
+              <span class="step-number">02</span>
+              <div>
+                <h3>Connect your institution</h3>
+                <pre><code>canvas auth login \
+  https://your-school.instructure.com</code></pre>
+                <a
+                  href="https://jjuanrivvera.github.io/canvas-cli/getting-started/authentication/"
+                  >Authentication setup ↗</a
+                >
+              </div>
+            </div>
+            <div class="boot-step">
+              <span class="step-number">03</span>
+              <div>
+                <h3>You're in command.</h3>
+                <pre><code>canvas courses list</code></pre>
+                <a
+                  href="https://jjuanrivvera.github.io/canvas-cli/getting-started/quickstart/"
+                  >Open the quick start ↗</a
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <aside
+        class="author-guide wrap reveal"
+        aria-labelledby="author-guide-title"
+      >
+        <div class="guide-label">
+          <span aria-hidden="true">~/notes</span><span>FROM THE BUILDER</span>
+        </div>
+        <div class="guide-copy">
+          <h2 id="author-guide-title">
+            <a
+              href="https://jjuanrivvera.com/blog/canvas-cli-the-complete-guide/"
+              >Canvas CLI: The Complete Guide to LMS Automation
+              <span aria-hidden="true">↗</span></a
+            >
+          </h2>
+          <p>
+            Why I built it, how I use it, and how to turn everyday Canvas tasks
+            into repeatable workflows.
+          </p>
+          <span class="guide-byline"
+            >Juan Rivera
+            <span aria-hidden="true">/</span> jjuanrivvera.com</span
+          >
+        </div>
+      </aside>
+      <section class="faq-section wrap reveal">
+        <div>
+          <span class="eyebrow">README / FAQ</span>
+          <h2>Before you<br /><span>hit Enter.</span></h2>
+        </div>
+        <div class="faq-list">
+          <details>
+            <summary>
+              What is Canvas CLI?<span aria-hidden="true">+</span>
+            </summary>
+            <p>
+              An independent, MIT-licensed command-line interface for Canvas
+              LMS, built with Go. It brings course management, grading,
+              enrollments, and administration to your terminal, scripts, and AI
+              assistants.
+            </p>
+          </details>
+          <details>
+            <summary>
+              Will it work with my institution?<span aria-hidden="true">+</span>
+            </summary>
+            <p>
+              You need your Canvas instance URL and authorized API access. The
+              operations you can perform depend on your account permissions and
+              institution settings. Start with the
+              <a
+                href="https://jjuanrivvera.github.io/canvas-cli/getting-started/authentication/"
+                >authentication guide</a
+              >.
+            </p>
+          </details>
+          <details>
+            <summary>
+              What can AI agents do with it?<span aria-hidden="true">+</span>
+            </summary>
+            <p>
+              The MCP server exposes CLI commands as tools with typed parameters
+              and structured JSON output. The bundled skill teaches agents how
+              to use the CLI. You can generate host-specific guard rules to
+              block destructive actions and require approval for writes. See
+              <a
+                href="https://jjuanrivvera.github.io/canvas-cli/user-guide/agent-safety/"
+                >agent safety</a
+              >
+              for setup and limitations.
+            </p>
+          </details>
+          <details>
+            <summary>
+              Do I need to run a server?<span aria-hidden="true">+</span>
+            </summary>
+            <p>
+              No server is needed for normal CLI use. Install the binary,
+              authenticate, and run commands. For an AI client, the same binary
+              can run as an MCP server over STDIO or HTTP.
+            </p>
+          </details>
+        </div>
+      </section>
+      <div class="closing wrap reveal">
+        <div class="closing-prompt" aria-hidden="true">
+          ❯<span class="block-cursor"></span>
+        </div>
+        <p>
+          Your LMS has an API.<br /><strong>Now it has a command line.</strong>
+        </p>
+        <a class="button primary" href="#install"
+          >Make it yours <span aria-hidden="true">↗</span></a
+        >
+      </div>
+    </main>
+    <footer class="footer wrap">
+      <div class="footer-top">
+        <a href="./" aria-label="Canvas CLI home"
+          ><img src="assets/logo.svg" width="175" height="40" alt="Canvas CLI"
+        /></a>
+        <div>
+          <a href="https://jjuanrivvera.github.io/canvas-cli/"
+            >Documentation ↗</a
+          ><a href="https://github.com/jjuanrivvera/canvas-cli">GitHub ↗</a
+          ><a
+            href="https://github.com/jjuanrivvera/canvas-cli/blob/main/LICENSE"
+            >MIT license ↗</a
+          >
+        </div>
+        <span class="footer-status"
+          ><i class="live-dot"></i> OPEN SOURCE. ALWAYS.</span
+        >
+      </div>
+      <div class="footer-bottom">
+        <p>
+          Built by <a href="https://github.com/jjuanrivvera">Juan Rivera</a>. An
+          independent project, not affiliated with Instructure.
+        </p>
+        <a href="#main">BACK TO TOP ↑</a>
+      </div>
+    </footer>
+  </body>
+</html>

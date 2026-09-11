@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Canvas CLI social preview</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        width: 1200px;
+        height: 630px;
+        overflow: hidden;
+        background:
+          radial-gradient(ellipse at 80% 45%, #301d49 0, transparent 55%),
+          #090a10;
+        color: #ededf4;
+        font-family: Arial, sans-serif;
+        padding: 55px 65px;
+      }
+      .grid {
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(#b495df08 1px, transparent 1px),
+          linear-gradient(90deg, #b495df08 1px, transparent 1px);
+        background-size: 48px 48px;
+      }
+      .content {
+        position: relative;
+      }
+      .brand {
+        width: 210px;
+        height: 48px;
+      }
+      .label {
+        font: 11px monospace;
+        letter-spacing: 2px;
+        color: #b8a2cd;
+        margin: 45px 0 25px;
+      }
+      h1 {
+        font-size: 78px;
+        line-height: 1.08;
+        letter-spacing: -4px;
+        font-weight: 500;
+        margin: 0;
+      }
+      h1 span {
+        color: #b89af2;
+      }
+      p {
+        font-size: 22px;
+        color: #b9afc7;
+        line-height: 1.5;
+      }
+      .core {
+        position: absolute;
+        right: 90px;
+        top: 195px;
+        width: 150px;
+        height: 150px;
+        border: 1px solid #785697;
+        border-radius: 24px;
+        display: grid;
+        place-items: center;
+        background: #1d152b;
+        box-shadow: 0 0 100px #9d57e622;
+      }
+      .core img {
+        width: 115px;
+        height: 115px;
+      }
+      .orbit {
+        position: absolute;
+        right: 38px;
+        top: 143px;
+        width: 254px;
+        height: 254px;
+        border: 1px dashed #775b9444;
+        border-radius: 50%;
+      }
+      .footer {
+        position: absolute;
+        bottom: 44px;
+        left: 65px;
+        right: 65px;
+        border-top: 1px solid #42314f;
+        padding-top: 22px;
+        display: flex;
+        justify-content: space-between;
+        color: #baa1d0;
+        font: 11px monospace;
+        letter-spacing: 1px;
+      }
+      .footer strong {
+        color: #ffd16b;
+        font-weight: 400;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="grid"></div>
+    <div class="content">
+      <img class="brand" src="../assets/logo.svg" alt="Canvas CLI" />
+      <div class="label">CANVAS LMS / COMMAND-LINE INTERFACE</div>
+      <h1>Your entire LMS.<br /><span>Under command.</span></h1>
+      <p>One binary for humans, scripts, and AI agents.</p>
+    </div>
+    <div class="orbit"></div>
+    <div class="core"><img src="../assets/logo-icon.svg" alt="" /></div>
+    <div class="footer">
+      <span>876 API ENDPOINTS <strong>/</strong> 93 COMMAND GROUPS</span
+      ><span>OPEN SOURCE <strong>❯_</strong></span>
+    </div>
+  </body>
+</html>

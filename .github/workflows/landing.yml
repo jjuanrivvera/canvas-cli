@@ -1,0 +1,81 @@
+name: Landing
+
+on:
+  pull_request:
+    paths:
+      - "landing/**"
+      - "netlify.toml"
+      - ".github/workflows/landing.yml"
+  push:
+    branches: [develop]
+    paths:
+      - "landing/**"
+      - "netlify.toml"
+      - ".github/workflows/landing.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: landing-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Landing validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: landing
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: landing/package-lock.json
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm test
+      - name: Build production site
+        run: npm run build
+        env:
+          SITE_URL: https://canvas-cli.jjuanrivvera.com/
+      - name: Verify production metadata
+        run: node tools/check-production.mjs
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: landing-site
+          path: landing/dist
+          retention-days: 7
+
+  deploy:
+    name: Deploy landing
+    needs: validate
+    if: github.ref == 'refs/heads/develop' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: landing-production
+      url: https://canvas-cli.jjuanrivvera.com/
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: landing/package-lock.json
+      - run: npm ci --prefix landing
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: landing-site
+          path: landing/dist
+      - name: Publish tested artifact
+        run: ./landing/node_modules/.bin/netlify deploy --dir=landing/dist --no-build --prod --json
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ vars.NETLIFY_SITE_ID }}
+      - name: Verify public site
+        run: node landing/tools/check-live.mjs
