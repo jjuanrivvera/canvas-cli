@@ -45,7 +45,11 @@ for (let attempt = 1; attempt <= 12; attempt++) {
     await verify();
     break;
   } catch (error) {
-    if (attempt === 12) throw error;
+    if (attempt === 12) {
+      throw new Error(
+        `Live verification failed: ${error.cause?.code || error.message}`,
+      );
+    }
     console.log(
       `Live verification pending (${attempt}/12); retrying in 10 seconds.`,
     );
