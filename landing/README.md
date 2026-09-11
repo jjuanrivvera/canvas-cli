@@ -106,7 +106,7 @@ checks the live HTTPS site, assets, security headers, and canonical redirect.
 The CLI's `main` release branch and MkDocs deployment remain separate.
 
 - Netlify project: `canvas-cli-jjuanrivvera`
-- Domain: `canvas-cli.jjuanrivvera.com` (Cloudflare CNAME, DNS only)
+- Domain: `canvas-cli.jjuanrivvera.com` (Cloudflare delegates this subdomain to Netlify DNS)
 - GitHub environment: `landing-production`, restricted to the `develop` branch
 - Environment secret: `NETLIFY_AUTH_TOKEN`
 - Environment variable: `NETLIFY_SITE_ID`
@@ -119,3 +119,9 @@ the landing itself does not use image processing or server-side functions.
 The workflow can be dispatched manually from `develop` for a redeploy. Netlify
 retains deploy history for rollback. Draft deploys use a non-indexable build.
 To verify the public deployment locally, run `node tools/check-live.mjs`.
+
+Cloudflare holds four NS records for `canvas-cli.jjuanrivvera.com`, pointing to
+`dns1.p07.nsone.net` through `dns4.p07.nsone.net`. Netlify manages the subdomain's
+NETLIFY record and automatic TLS. The parent `jjuanrivvera.com` zone remains on
+Cloudflare. This delegation replaced the initial CNAME after Netlify's external
+DNS certificate provisioning stalled despite successful DNS verification.
