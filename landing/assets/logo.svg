@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 64" width="280" height="64">
+  <defs>
+    <linearGradient id="purpleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#7E57C2"/>
+      <stop offset="100%" style="stop-color:#673AB7"/>
+    </linearGradient>
+    <linearGradient id="amberGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFD54F"/>
+      <stop offset="100%" style="stop-color:#FFC107"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Icon part -->
+  <!-- Canvas frame background -->
+  <rect x="4" y="4" width="56" height="56" rx="8" ry="8" fill="url(#purpleGrad)"/>
+
+  <!-- Inner terminal window -->
+  <rect x="10" y="14" width="44" height="40" rx="4" ry="4" fill="#1a1a2e"/>
+
+  <!-- Terminal title bar dots -->
+  <circle cx="16" cy="20" r="2" fill="#ff6b6b"/>
+  <circle cx="23" cy="20" r="2" fill="#ffd93d"/>
+  <circle cx="30" cy="20" r="2" fill="#6bcb77"/>
+
+  <!-- Terminal prompt ">" with brush stroke style -->
+  <path d="M18 32 L28 38 L18 44" stroke="url(#amberGrad)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+
+  <!-- Cursor line -->
+  <rect x="34" y="35" width="14" height="6" rx="1" fill="url(#amberGrad)" opacity="0.9"/>
+
+  <!-- Artistic brush accent -->
+  <path d="M52 8 Q58 12 56 20" stroke="#FFD54F" stroke-width="3" stroke-linecap="round" fill="none" opacity="0.7"/>
+
+  <!-- Text part -->
+  <text x="76" y="42" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="28" font-weight="700" fill="#673AB7">Canvas</text>
+  <text x="184" y="42" font-family="'SF Mono', 'Fira Code', 'Consolas', monospace" font-size="28" font-weight="600" fill="#FFC107">CLI</text>
+</svg>

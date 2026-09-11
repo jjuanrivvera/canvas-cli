@@ -18,6 +18,7 @@
 </p>
 
 <p align="center">
+  <a href="https://canvas-cli.jjuanrivvera.com/"><strong>Website</strong></a> ·
   <a href="https://jjuanrivvera.github.io/canvas-cli/"><strong>Documentation</strong></a> ·
   <a href="https://jjuanrivvera.github.io/canvas-cli/getting-started/installation/"><strong>Installation</strong></a> ·
   <a href="https://jjuanrivvera.github.io/canvas-cli/commands/"><strong>Commands</strong></a>
