@@ -156,9 +156,34 @@ test("links target committed documentation and preview stays non-indexable", asy
     );
     expect(contents.length).toBeGreaterThan(0);
   }
-  const schema = JSON.parse(
-    await page.locator('script[type="application/ld+json"]').textContent(),
+  const schemas = (
+    await page.locator('script[type="application/ld+json"]').allTextContents()
+  ).map((json) => JSON.parse(json));
+  const schema = schemas.find(
+    (entry) => entry["@type"] === "SoftwareApplication",
   );
-  expect(schema["@type"]).toBe("SoftwareApplication");
+  expect(schema).toBeDefined();
   expect(schema.name).toBe("Canvas CLI");
+
+  // The FAQ schema is generated from the rendered markup, so it has to match what
+  // a reader actually sees — a hand-written copy is what goes stale.
+  const faq = schemas.find((entry) => entry["@type"] === "FAQPage");
+  expect(faq).toBeDefined();
+  const rendered = await page
+    .locator(".faq-list details summary")
+    .evaluateAll((nodes) =>
+      nodes.map((node) => {
+        const clone = node.cloneNode(true);
+        clone
+          .querySelectorAll("[aria-hidden='true']")
+          .forEach((n) => n.remove());
+        return clone.textContent.replace(/\s+/g, " ").trim();
+      }),
+    );
+  expect(faq.mainEntity.map((entry) => entry.name)).toEqual(rendered);
+
+  // A preview build must never send hits: GA4 only ships when SITE_URL is set.
+  expect(
+    await page.locator('script[src*="googletagmanager.com"]').count(),
+  ).toBe(0);
 });
