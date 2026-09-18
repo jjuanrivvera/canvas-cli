@@ -15,6 +15,65 @@ sync by `make docs-gen` and the documentation workflow.
 - Canvas Studio integration
 - GraphQL API support
 
+## [1.14.0] - 2026-09-18
+
+### Added
+
+- `canvas quizzes questions update <question-id> --course-id --quiz-id`: edit an
+  existing quiz question. Flags mirror `questions create` (`--name`, `--text`,
+  `--type`, `--points`, `--correct-comments`, `--incorrect-comments`) plus
+  `--position` and `--answers-json`, which takes a JSON array in the same shape
+  `questions get` returns. Only flags that were explicitly passed are sent, so an
+  unset flag never clears an existing value and an explicit zero is honored.
+- `canvas quizzes submissions update <submission-id> --course-id --quiz-id
+  --attempt N`: set per-question scores and comments on a graded quiz attempt,
+  with `--fudge-points`, and repeatable `--question-score <qid>=<score>` and
+  `--question-comment <qid>=<text>`. `--dry-run` prints the PUT as curl.
+- Standalone Canvas CLI landing site, with its own build and deployment workflow.
+
+### Fixed
+
+- The API client built its own `http.Transport` without a proxy function, so
+  `HTTP_PROXY`, `HTTPS_PROXY` and `NO_PROXY` were ignored. Only
+  `http.DefaultTransport` wires `ProxyFromEnvironment` in by default; a custom
+  transport has to opt in.
+- Table and CSV output printed memory addresses (e.g. `0x61bdf80e678`) for
+  non-struct pointer fields. `formatValue` special-cased pointer-to-struct but let
+  `*int64`, `*float64`, `*string` and `*bool` fall through to `%v`. About 38 model
+  fields are non-struct pointers, so this leaked heap addresses into any all-fields
+  table or CSV, such as `discussions list -o csv`'s `assignment_id` column.
+- A wrong quiz answer (weight 0) lost its weight on output and on create/update,
+  because `QuizAnswer.Weight` was `omitempty`. Canvas encodes correctness as
+  weight 100 vs 0, so a zero has to round-trip.
+- `analytics student-summaries` returned nothing at all: the struct tag was
+  `tardiness` where Canvas sends `tardiness_breakdown`, and the level fields come
+  back as quoted numbers (`"1"`) against an `int`. Every element failed to decode,
+  and the list decoder's tolerance for one bad record turned that into an empty
+  result instead of an error. Levels now accept a quoted number, a bare number or
+  null.
+- `analytics assignments` failed outright once that tag was corrected: Canvas
+  reports `tardiness_breakdown` as integer counts on a student summary but as
+  fractions of the class (`0.6666…`, and `0.0` for empty buckets) at the
+  assignment level, so the shared type could not decode it. The assignment level
+  now has its own type.
+- The response cache could serve data Canvas never sent. A `--dry-run` wrote its
+  placeholder body under the real cache key, so a later real request could be
+  answered with the rehearsal's empty data (and a dry run could be served real
+  data, defeating its purpose). Separately, a failed cache decode left the
+  caller's result partially populated, because `encoding/json` keeps decoding a
+  slice after one element fails, so the live fetch that followed appended onto
+  that wreckage or left a stale field standing.
+- A `--limit`ed list fetch cached its truncated result under the same `pages:`
+  key as a full one, so the next unlimited call was served those few rows as the
+  whole set for the rest of the cache TTL.
+
+### Security
+
+- Go toolchain moved to 1.25.13 for the stdlib fixes.
+- Dependency bumps, including `golang.org/x/crypto` v0.54.0 → v0.57.0, which
+  clears three advisories carried by the old version (none of them reachable from
+  this code).
+
 ## [1.13.0] - 2026-08-05
 
 ### Added
@@ -914,7 +973,19 @@ This release adds comprehensive write command support across all Canvas API reso
 
 ---
 
-[Unreleased]: https://github.com/jjuanrivvera/canvas-cli/compare/v1.9.1...HEAD
+[Unreleased]: https://github.com/jjuanrivvera/canvas-cli/compare/v1.14.0...HEAD
+[1.14.0]: https://github.com/jjuanrivvera/canvas-cli/compare/v1.13.0...v1.14.0
+[1.13.0]: https://github.com/jjuanrivvera/canvas-cli/compare/v1.12.0...v1.13.0
+[1.12.0]: https://github.com/jjuanrivvera/canvas-cli/compare/v1.11.2...v1.12.0
+[1.11.2]: https://github.com/jjuanrivvera/canvas-cli/compare/v1.11.1...v1.11.2
+[1.11.1]: https://github.com/jjuanrivvera/canvas-cli/compare/v1.11.0...v1.11.1
+[1.11.0]: https://github.com/jjuanrivvera/canvas-cli/compare/v1.10.5...v1.11.0
+[1.10.5]: https://github.com/jjuanrivvera/canvas-cli/compare/v1.10.4...v1.10.5
+[1.10.4]: https://github.com/jjuanrivvera/canvas-cli/compare/v1.10.3...v1.10.4
+[1.10.3]: https://github.com/jjuanrivvera/canvas-cli/compare/v1.10.2...v1.10.3
+[1.10.2]: https://github.com/jjuanrivvera/canvas-cli/compare/v1.10.1...v1.10.2
+[1.10.1]: https://github.com/jjuanrivvera/canvas-cli/compare/v1.10.0...v1.10.1
+[1.10.0]: https://github.com/jjuanrivvera/canvas-cli/compare/v1.9.1...v1.10.0
 [1.9.1]: https://github.com/jjuanrivvera/canvas-cli/compare/v1.9.0...v1.9.1
 [1.9.0]: https://github.com/jjuanrivvera/canvas-cli/compare/v1.8.1...v1.9.0
 [1.8.1]: https://github.com/jjuanrivvera/canvas-cli/compare/v1.8.0...v1.8.1
