@@ -245,3 +245,99 @@ func TestClient_NonDryRun_CachingStillWorks(t *testing.T) {
 		t.Fatal("expected the live response to have been written to the cache")
 	}
 }
+
+// TestClient_LimitedFetch_DoesNotPoisonPagesCache covers the write-side twin of
+// the maxResults guard that GetAllPages and GetAllPagesGeneric already apply on
+// read. Both list paths cache under the same "pages:"+path key regardless of the
+// limit, so a `--limit`ed fetch used to store its truncated slice there and a
+// later unlimited call was served those few rows as if they were the whole set,
+// for the rest of the TTL.
+func TestClient_LimitedFetch_DoesNotPoisonPagesCache(t *testing.T) {
+	const path = "/api/v1/courses"
+	full := `[{"id":1,"name":"One"},{"id":2,"name":"Two"},{"id":3,"name":"Three"}]`
+
+	newServer := func() *httptest.Server {
+		return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.URL.Path == "/api/v1/accounts" {
+				handleVersionDetection(w)
+				return
+			}
+			w.Header().Set("Content-Type", "application/json")
+			w.Write([]byte(full))
+		}))
+	}
+
+	newClient := func(t *testing.T, url string, c *cache.Cache, maxResults int) *Client {
+		t.Helper()
+		client, err := NewClient(ClientConfig{
+			BaseURL:        url,
+			Token:          "test-token",
+			RequestsPerSec: 10,
+			Cache:          c,
+			CacheEnabled:   true,
+			MaxResults:     maxResults,
+		})
+		if err != nil {
+			t.Fatalf("NewClient: %v", err)
+		}
+		return client
+	}
+
+	t.Run("GetAllPages", func(t *testing.T) {
+		server := newServer()
+		defer server.Close()
+
+		testCache := cache.New(5 * time.Minute)
+		ctx := context.Background()
+
+		var limited []cacheTestItem
+		if err := newClient(t, server.URL, testCache, 2).GetAllPages(ctx, path, &limited); err != nil {
+			t.Fatalf("limited GetAllPages: %v", err)
+		}
+		if len(limited) != 2 {
+			t.Fatalf("limited fetch returned %d rows, want 2", len(limited))
+		}
+
+		unlimited := newClient(t, server.URL, testCache, 0)
+		if testCache.Has(unlimited.cacheKey("pages:" + path)) {
+			t.Fatal("a limited fetch must not write the shared pages: cache entry")
+		}
+
+		var all []cacheTestItem
+		if err := unlimited.GetAllPages(ctx, path, &all); err != nil {
+			t.Fatalf("unlimited GetAllPages: %v", err)
+		}
+		if len(all) != 3 {
+			t.Fatalf("unlimited fetch returned %d rows, want 3 — it was served the truncated list", len(all))
+		}
+	})
+
+	t.Run("GetAllPagesGeneric", func(t *testing.T) {
+		server := newServer()
+		defer server.Close()
+
+		testCache := cache.New(5 * time.Minute)
+		ctx := context.Background()
+
+		limited, err := GetAllPagesGeneric[cacheTestItem](newClient(t, server.URL, testCache, 2), ctx, path)
+		if err != nil {
+			t.Fatalf("limited GetAllPagesGeneric: %v", err)
+		}
+		if len(limited) != 2 {
+			t.Fatalf("limited fetch returned %d rows, want 2", len(limited))
+		}
+
+		unlimited := newClient(t, server.URL, testCache, 0)
+		if testCache.Has(unlimited.cacheKey("pages:" + path)) {
+			t.Fatal("a limited fetch must not write the shared pages: cache entry")
+		}
+
+		all, err := GetAllPagesGeneric[cacheTestItem](unlimited, ctx, path)
+		if err != nil {
+			t.Fatalf("unlimited GetAllPagesGeneric: %v", err)
+		}
+		if len(all) != 3 {
+			t.Fatalf("unlimited fetch returned %d rows, want 3 — it was served the truncated list", len(all))
+		}
+	})
+}

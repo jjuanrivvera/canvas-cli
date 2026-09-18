@@ -833,8 +833,10 @@ func GetAllPagesGeneric[T any](c *Client, ctx context.Context, path string) ([]T
 		}
 	}
 
-	// Cache the combined result if caching is enabled
-	if c.cacheActive() {
+	// Cache the combined result if caching is enabled. Mirror the read-side guard: a
+	// maxResults-truncated list must not be written under the shared "pages:" key, or a
+	// later unlimited call is served the truncated set as if it were complete.
+	if c.cacheActive() && c.maxResults == 0 {
 		key := c.cacheKey("pages:" + path)
 		// Marshal for caching
 		allJSON, err := json.Marshal(allResults)
@@ -948,8 +950,10 @@ func (c *Client) GetAllPages(ctx context.Context, path string, result interface{
 	// Set the slice back to the result pointer
 	resultValue.Elem().Set(sliceValue)
 
-	// Cache the combined result if caching is enabled
-	if c.cacheActive() {
+	// Cache the combined result if caching is enabled. Mirror the read-side guard: a
+	// maxResults-truncated list must not be written under the shared "pages:" key, or a
+	// later unlimited call is served the truncated set as if it were complete.
+	if c.cacheActive() && c.maxResults == 0 {
 		key := c.cacheKey("pages:" + path)
 		// Marshal once for caching only
 		allJSON, err := json.Marshal(allResults)
