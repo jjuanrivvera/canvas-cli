@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/url"
 	"strconv"
+	"strings"
 )
 
 // AnalyticsService handles analytics-related API calls
@@ -27,22 +28,36 @@ type CourseActivity struct {
 
 // AssignmentAnalytics represents assignment statistics
 type AssignmentAnalytics struct {
-	AssignmentID         int64           `json:"assignment_id"`
-	Title                string          `json:"title"`
-	DueAt                string          `json:"due_at,omitempty"`
-	UnlockedAt           string          `json:"unlock_at,omitempty"`
-	PointsPossible       float64         `json:"points_possible"`
-	NonDigitalSubmission bool            `json:"non_digital_submission"`
-	Muted                bool            `json:"muted"`
-	MinScore             float64         `json:"min_score"`
-	MaxScore             float64         `json:"max_score"`
-	MedianScore          float64         `json:"median"`
-	FirstQuartile        float64         `json:"first_quartile"`
-	ThirdQuartile        float64         `json:"third_quartile"`
-	Tardiness            *TardinessStats `json:"tardiness,omitempty"`
+	AssignmentID         int64                         `json:"assignment_id"`
+	Title                string                        `json:"title"`
+	DueAt                string                        `json:"due_at,omitempty"`
+	UnlockedAt           string                        `json:"unlock_at,omitempty"`
+	PointsPossible       float64                       `json:"points_possible"`
+	NonDigitalSubmission bool                          `json:"non_digital_submission"`
+	Muted                bool                          `json:"muted"`
+	MinScore             float64                       `json:"min_score"`
+	MaxScore             float64                       `json:"max_score"`
+	MedianScore          float64                       `json:"median"`
+	FirstQuartile        float64                       `json:"first_quartile"`
+	ThirdQuartile        float64                       `json:"third_quartile"`
+	Tardiness            *AssignmentTardinessBreakdown `json:"tardiness_breakdown,omitempty"`
 }
 
-// TardinessStats represents tardiness breakdown
+// AssignmentTardinessBreakdown is the on-time/late/missing split for an
+// assignment. Canvas sends these as fractions of the class (0.0–1.0), not the
+// integer counts it uses for the same key on a student summary, so the two
+// cannot share a type: decoding 0.6666 into an int fails the whole response.
+type AssignmentTardinessBreakdown struct {
+	Missing  float64 `json:"missing"`
+	Late     float64 `json:"late"`
+	OnTime   float64 `json:"on_time"`
+	Floating float64 `json:"floating,omitempty"`
+	Total    float64 `json:"total,omitempty"`
+}
+
+// TardinessStats is the tardiness breakdown as integer counts, which is how
+// Canvas reports it on a student summary. The assignment-level endpoint sends
+// fractions instead — see AssignmentTardinessBreakdown.
 type TardinessStats struct {
 	Missing  int `json:"missing"`
 	Late     int `json:"late"`
@@ -51,16 +66,41 @@ type TardinessStats struct {
 	Total    int `json:"total"`
 }
 
+// AnalyticsLevel is an integer that Canvas's analytics endpoints usually send
+// as a JSON string (e.g. "page_views_level": "1") but may also send as a bare
+// number. UnmarshalJSON accepts either, plus null (decoded as 0).
+type AnalyticsLevel int
+
+// UnmarshalJSON implements json.Unmarshaler, accepting a quoted integer, a
+// bare integer, or null.
+func (l *AnalyticsLevel) UnmarshalJSON(data []byte) error {
+	s := strings.TrimSpace(string(data))
+	if s == "null" {
+		*l = 0
+		return nil
+	}
+
+	s = strings.Trim(s, `"`)
+
+	n, err := strconv.Atoi(s)
+	if err != nil {
+		return fmt.Errorf("analytics level: invalid value %s: %w", data, err)
+	}
+
+	*l = AnalyticsLevel(n)
+	return nil
+}
+
 // StudentSummary represents a student's course summary
 type StudentSummary struct {
 	ID                  int64           `json:"id"`
 	PageViews           int             `json:"page_views"`
 	MaxPageViews        int             `json:"max_page_views,omitempty"`
-	PageViewsLevel      int             `json:"page_views_level,omitempty"`
+	PageViewsLevel      AnalyticsLevel  `json:"page_views_level,omitempty"`
 	Participations      int             `json:"participations"`
 	MaxParticipations   int             `json:"max_participations,omitempty"`
-	ParticipationsLevel int             `json:"participations_level,omitempty"`
-	Tardiness           *TardinessStats `json:"tardiness,omitempty"`
+	ParticipationsLevel AnalyticsLevel  `json:"participations_level,omitempty"`
+	Tardiness           *TardinessStats `json:"tardiness_breakdown,omitempty"`
 	CurrentScore        float64         `json:"current_score,omitempty"`
 	FinalScore          float64         `json:"final_score,omitempty"`
 	CurrentGrade        string          `json:"current_grade,omitempty"`
