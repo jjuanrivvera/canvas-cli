@@ -28,22 +28,36 @@ type CourseActivity struct {
 
 // AssignmentAnalytics represents assignment statistics
 type AssignmentAnalytics struct {
-	AssignmentID         int64           `json:"assignment_id"`
-	Title                string          `json:"title"`
-	DueAt                string          `json:"due_at,omitempty"`
-	UnlockedAt           string          `json:"unlock_at,omitempty"`
-	PointsPossible       float64         `json:"points_possible"`
-	NonDigitalSubmission bool            `json:"non_digital_submission"`
-	Muted                bool            `json:"muted"`
-	MinScore             float64         `json:"min_score"`
-	MaxScore             float64         `json:"max_score"`
-	MedianScore          float64         `json:"median"`
-	FirstQuartile        float64         `json:"first_quartile"`
-	ThirdQuartile        float64         `json:"third_quartile"`
-	Tardiness            *TardinessStats `json:"tardiness_breakdown,omitempty"`
+	AssignmentID         int64                         `json:"assignment_id"`
+	Title                string                        `json:"title"`
+	DueAt                string                        `json:"due_at,omitempty"`
+	UnlockedAt           string                        `json:"unlock_at,omitempty"`
+	PointsPossible       float64                       `json:"points_possible"`
+	NonDigitalSubmission bool                          `json:"non_digital_submission"`
+	Muted                bool                          `json:"muted"`
+	MinScore             float64                       `json:"min_score"`
+	MaxScore             float64                       `json:"max_score"`
+	MedianScore          float64                       `json:"median"`
+	FirstQuartile        float64                       `json:"first_quartile"`
+	ThirdQuartile        float64                       `json:"third_quartile"`
+	Tardiness            *AssignmentTardinessBreakdown `json:"tardiness_breakdown,omitempty"`
 }
 
-// TardinessStats represents tardiness breakdown
+// AssignmentTardinessBreakdown is the on-time/late/missing split for an
+// assignment. Canvas sends these as fractions of the class (0.0–1.0), not the
+// integer counts it uses for the same key on a student summary, so the two
+// cannot share a type: decoding 0.6666 into an int fails the whole response.
+type AssignmentTardinessBreakdown struct {
+	Missing  float64 `json:"missing"`
+	Late     float64 `json:"late"`
+	OnTime   float64 `json:"on_time"`
+	Floating float64 `json:"floating,omitempty"`
+	Total    float64 `json:"total,omitempty"`
+}
+
+// TardinessStats is the tardiness breakdown as integer counts, which is how
+// Canvas reports it on a student summary. The assignment-level endpoint sends
+// fractions instead — see AssignmentTardinessBreakdown.
 type TardinessStats struct {
 	Missing  int `json:"missing"`
 	Late     int `json:"late"`
