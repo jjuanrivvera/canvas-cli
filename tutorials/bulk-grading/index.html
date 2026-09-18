@@ -1936,7 +1936,7 @@ assessments alongside grades, include them when fetching a submission:</p>
 </span></code></pre></div>
 <p>To set rubric scores, use the raw API command:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>canvas<span class="w"> </span>api<span class="w"> </span>PUT<span class="w"> </span>/courses/123/assignments/456/submissions/1001<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;rubric_assessment&quot;:{&quot;criterion_1&quot;:{&quot;points&quot;:20},&quot;criterion_2&quot;:{&quot;points&quot;:15}}}&#39;</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">'{"rubric_assessment":{"criterion_1":{"points":20},"criterion_2":{"points":15}}}'</span>
 </span></code></pre></div>
 <h2 id="tips">Tips<a class="headerlink" href="#tips" title="Permanent link">&para;</a></h2>
 <div class="admonition tip">
@@ -1961,7 +1961,7 @@ Or test by grading a single submission first:
 </span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="w">  </span>--assignment-id<span class="w"> </span><span class="m">456</span><span class="w"> </span><span class="se">\</span>
 </span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="w">  </span>--user-id<span class="w"> </span><span class="m">1001</span><span class="w"> </span><span class="se">\</span>
 </span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="w">  </span>--score<span class="w"> </span><span class="m">85</span><span class="w"> </span><span class="se">\</span>
-</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="w">  </span>--comment<span class="w"> </span><span class="s2">&quot;Good work!&quot;</span>
+</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="w">  </span>--comment<span class="w"> </span><span class="s2">"Good work!"</span>
 </span></code></pre></div></p>
 </div>
 <h2 id="complete-workflow-script">Complete Workflow Script<a class="headerlink" href="#complete-workflow-script" title="Permanent link">&para;</a></h2>
@@ -1975,7 +1975,7 @@ Or test by grading a single submission first:
 </span><span id="__span-12-8"><a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a><span class="w">  </span>--assignment-id<span class="w"> </span><span class="nv">$ASSIGNMENT_ID</span><span class="w"> </span><span class="se">\</span>
 </span><span id="__span-12-9"><a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a><span class="w">  </span>-o<span class="w"> </span>csv<span class="w"> </span>&gt;<span class="w"> </span>submissions.csv
 </span><span id="__span-12-10"><a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a>
-</span><span id="__span-12-11"><a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Edit submissions.csv and add grades, then press Enter&quot;</span>
+</span><span id="__span-12-11"><a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">"Edit submissions.csv and add grades, then press Enter"</span>
 </span><span id="__span-12-12"><a id="__codelineno-12-12" name="__codelineno-12-12" href="#__codelineno-12-12"></a><span class="nb">read</span>
 </span><span id="__span-12-13"><a id="__codelineno-12-13" name="__codelineno-12-13" href="#__codelineno-12-13"></a>
 </span><span id="__span-12-14"><a id="__codelineno-12-14" name="__codelineno-12-14" href="#__codelineno-12-14"></a><span class="c1"># Import grades (CSV columns: user_id,assignment_id,score,comment)</span>
@@ -1983,7 +1983,7 @@ Or test by grading a single submission first:
 </span><span id="__span-12-16"><a id="__codelineno-12-16" name="__codelineno-12-16" href="#__codelineno-12-16"></a><span class="w">  </span>--course-id<span class="w"> </span><span class="nv">$COURSE_ID</span><span class="w"> </span><span class="se">\</span>
 </span><span id="__span-12-17"><a id="__codelineno-12-17" name="__codelineno-12-17" href="#__codelineno-12-17"></a><span class="w">  </span>--csv-file<span class="w"> </span>grades.csv
 </span><span id="__span-12-18"><a id="__codelineno-12-18" name="__codelineno-12-18" href="#__codelineno-12-18"></a>
-</span><span id="__span-12-19"><a id="__codelineno-12-19" name="__codelineno-12-19" href="#__codelineno-12-19"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Grades imported successfully!&quot;</span>
+</span><span id="__span-12-19"><a id="__codelineno-12-19" name="__codelineno-12-19" href="#__codelineno-12-19"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">"Grades imported successfully!"</span>
 </span></code></pre></div>
 
 

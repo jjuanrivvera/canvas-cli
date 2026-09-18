@@ -1671,13 +1671,13 @@ or endpoints not yet supported by dedicated commands.</p>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>canvas<span class="w"> </span>api<span class="w"> </span>GET<span class="w"> </span>/api/v1/courses
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># Create a course (with JSON body)</span>
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>canvas<span class="w"> </span>api<span class="w"> </span>POST<span class="w"> </span>/api/v1/accounts/1/courses<span class="w"> </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;course&quot;:{&quot;name&quot;:&quot;Test Course&quot;}}&#39;</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>canvas<span class="w"> </span>api<span class="w"> </span>POST<span class="w"> </span>/api/v1/accounts/1/courses<span class="w"> </span>-d<span class="w"> </span><span class="s1">'{"course":{"name":"Test Course"}}'</span>
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
 </span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="c1"># Search users with query parameters</span>
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>canvas<span class="w"> </span>api<span class="w"> </span>GET<span class="w"> </span>/api/v1/users<span class="w"> </span>-q<span class="w"> </span><span class="s2">&quot;search_term=john&quot;</span><span class="w"> </span>-q<span class="w"> </span><span class="s2">&quot;per_page=50&quot;</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>canvas<span class="w"> </span>api<span class="w"> </span>GET<span class="w"> </span>/api/v1/users<span class="w"> </span>-q<span class="w"> </span><span class="s2">"search_term=john"</span><span class="w"> </span>-q<span class="w"> </span><span class="s2">"per_page=50"</span>
 </span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>
 </span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="c1"># Update an assignment</span>
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>canvas<span class="w"> </span>api<span class="w"> </span>PUT<span class="w"> </span>/api/v1/courses/123/assignments/456<span class="w"> </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;assignment&quot;:{&quot;name&quot;:&quot;Updated&quot;}}&#39;</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>canvas<span class="w"> </span>api<span class="w"> </span>PUT<span class="w"> </span>/api/v1/courses/123/assignments/456<span class="w"> </span>-d<span class="w"> </span><span class="s1">'{"assignment":{"name":"Updated"}}'</span>
 </span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>
 </span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="c1"># Delete an assignment</span>
 </span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>canvas<span class="w"> </span>api<span class="w"> </span>DELETE<span class="w"> </span>/api/v1/courses/123/assignments/456
@@ -1709,7 +1709,7 @@ or endpoints not yet supported by dedicated commands.</p>
 </span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>      --instance string   Canvas instance URL (overrides config)
 </span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>      --limit int         Limit number of results for list operations (0 = unlimited)
 </span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>      --no-cache          Disable caching of API responses
-</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>  -o, --output string     Output format: table, json, yaml, csv (default &quot;table&quot;)
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>  -o, --output string     Output format: table, json, yaml, csv (default "table")
 </span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>      --quiet             Suppress informational messages, only output data and errors
 </span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>      --show-token        Show actual token in dry-run output (default: redacted)
 </span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>      --sort string       Sort results by field (prefix with - for descending, e.g., -name)
@@ -1720,7 +1720,7 @@ or endpoints not yet supported by dedicated commands.</p>
 <li><a href="../canvas/">canvas</a>    - Canvas LMS CLI - Interact with Canvas from the command line</li>
 <li><a href="../canvas_api_get/">canvas api get</a>    - Make a read-only GET request to Canvas</li>
 </ul>
-<h6 id="auto-generated-by-spf13cobra-on-6-aug-2026">Auto generated by spf13/cobra on 6-Aug-2026<a class="headerlink" href="#auto-generated-by-spf13cobra-on-6-aug-2026" title="Permanent link">&para;</a></h6>
+<h6 id="auto-generated-by-spf13cobra-on-18-sep-2026">Auto generated by spf13/cobra on 18-Sep-2026<a class="headerlink" href="#auto-generated-by-spf13cobra-on-18-sep-2026" title="Permanent link">&para;</a></h6>
 
 
 

@@ -1664,9 +1664,9 @@
 <h3 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h3>
 <p>Create a new quiz in a course.</p>
 <p>Examples:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>canvas<span class="w"> </span>quizzes<span class="w"> </span>create<span class="w"> </span>--course-id<span class="w"> </span><span class="m">123</span><span class="w"> </span>--title<span class="w"> </span><span class="s2">&quot;Midterm Exam&quot;</span><span class="w"> </span>--quiz-type<span class="w"> </span>assignment
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>canvas<span class="w"> </span>quizzes<span class="w"> </span>create<span class="w"> </span>--course-id<span class="w"> </span><span class="m">123</span><span class="w"> </span>--title<span class="w"> </span><span class="s2">&quot;Practice Quiz&quot;</span><span class="w"> </span>--quiz-type<span class="w"> </span>practice_quiz<span class="w"> </span>--time-limit<span class="w"> </span><span class="m">30</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>canvas<span class="w"> </span>quizzes<span class="w"> </span>create<span class="w"> </span>--course-id<span class="w"> </span><span class="m">123</span><span class="w"> </span>--title<span class="w"> </span><span class="s2">&quot;Survey&quot;</span><span class="w"> </span>--quiz-type<span class="w"> </span>survey<span class="w"> </span>--anonymous
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>canvas<span class="w"> </span>quizzes<span class="w"> </span>create<span class="w"> </span>--course-id<span class="w"> </span><span class="m">123</span><span class="w"> </span>--title<span class="w"> </span><span class="s2">"Midterm Exam"</span><span class="w"> </span>--quiz-type<span class="w"> </span>assignment
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>canvas<span class="w"> </span>quizzes<span class="w"> </span>create<span class="w"> </span>--course-id<span class="w"> </span><span class="m">123</span><span class="w"> </span>--title<span class="w"> </span><span class="s2">"Practice Quiz"</span><span class="w"> </span>--quiz-type<span class="w"> </span>practice_quiz<span class="w"> </span>--time-limit<span class="w"> </span><span class="m">30</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>canvas<span class="w"> </span>quizzes<span class="w"> </span>create<span class="w"> </span>--course-id<span class="w"> </span><span class="m">123</span><span class="w"> </span>--title<span class="w"> </span><span class="s2">"Survey"</span><span class="w"> </span>--quiz-type<span class="w"> </span>survey<span class="w"> </span>--anonymous
 </span></code></pre></div>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>canvas quizzes create [flags]
 </span></code></pre></div>
@@ -1685,7 +1685,7 @@
 </span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>      --lock-at string            Lock date (ISO 8601)
 </span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>      --one-at-a-time             Show one question at a time
 </span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>      --published                 Publish immediately
-</span><span id="__span-2-15"><a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>      --quiz-type string          Quiz type: practice_quiz, assignment, graded_survey, survey (default &quot;assignment&quot;)
+</span><span id="__span-2-15"><a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>      --quiz-type string          Quiz type: practice_quiz, assignment, graded_survey, survey (default "assignment")
 </span><span id="__span-2-16"><a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a>      --scoring-policy string     Scoring policy: keep_highest, keep_latest
 </span><span id="__span-2-17"><a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a>      --show-correct              Show correct answers
 </span><span id="__span-2-18"><a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a>      --shuffle-answers           Shuffle answer choices
@@ -1702,7 +1702,7 @@
 </span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>      --instance string   Canvas instance URL (overrides config)
 </span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>      --limit int         Limit number of results for list operations (0 = unlimited)
 </span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>      --no-cache          Disable caching of API responses
-</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>  -o, --output string     Output format: table, json, yaml, csv (default &quot;table&quot;)
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>  -o, --output string     Output format: table, json, yaml, csv (default "table")
 </span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>      --quiet             Suppress informational messages, only output data and errors
 </span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>      --show-token        Show actual token in dry-run output (default: redacted)
 </span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>      --sort string       Sort results by field (prefix with - for descending, e.g., -name)
@@ -1712,7 +1712,7 @@
 <ul>
 <li><a href="../canvas_quizzes/">canvas quizzes</a>    - Manage Canvas quizzes</li>
 </ul>
-<h6 id="auto-generated-by-spf13cobra-on-6-aug-2026">Auto generated by spf13/cobra on 6-Aug-2026<a class="headerlink" href="#auto-generated-by-spf13cobra-on-6-aug-2026" title="Permanent link">&para;</a></h6>
+<h6 id="auto-generated-by-spf13cobra-on-18-sep-2026">Auto generated by spf13/cobra on 18-Sep-2026<a class="headerlink" href="#auto-generated-by-spf13cobra-on-18-sep-2026" title="Permanent link">&para;</a></h6>
 
 
 

@@ -1664,9 +1664,9 @@
 <h3 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h3>
 <p>Create a new assignment group in a course.</p>
 <p>Examples:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>canvas<span class="w"> </span>assignment-groups<span class="w"> </span>create<span class="w"> </span>--course-id<span class="w"> </span><span class="m">123</span><span class="w"> </span>--name<span class="w"> </span><span class="s2">&quot;Homework&quot;</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>canvas<span class="w"> </span>assignment-groups<span class="w"> </span>create<span class="w"> </span>--course-id<span class="w"> </span><span class="m">123</span><span class="w"> </span>--name<span class="w"> </span><span class="s2">&quot;Exams&quot;</span><span class="w"> </span>--weight<span class="w"> </span><span class="m">40</span><span class="w"> </span>--position<span class="w"> </span><span class="m">2</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>canvas<span class="w"> </span>assignment-groups<span class="w"> </span>create<span class="w"> </span>--course-id<span class="w"> </span><span class="m">123</span><span class="w"> </span>--name<span class="w"> </span><span class="s2">&quot;Quizzes&quot;</span><span class="w"> </span>--weight<span class="w"> </span><span class="m">20</span><span class="w"> </span>--drop-lowest<span class="w"> </span><span class="m">1</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>canvas<span class="w"> </span>assignment-groups<span class="w"> </span>create<span class="w"> </span>--course-id<span class="w"> </span><span class="m">123</span><span class="w"> </span>--name<span class="w"> </span><span class="s2">"Homework"</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>canvas<span class="w"> </span>assignment-groups<span class="w"> </span>create<span class="w"> </span>--course-id<span class="w"> </span><span class="m">123</span><span class="w"> </span>--name<span class="w"> </span><span class="s2">"Exams"</span><span class="w"> </span>--weight<span class="w"> </span><span class="m">40</span><span class="w"> </span>--position<span class="w"> </span><span class="m">2</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>canvas<span class="w"> </span>assignment-groups<span class="w"> </span>create<span class="w"> </span>--course-id<span class="w"> </span><span class="m">123</span><span class="w"> </span>--name<span class="w"> </span><span class="s2">"Quizzes"</span><span class="w"> </span>--weight<span class="w"> </span><span class="m">20</span><span class="w"> </span>--drop-lowest<span class="w"> </span><span class="m">1</span>
 </span></code></pre></div>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>canvas assignment-groups create [flags]
 </span></code></pre></div>
@@ -1688,7 +1688,7 @@
 </span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>      --instance string   Canvas instance URL (overrides config)
 </span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>      --limit int         Limit number of results for list operations (0 = unlimited)
 </span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>      --no-cache          Disable caching of API responses
-</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>  -o, --output string     Output format: table, json, yaml, csv (default &quot;table&quot;)
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>  -o, --output string     Output format: table, json, yaml, csv (default "table")
 </span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>      --quiet             Suppress informational messages, only output data and errors
 </span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>      --show-token        Show actual token in dry-run output (default: redacted)
 </span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>      --sort string       Sort results by field (prefix with - for descending, e.g., -name)
@@ -1698,7 +1698,7 @@
 <ul>
 <li><a href="../canvas_assignment-groups/">canvas assignment-groups</a>    - Manage Canvas assignment groups</li>
 </ul>
-<h6 id="auto-generated-by-spf13cobra-on-6-aug-2026">Auto generated by spf13/cobra on 6-Aug-2026<a class="headerlink" href="#auto-generated-by-spf13cobra-on-6-aug-2026" title="Permanent link">&para;</a></h6>
+<h6 id="auto-generated-by-spf13cobra-on-18-sep-2026">Auto generated by spf13/cobra on 18-Sep-2026<a class="headerlink" href="#auto-generated-by-spf13cobra-on-18-sep-2026" title="Permanent link">&para;</a></h6>
 
 
 

@@ -2843,11 +2843,11 @@ CLI refreshes them automatically.</p>
 <h3 id="environment-variables-cicd">Environment Variables (CI/CD)<a class="headerlink" href="#environment-variables-cicd" title="Permanent link">&para;</a></h3>
 <p>For automated workflows and CI/CD pipelines, Canvas CLI supports authentication via environment variables:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1"># Required environment variables</span>
-</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">CANVAS_URL</span><span class="o">=</span><span class="s2">&quot;https://canvas.instructure.com&quot;</span>
-</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="nb">export</span><span class="w"> </span><span class="nv">CANVAS_TOKEN</span><span class="o">=</span><span class="s2">&quot;your-access-token&quot;</span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">CANVAS_URL</span><span class="o">=</span><span class="s2">"https://canvas.instructure.com"</span>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="nb">export</span><span class="w"> </span><span class="nv">CANVAS_TOKEN</span><span class="o">=</span><span class="s2">"your-access-token"</span>
 </span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>
 </span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="c1"># Optional: Control rate limiting (default: 5.0)</span>
-</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="nb">export</span><span class="w"> </span><span class="nv">CANVAS_REQUESTS_PER_SEC</span><span class="o">=</span><span class="s2">&quot;10.0&quot;</span>
+</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="nb">export</span><span class="w"> </span><span class="nv">CANVAS_REQUESTS_PER_SEC</span><span class="o">=</span><span class="s2">"10.0"</span>
 </span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>
 </span><span id="__span-11-8"><a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="c1"># Commands will use these automatically</span>
 </span><span id="__span-11-9"><a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a>canvas<span class="w"> </span>courses<span class="w"> </span>list
@@ -2934,7 +2934,7 @@ is printed to stderr.</p>
 <li><strong>Key Derivation</strong>: Machine ID + username</li>
 </ul>
 <h3 id="manual-credential-management">Manual Credential Management<a class="headerlink" href="#manual-credential-management" title="Permanent link">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="c1"># View stored credentials (won&#39;t show tokens)</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="c1"># View stored credentials (won't show tokens)</span>
 </span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>canvas<span class="w"> </span>auth<span class="w"> </span>status
 </span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>
 </span><span id="__span-16-4"><a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a><span class="c1"># Logout (removes credentials)</span>
@@ -2961,8 +2961,8 @@ is printed to stderr.</p>
 <h3 id="manual-token-usage">Manual Token Usage<a class="headerlink" href="#manual-token-usage" title="Permanent link">&para;</a></h3>
 <p>If you have an access token, use environment variables:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="c1"># Set environment variables</span>
-</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">CANVAS_URL</span><span class="o">=</span><span class="s2">&quot;https://canvas.instructure.com&quot;</span>
-</span><span id="__span-17-3"><a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="nb">export</span><span class="w"> </span><span class="nv">CANVAS_TOKEN</span><span class="o">=</span><span class="s2">&quot;YOUR_ACCESS_TOKEN&quot;</span>
+</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">CANVAS_URL</span><span class="o">=</span><span class="s2">"https://canvas.instructure.com"</span>
+</span><span id="__span-17-3"><a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="nb">export</span><span class="w"> </span><span class="nv">CANVAS_TOKEN</span><span class="o">=</span><span class="s2">"YOUR_ACCESS_TOKEN"</span>
 </span><span id="__span-17-4"><a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a>
 </span><span id="__span-17-5"><a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a><span class="c1"># Commands will use these automatically</span>
 </span><span id="__span-17-6"><a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a>canvas<span class="w"> </span>courses<span class="w"> </span>list
@@ -2987,7 +2987,7 @@ is printed to stderr.</p>
 <h3 id="5-keep-credentials-private">5. Keep Credentials Private<a class="headerlink" href="#5-keep-credentials-private" title="Permanent link">&para;</a></h3>
 <p>Never commit tokens or credentials to version control:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="c1"># Add to .gitignore</span>
-</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;.canvas-cli/&quot;</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>.gitignore
+</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">".canvas-cli/"</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>.gitignore
 </span></code></pre></div>
 <h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
 <h3 id="failed-to-open-browser">"Failed to open browser"<a class="headerlink" href="#failed-to-open-browser" title="Permanent link">&para;</a></h3>
