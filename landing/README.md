@@ -67,7 +67,9 @@ Submit the generated sitemap to search engines after deployment.
 - `assets/social.png`: 1200 × 630 social preview.
 - `build.mjs`: dependency-free static build and domain-dependent SEO metadata.
 
-No external fonts, trackers, runtime packages, or API calls are loaded. The
+No external fonts, runtime packages, or API calls are loaded. The only external
+script is GA4, and only on a production build — a preview or pull request build
+carries no tracker at all (see Analytics and Search Console above). The
 terminal uses illustrative data; it does not connect to a Canvas account.
 Core content, the default command examples, installation, and FAQ remain
 readable without JS. Alternate demos and filtering require JavaScript.
