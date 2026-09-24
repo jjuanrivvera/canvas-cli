@@ -27,11 +27,28 @@ SITE_URL=https://canvas-cli.jjuanrivvera.com/ npm run build
 ```
 
 Deploy `landing/dist/` to any static host. This produces the canonical URL,
-Open Graph URL and social image metadata, `sitemap.xml`, `robots.txt`, and
-SoftwareApplication structured data. A production build removes preview
-`noindex`. All local assets use relative paths and support subpath hosting.
+Open Graph URL and social image metadata, `sitemap.xml`, `robots.txt`,
+SoftwareApplication and FAQPage structured data, and the Search Console
+verification file. A production build removes preview `noindex`. All local assets use relative paths and support subpath hosting.
 Use HTTPS for clipboard support. Copy falls back to selecting the command
 when the Clipboard API is unavailable.
+
+### Analytics and Search Console
+
+`GOOGLE_ANALYTICS_KEY` (a GA4 measurement ID, `G-XXXXXXX`) adds the gtag
+snippet. It is only embedded when `SITE_URL` is also set, so preview and pull
+request builds never send hits from a throwaway URL; a malformed ID fails the
+build rather than shipping a broken tag. The workflow reads
+`GOOGLE_ANALYTICS_LANDING_KEY` first and falls back to the fleet-wide
+`GOOGLE_ANALYTICS_KEY`, so the landing can move to its own GA4 data stream by
+setting one repository variable, without touching this code.
+
+Ownership for Search Console is proven by `google9631057cc493be1e.html`, copied
+verbatim to the site root on every build. It is the same account-level token the
+documentation site uses. `tools/check-production.mjs` asserts the file is
+present, because losing it silently unverifies the property.
+
+### Hosting
 
 Set the host's build command to `npm run build`, root to `landing`, output to
 `dist`, and environment variable `SITE_URL` to the final URL. No SPA rewrite
@@ -50,7 +67,9 @@ Submit the generated sitemap to search engines after deployment.
 - `assets/social.png`: 1200 × 630 social preview.
 - `build.mjs`: dependency-free static build and domain-dependent SEO metadata.
 
-No external fonts, trackers, runtime packages, or API calls are loaded. The
+No external fonts, runtime packages, or API calls are loaded. The only external
+script is GA4, and only on a production build — a preview or pull request build
+carries no tracker at all (see Analytics and Search Console above). The
 terminal uses illustrative data; it does not connect to a Canvas account.
 Core content, the default command examples, installation, and FAQ remain
 readable without JS. Alternate demos and filtering require JavaScript.

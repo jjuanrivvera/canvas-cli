@@ -43,8 +43,13 @@ jobs:
         run: npm run build
         env:
           SITE_URL: https://canvas-cli.jjuanrivvera.com/
+          # Falls back to the fleet-wide key so the landing works before a
+          # landing-specific GA4 data stream exists.
+          GOOGLE_ANALYTICS_KEY: ${{ vars.GOOGLE_ANALYTICS_LANDING_KEY || vars.GOOGLE_ANALYTICS_KEY }}
       - name: Verify production metadata
         run: node tools/check-production.mjs
+        env:
+          GOOGLE_ANALYTICS_KEY: ${{ vars.GOOGLE_ANALYTICS_LANDING_KEY || vars.GOOGLE_ANALYTICS_KEY }}
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: landing-site
