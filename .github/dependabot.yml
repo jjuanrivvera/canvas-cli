@@ -4,6 +4,9 @@ version: 2
 updates:
   - package-ecosystem: github-actions
     directory: /
+    # develop is the integration branch; without this dependabot targets the default
+    # branch (main) and every bump leaves develop behind.
+    target-branch: develop
     schedule:
       interval: weekly
     groups:
@@ -12,6 +15,9 @@ updates:
 
   - package-ecosystem: gomod
     directory: /
+    # develop is the integration branch; without this dependabot targets the default
+    # branch (main) and every bump leaves develop behind.
+    target-branch: develop
     schedule:
       interval: weekly
     groups:
