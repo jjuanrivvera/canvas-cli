@@ -11,3 +11,8 @@ jobs:
   release:
     uses: jjuanrivvera/.github/.github/workflows/go-release.yml@main
     secrets: inherit
+    with:
+      # This repo is git-flow: releases are tagged on develop, so without this
+      # main never advances past the release before it. v1.15.0 was cut on
+      # develop and main stayed on v1.14.0, which is what froze its badges.
+      promote-main: true
