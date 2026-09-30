@@ -24,6 +24,8 @@
   <a href="https://jjuanrivvera.github.io/canvas-cli/commands/"><strong>Commands</strong></a>
 </p>
 
+![canvas in action](assets/demo.gif)
+
 ---
 
 ## Features
