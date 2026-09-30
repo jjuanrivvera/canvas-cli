@@ -32,7 +32,7 @@ Type `sleep 1; kill -0 "$demo_server_pid"`
 Enter
 Type `printf "settings: {}\n" >"$XDG_CONFIG_HOME/config.yaml"`
 Enter
-Type `alias canvas='env -i PATH="$PATH" XDG_CONFIG_HOME="$XDG_CONFIG_HOME" XDG_CACHE_HOME="$XDG_CONFIG_HOME/cache" CANVAS_URL="$CANVAS_URL" CANVAS_TOKEN="$CANVAS_TOKEN" canvas --config "$XDG_CONFIG_HOME/config.yaml" --no-cache'`
+Type `alias canvas='env -i PATH="$PATH" XDG_CONFIG_HOME="$XDG_CONFIG_HOME" XDG_CACHE_HOME="$XDG_CONFIG_HOME/cache" CANVAS_URL="$CANVAS_URL" CANVAS_TOKEN="$CANVAS_TOKEN" canvas --config "$XDG_CONFIG_HOME/config.yaml" --no-cache --quiet'`
 Enter
 Type "clear"
 Enter

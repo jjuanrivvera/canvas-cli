@@ -3,6 +3,7 @@ package commands
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"os"
 	"time"
 
@@ -64,6 +65,15 @@ Examples:
 	SilenceUsage:  true,
 	SilenceErrors: true,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		// --quiet promises to suppress informational messages. The commands
+		// honour it for what they print, but the packages under internal/ log
+		// through slog's default logger, which writes every Info record to
+		// stderr — so the flag has to raise that floor as well, or a run asked
+		// to be quiet still narrates itself (for instance the Canvas version
+		// probe, which announces what it found on the first request).
+		if quiet {
+			slog.SetDefault(slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelWarn})))
+		}
 		if disableAutoUpdate {
 			return
 		}
