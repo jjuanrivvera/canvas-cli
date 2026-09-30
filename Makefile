@@ -1,4 +1,4 @@
-.PHONY: help build test test-integration clean install uninstall fmt lint vet run deps setup-hooks docs-gen docs-serve docs-build docs-deploy spec-sync spec-coverage
+.PHONY: help verify cover-check build test test-integration clean install uninstall fmt lint vet run deps setup-hooks docs-gen docs-serve docs-build docs-deploy spec-sync spec-coverage
 
 # Variables
 BINARY_NAME=canvas
@@ -7,6 +7,10 @@ COMMIT=$(shell git rev-parse --short HEAD 2>/dev/null || echo "none")
 BUILD_DATE=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 LDFLAGS=-ldflags "-X main.Version=$(VERSION) -X main.Commit=$(COMMIT) -X main.BuildDate=$(BUILD_DATE)"
 
+# The coverage floor. It is the same number as .github/workflows/ci.yml, and it
+# is a ratchet: raise it as coverage grows, never lower it.
+COVER_MIN?=80
+
 # Default target
 help:
 	@echo "Canvas CLI - Makefile targets:"
@@ -14,6 +18,7 @@ help:
 	@echo "  make build        - Build the binary"
 	@echo "  make install      - Install the binary to /usr/local/bin"
 	@echo "  make uninstall    - Remove the binary from /usr/local/bin"
+	@echo "  make verify       - The gate: everything check runs, plus the coverage floor"
 	@echo "  make check        - Run everything CI runs: fmt-check, vet, lint, gosec, tests, integration"
 	@echo "  make test         - Run tests"
 	@echo "  make test-integration - Run binary-level integration tests"
@@ -56,6 +61,17 @@ uninstall:
 	@echo "Removing $(BINARY_NAME) from /usr/local/bin..."
 	@sudo rm -f /usr/local/bin/$(BINARY_NAME)
 	@echo "✓ Uninstalled"
+
+# The fleet gate. A change is done when `make verify` exits 0: everything CI
+# enforces, including the coverage floor, which `check` alone does not measure.
+verify: check cover-check
+	@echo "✓ verify"
+
+cover-check:
+	@echo "Measuring coverage..."
+	@go test -coverprofile=coverage.out ./... > /dev/null
+	@total=$$(go tool cover -func=coverage.out | awk '/^total:/ {print $$3}' | tr -d '%'); \
+	awk -v t="$$total" -v min="$(COVER_MIN)" 'BEGIN { if (t+0 < min+0) { printf "✗ coverage %.1f%% < %s%%\n", t, min; exit 1 } printf "✓ coverage %.1f%% ≥ %s%%\n", t, min }'
 
 # Run everything CI runs, locally
 check: vet lint
