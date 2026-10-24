@@ -2,7 +2,7 @@ module github.com/jjuanrivvera/canvas-cli
 
 // CI reads this via actions/setup-go (go-version-file: go.mod), which honors
 // the go directive but not a toolchain directive. Keep this on the latest
-// 1.25.x patch — the blocking govulncheck job fails on stdlib vulnerabilities
+// 1.26.x patch — the blocking govulncheck job fails on stdlib vulnerabilities
 // fixed in patch releases.
 go 1.26.10
 
