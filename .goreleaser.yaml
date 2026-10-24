@@ -171,10 +171,16 @@ homebrew_casks:
     homepage: "https://github.com/jjuanrivvera/canvas-cli"
     description: "A powerful command-line interface for Canvas LMS"
     # Strip the macOS quarantine xattr so the unsigned CLI binary runs without a Gatekeeper prompt.
-    hooks:
-      post:
-        install: |
-          system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/canvas"]
+    # Homebrew deprecated `postflight` (every `brew` run warns), so this is a `postflight_steps`
+    # custom_block instead of hooks.post.install. GoReleaser templates the whole cask, hence the
+    # escaped Homebrew token. Once GoReleaser >= 2.19 ships, this can move to
+    # hooks.post.install_steps with `{{ .StagedPath }}`.
+    custom_block: |
+      postflight_steps do
+        on_macos do
+          run "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "{{ "{{staged_path}}" }}/canvas"]
+        end
+      end
 
 scoops:
   # The bucket repo (scoop-canvas-cli) must already exist; GoReleaser pushes the manifest
