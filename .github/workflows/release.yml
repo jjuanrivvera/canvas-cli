@@ -1,5 +1,11 @@
 # Release — delegates to the fleet-canonical reusable release workflow in jjuanrivvera/.github.
 # Change release-pipeline policy there, not here. The .goreleaser.yaml config stays per-repo.
+#
+# go-release.yml stays on @main on purpose (same reason as go-ci.yml): cosign,
+# syft, and GoReleaser live in the fleet workflow, and a SHA pin here would
+# freeze that pipeline. Caller job permissions are the ceiling the called
+# workflow is allowed to use — they must cover what go-release.yml requests
+# (GitHub release, GHCR, cosign OIDC, and the promote-main fast-forward).
 name: Release
 
 on:
@@ -7,8 +13,15 @@ on:
     tags: ["v*"]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   release:
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
     uses: jjuanrivvera/.github/.github/workflows/go-release.yml@main
     secrets: inherit
     with:

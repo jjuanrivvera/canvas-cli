@@ -1,0 +1,56 @@
+# Publishes OpenSSF Scorecard results (badge + code scanning).
+#
+# publish_results: true is rejected unless this file stays inside Scorecard's
+# workflow restrictions (https://github.com/ossf/scorecard-action#workflow-restrictions):
+# no top-level env or defaults, no top-level write permissions, id-token: write
+# only on the analysis job, and steps drawn only from the approved action list
+# (actions/checkout, ossf/scorecard-action, actions/upload-artifact,
+# github/codeql-action/upload-sarif).
+name: Scorecard analysis
+
+on:
+  push:
+    # Publishing is supported on the default branch only.
+    branches: [main]
+  schedule:
+    # Weekly, off the hour.
+    - cron: "23 4 * * 2"
+
+permissions: read-all
+
+jobs:
+  analysis:
+    name: Scorecard analysis
+    runs-on: ubuntu-latest
+    permissions:
+      # Needed to upload SARIF to code scanning.
+      security-events: write
+      # Needed for the OIDC token when publish_results is true.
+      id-token: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Run analysis
+        uses: ossf/scorecard-action@fa7117db83c52d787ae5a89f350999701505d78e # v2.5.0
+        with:
+          results_file: results.sarif
+          results_format: sarif
+          # Replaces the Scorecard team's weekly scan of this repo with ours,
+          # which is what the README badge reads.
+          publish_results: true
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: SARIF file
+          path: results.sarif
+          retention-days: 5
+
+      - name: Upload to code-scanning
+        uses: github/codeql-action/upload-sarif@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
+        with:
+          sarif_file: results.sarif
