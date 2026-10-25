@@ -11,9 +11,10 @@ on:
       - 'CHANGELOG.md'
   workflow_dispatch:
 
+# mkdocs gh-deploy pushes the gh-pages branch, so contents: write stays on the
+# job. Top-level stays read-only; a new job must opt into any write it needs.
 permissions:
-  contents: write
-  pages: write
+  contents: read
 
 env:
   GOOGLE_ANALYTICS_KEY: ${{ vars.GOOGLE_ANALYTICS_KEY }}
@@ -21,13 +22,15 @@ env:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
 
       - name: Set up Go
-        uses: actions/setup-go@v7
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: go.mod
 
@@ -39,7 +42,7 @@ jobs:
         run: cp CHANGELOG.md docs/changelog.md
 
       - name: Set up Python
-        uses: actions/setup-python@v7
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: '3.11'
 
