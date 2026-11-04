@@ -6,8 +6,8 @@ Only the latest minor release line receives security fixes.
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 1.12.x  | :white_check_mark: |
-| < 1.12  | :x:                |
+| 1.15.x  | :white_check_mark: |
+| < 1.15  | :x:                |
 
 ## Reporting a Vulnerability
 
@@ -16,7 +16,7 @@ We take security seriously. If you discover a security vulnerability, please rep
 ### How to Report
 
 1. **Do NOT** open a public GitHub issue for security vulnerabilities
-2. Email security concerns to the maintainers via GitHub's private vulnerability reporting
+2. Report it privately through [GitHub Security Advisories](https://github.com/jjuanrivvera/canvas-cli/security/advisories/new) (private vulnerability reporting)
 3. Include as much detail as possible:
    - Description of the vulnerability
    - Steps to reproduce
@@ -56,9 +56,11 @@ Canvas CLI stores authentication tokens securely:
 
 This project uses automated security tools:
 
-- **gosec**: Static analysis for security issues
-- **govulncheck**: Dependency vulnerability scanning
-- **Dependabot**: Automated dependency updates
+- **gosec**: Static analysis for security issues (blocking in CI)
+- **govulncheck**: Dependency vulnerability scanning (blocking in CI)
+- **CodeQL**: Go code scanning, published to GitHub code scanning
+- **OpenSSF Scorecard**: supply-chain checks, published weekly from the default branch
+- **Dependabot**: Automated dependency updates for Go modules, GitHub Actions, and the landing site's npm devDependencies
 
 ## Dependencies
 

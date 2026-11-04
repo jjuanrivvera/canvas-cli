@@ -1,5 +1,10 @@
-# Keeps GitHub Actions and Go dependencies current. SECURITY.md advertises
-# automated dependency updates — this config is what delivers them.
+# Keeps GitHub Actions, Go modules, and the landing site's npm devDependencies
+# current. SECURITY.md advertises automated dependency updates — this config is
+# what delivers them.
+#
+# github-actions rewrites SHA-pinned actions, including the "# vX.Y.Z" comment
+# on the same line. Floating branch refs (the fleet workflows on @main) are not
+# bumped; those stay on @main so fleet policy rolls out without a pin update.
 version: 2
 updates:
   - package-ecosystem: github-actions
@@ -22,4 +27,15 @@ updates:
       interval: weekly
     groups:
       go-deps:
+        patterns: ["*"]
+
+  - package-ecosystem: npm
+    directory: /landing
+    # develop is the integration branch; without this dependabot targets the default
+    # branch (main) and every bump leaves develop behind.
+    target-branch: develop
+    schedule:
+      interval: weekly
+    groups:
+      landing-npm:
         patterns: ["*"]
