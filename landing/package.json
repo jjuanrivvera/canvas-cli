@@ -11,8 +11,8 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.14.0",
-    "@playwright/test": "^1.65.0",
-    "netlify-cli": "27.16.2"
+    "@playwright/test": "^1.65.1",
+    "netlify-cli": "27.19.0"
   },
   "overrides": {
     "sharp": "^0.35.5",
